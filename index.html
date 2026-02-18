@@ -3,46 +3,130 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>tomoponzの秘密基地</title>
+  <title>tomoponz｜プロフィール</title>
+  <meta name="description" content="友達に見せるネタ用プロフィール（RPG風）">
   <style>
-    body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;background:#0b0f19;color:#e8eefc;line-height:1.7}
+    :root{
+      --bg:#0b0f19; --card:rgba(255,255,255,.04);
+      --bd:rgba(255,255,255,.12); --tx:#e8eefc; --mut:rgba(232,238,252,.78);
+      --good:#7CFFB2; --warn:#FFD27C; --bad:#FF7C7C;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;background:var(--bg);color:var(--tx);line-height:1.7}
+    a{color:inherit}
     .wrap{max-width:980px;margin:0 auto;padding:42px 18px}
-    .card{border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:22px;background:rgba(255,255,255,.04)}
-    h1{margin:0 0 10px;font-size:30px}
-    .muted{opacity:.8}
-    .grid{display:grid;gap:12px;margin-top:14px}
-    @media (min-width:860px){.grid{grid-template-columns:repeat(3,1fr)}}
-    .mini{border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px;background:rgba(255,255,255,.03)}
-    button{padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:transparent;color:inherit;cursor:pointer}
-    button:hover{background:rgba(255,255,255,.06)}
-    .footer{margin-top:18px;font-size:12px;opacity:.7}
+    .top{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+    .badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--bd);background:var(--card);border-radius:999px;padding:6px 12px;color:var(--mut);font-size:13px}
+    .dot{width:10px;height:10px;border-radius:50%;background:var(--good)}
+    .card{border:1px solid var(--bd);border-radius:18px;background:var(--card);padding:20px}
+    h1{margin:0;font-size:28px;letter-spacing:.02em}
+    .sub{margin:6px 0 0;color:var(--mut)}
+    .grid{display:grid;gap:12px;margin-top:12px}
+    @media (min-width:900px){.grid{grid-template-columns:1.3fr .7fr}}
+    .miniGrid{display:grid;gap:12px}
+    @media (min-width:900px){.miniGrid{grid-template-columns:repeat(2,1fr)}}
+    .mini{border:1px solid var(--bd);border-radius:16px;background:rgba(255,255,255,.03);padding:14px}
+    h2{margin:0 0 8px;font-size:16px}
+    .muted{color:var(--mut);font-size:14px}
+    .kpi{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .pill{border:1px solid var(--bd);border-radius:999px;padding:6px 10px;font-size:13px;color:var(--mut);background:rgba(255,255,255,.03)}
+    .bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid var(--bd);overflow:hidden}
+    .bar > i{display:block;height:100%;width:60%}
+    .bar.hp > i{background:var(--good);width:85%}
+    .bar.mp > i{background:var(--warn);width:18%}
+    .bar.exp > i{background:#7CCBFF;width:42%}
+    .rows{display:grid;gap:10px}
+    .row{display:grid;grid-template-columns:70px 1fr;gap:10px;align-items:center}
     code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:8px}
+    button{
+      padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.2);
+      background:transparent;color:inherit;cursor:pointer
+    }
+    button:hover{background:rgba(255,255,255,.06)}
+    .footer{margin-top:18px;font-size:12px;color:var(--mut)}
+    .danger{color:var(--bad)}
+    .ok{color:var(--good)}
   </style>
 </head>
 <body>
   <div class="wrap">
+
+    <div class="top">
+      <span class="badge"><span class="dot"></span> オンライン：気分次第</span>
+      <span class="badge">目的：友達に見せるネタ</span>
+      <span class="badge">Lv.<span id="lv">17</span></span>
+    </div>
+
     <div class="card">
-      <div class="muted">⚠️ 友達に見せるネタ用サイト（工事中）</div>
-      <h1>tomoponzの秘密基地</h1>
-      <p class="muted">ここは「試作品・小ネタ・黒歴史」を置く場所。入場は自己責任。</p>
+      <h1>tomoponz（仮名）</h1>
+      <p class="sub">「最小の努力で最大の成果」…に見せかけて、裏でゴリゴリやるタイプ。</p>
+
+      <div class="kpi">
+        <span class="pill">属性：<strong>理系</strong></span>
+        <span class="pill">職業：<strong>学生</strong></span>
+        <span class="pill">称号：<strong>締切前覚醒</strong></span>
+        <span class="pill">弱点：<strong class="danger">眠気</strong></span>
+      </div>
 
       <div class="grid">
-        <div class="mini">
-          <strong>今日の一言</strong>
-          <p id="quote" class="muted">読み込み中…</p>
-          <button onclick="nextQuote()">更新</button>
+        <div class="miniGrid">
+          <div class="mini">
+            <h2>ステータス</h2>
+            <div class="rows">
+              <div class="row"><div class="muted">HP</div><div class="bar hp"><i></i></div></div>
+              <div class="row"><div class="muted">MP</div><div class="bar mp"><i></i></div></div>
+              <div class="row"><div class="muted">EXP</div><div class="bar exp"><i></i></div></div>
+            </div>
+            <p class="muted" style="margin:10px 0 0">スキル：<code>徹夜デバッグ</code> / <code>一夜漬け加速</code> / <code>謎の集中</code></p>
+          </div>
+
+          <div class="mini">
+            <h2>最近のログ</h2>
+            <ul class="muted" style="margin:0;padding-left:18px">
+              <li>サイトを作った（えらい）</li>
+              <li>友達に見せるネタを準備中</li>
+              <li>たまに真面目モードに変身</li>
+            </ul>
+          </div>
+
+          <div class="mini">
+            <h2>好き / 苦手</h2>
+            <p class="muted" style="margin:0">
+              好き：物理 / プログラミング / シュール系<br>
+              苦手：無意味な待ち時間 / 眠気 / 連絡の遅延
+            </p>
+          </div>
+
+          <div class="mini">
+            <h2>今日の一言（ランダム）</h2>
+            <p id="quote" class="muted" style="margin:0 0 10px">読み込み中…</p>
+            <button onclick="nextQuote()">更新</button>
+          </div>
         </div>
+
         <div class="mini">
-          <strong>ステータス</strong>
-          <p class="muted">HP: 999 / MP: 1<br>特技: <code>徹夜デバッグ</code></p>
-        </div>
-        <div class="mini">
-          <strong>リンク</strong>
-          <p class="muted">ここにSNSや作品リンクを置ける（置かなくてもOK）。</p>
+          <h2>友達向けメニュー</h2>
+          <p class="muted">ここはリンク集にすると便利。必要なら後でページを増やせる。</p>
+
+          <ul class="muted" style="padding-left:18px;margin:0">
+            <li><a href="#" onclick="alert('まだ工事中です');return false;">黒歴史フォルダ（閲覧注意）</a></li>
+            <li><a href="#" onclick="alert('準備中：診断メーカー風ページ');return false;">診断：あなたは何属性？</a></li>
+            <li><a href="#" onclick="alert('準備中：ホラー風ページ');return false;">深夜閲覧推奨ページ</a></li>
+          </ul>
+
+          <hr style="border:none;border-top:1px solid var(--bd);margin:14px 0">
+
+          <p class="muted">
+            連絡先を置くなら：<br>
+            <span class="ok">※メールは公開しないのが安全</span><br>
+            必要ならSNSリンクだけ貼る。
+          </p>
         </div>
       </div>
 
-      <div class="footer">© tomoponz / powered by GitHub Pages</div>
+      <div class="footer">
+        © tomoponz / Powered by GitHub Pages
+      </div>
     </div>
   </div>
 
@@ -52,7 +136,9 @@
       "最強の魔法：締切の48時間前着手",
       "勝ち筋：小さく作って公開して育てる",
       "バグは敵じゃない、イベントだ",
-      "眠いときは、寝る（例外：ない）"
+      "眠いときは寝る（例外：締切前）",
+      "やる気は後からついてくる。まず着手。",
+      "今の自分に勝つ。過去の自分は倒した。"
     ];
     function nextQuote(){
       const i = Math.floor(Math.random()*quotes.length);
