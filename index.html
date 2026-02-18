@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>tomoponzの秘密基地</title>
+  <style>
+    body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;background:#0b0f19;color:#e8eefc;line-height:1.7}
+    .wrap{max-width:980px;margin:0 auto;padding:42px 18px}
+    .card{border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:22px;background:rgba(255,255,255,.04)}
+    h1{margin:0 0 10px;font-size:30px}
+    .muted{opacity:.8}
+    .grid{display:grid;gap:12px;margin-top:14px}
+    @media (min-width:860px){.grid{grid-template-columns:repeat(3,1fr)}}
+    .mini{border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px;background:rgba(255,255,255,.03)}
+    button{padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:transparent;color:inherit;cursor:pointer}
+    button:hover{background:rgba(255,255,255,.06)}
+    .footer{margin-top:18px;font-size:12px;opacity:.7}
+    code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="muted">⚠️ 友達に見せるネタ用サイト（工事中）</div>
+      <h1>tomoponzの秘密基地</h1>
+      <p class="muted">ここは「試作品・小ネタ・黒歴史」を置く場所。入場は自己責任。</p>
+
+      <div class="grid">
+        <div class="mini">
+          <strong>今日の一言</strong>
+          <p id="quote" class="muted">読み込み中…</p>
+          <button onclick="nextQuote()">更新</button>
+        </div>
+        <div class="mini">
+          <strong>ステータス</strong>
+          <p class="muted">HP: 999 / MP: 1<br>特技: <code>徹夜デバッグ</code></p>
+        </div>
+        <div class="mini">
+          <strong>リンク</strong>
+          <p class="muted">ここにSNSや作品リンクを置ける（置かなくてもOK）。</p>
+        </div>
+      </div>
+
+      <div class="footer">© tomoponz / powered by GitHub Pages</div>
+    </div>
+  </div>
+
+  <script>
+    const quotes = [
+      "今日の目標：『1mmでも前進』",
+      "最強の魔法：締切の48時間前着手",
+      "勝ち筋：小さく作って公開して育てる",
+      "バグは敵じゃない、イベントだ",
+      "眠いときは、寝る（例外：ない）"
+    ];
+    function nextQuote(){
+      const i = Math.floor(Math.random()*quotes.length);
+      document.getElementById("quote").textContent = quotes[i];
+    }
+    nextQuote();
+  </script>
+</body>
+</html>
