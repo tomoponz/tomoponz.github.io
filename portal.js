@@ -1,16 +1,10 @@
-// portal.js（堅牢版：Wikipedia(ja) + OSM / Door→Warp / ログ / トグル / コナミ）
-// - door.html: ドア演出 → warp.html へ
-// - warp.html: 選ばれた場所を表示（Wikipedia要約 + 画像 + 地図）
-// - kuro.html: 「黒歴史」専用表示（kuro:true の候補からランダム）
-// - Wikipedia取得は REST→MediaWiki API→検索補正→proxy(allorigins) の多段フォールバック
-// - Konami command (↑↑↓↓←→←→BA) で kuro.html に即ワープ
-// - places.js の各要素：
-//   { wikiTitle, lat, lng } or { kuro:true, kuroTitle, kuroText, kuroLink, kuroImg?, lat?, lng? }
+// portal.js（互換強化版：Wikipedia(ja) + OSM / Door→Warp / ログ / トグル / コナミ）
+// - warp.html の構造（imgBox / imgPh / warpLogList / onclick warpAgain）に対応
+// - 2026/02/20: 野獣邸ヒット時のカオス演出（glitch-mode）
 
 (() => {
   "use strict";
-
-  console.log("[portal.js] loaded");
+  console.log("[portal.js] loaded (compat)");
 
   // =====================
   // Config
@@ -23,7 +17,7 @@
   const PROXY_RAW = "https://api.allorigins.win/raw?url=";
 
   const WARP_INDEX_KEY = "warp_place_index"; // sessionStorage
-  const WARP_LOG_KEY = "warp_log_v1";        // localStorage
+  const WARP_LOG_KEY = "warp_log_v1";         // localStorage
 
   const FX_SOUND_KEY = "fx_sound_v1";
   const FX_PARTICLES_KEY = "fx_particles_v1";
@@ -50,6 +44,10 @@
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#039;");
   }
+  function escapeAttr(s) {
+    // href等に入れる用（最小）
+    return String(s).replaceAll(`"`, "&quot;").replaceAll(`'`, "&#039;");
+  }
 
   function toWikiSlug(title) {
     return encodeURIComponent(String(title).replaceAll(" ", "_"));
@@ -61,13 +59,28 @@
     return `${WIKI_HOST}/w/index.php?search=${encodeURIComponent(String(q))}`;
   }
 
+  function getConsoleEl() {
+    return $("warpConsole") || $("console");
+  }
+
   function log(line) {
-    const c = $("warpConsole") || $("console");
+    const c = getConsoleEl();
+    if (c) c.textContent += (c.textContent ? "\n" : "") + line;
+    else console.log(line);
+  }
+
+  // =====================
+  // Chaotic Effect (野獣邸専用)
+  // =====================
+  function triggerChaoticEffect() {
+    document.body.classList.add("glitch-mode");
+
+    const c = getConsoleEl();
     if (c) {
-      c.textContent += (c.textContent ? "\n" : "") + line;
-    } else {
-      console.log(line);
+      // textContent ベースで崩れないように先頭に追記
+      c.textContent = `WARNING: CHAOTIC SPACE DETECTED\n` + (c.textContent || "");
     }
+    console.warn("イキスギィ！！！");
   }
 
   // =====================
@@ -112,19 +125,36 @@
     saveWarpLog(arr);
   }
 
-  function renderWarpLogShort() {
-    const ul = $("warpLogShort");
-    if (!ul) return;
+  function renderWarpLogs() {
+    const ulShort = $("warpLogShort");
+    const ulList = $("warpLogList");
 
-    const arr = loadWarpLog().slice(0, 6);
-    ul.innerHTML = arr.length
-      ? arr.map(x => `<li>${escapeHtml(x.title)} <span class="muted">(${escapeHtml(x.time)})</span></li>`).join("")
-      : `<li class="muted">まだログなし</li>`;
+    const arr = loadWarpLog();
+    if (ulShort) {
+      const a = arr.slice(0, 6);
+      ulShort.innerHTML = a.length
+        ? a.map(x => `<li>${escapeHtml(x.title)} <span class="muted">(${escapeHtml(x.time)})</span></li>`).join("")
+        : `<li class="muted">まだログなし</li>`;
+    }
+
+    if (ulList) {
+      const a = arr.slice(0, 20);
+      ulList.innerHTML = a.length
+        ? a.map(x => {
+            const url = x.url || "#";
+            const safeUrl = escapeAttr(url);
+            return `<li>
+              <a href="${safeUrl}" target="_blank" rel="noopener">${escapeHtml(x.title)}</a>
+              <span class="muted">(${escapeHtml(x.time)})</span>
+            </li>`;
+          }).join("")
+        : `<li class="muted">まだログなし</li>`;
+    }
   }
 
   window.clearWarpLog = function () {
     localStorage.removeItem(WARP_LOG_KEY);
-    renderWarpLogShort();
+    renderWarpLogs();
     alert("ログ消した。");
   };
 
@@ -191,6 +221,7 @@
     const rect = canvas.getBoundingClientRect();
     canvas.width = Math.max(1, Math.floor(rect.width * dpr));
     canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+    ctx.setTransform(1,0,0,1,0,0);
     ctx.scale(dpr, dpr);
 
     const W = rect.width, H = rect.height;
@@ -199,10 +230,8 @@
       const a = Math.random() * Math.PI * 2;
       const sp = 0.6 + Math.random() * 2.2;
       return {
-        x: W / 2,
-        y: H / 2,
-        vx: Math.cos(a) * sp,
-        vy: Math.sin(a) * sp,
+        x: W / 2, y: H / 2,
+        vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
         r: 1 + Math.random() * 2,
         life: 40 + Math.random() * 30
       };
@@ -215,10 +244,8 @@
       ctx.globalAlpha = 0.9;
 
       parts.forEach(p => {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vx *= 0.985;
-        p.vy *= 0.985;
+        p.x += p.vx; p.y += p.vy;
+        p.vx *= 0.985; p.vy *= 0.985;
         p.life -= 1;
 
         if (p.life > 0) {
@@ -333,27 +360,18 @@
   }
 
   function normalizeFromRest(js, fallbackTitle) {
-    // REST summary shape: { title, displaytitle, extract, thumbnail{source}, content_urls{desktop{page}} ... }
     const title = js?.title || fallbackTitle;
     const extract = js?.extract || "";
     const thumb = js?.thumbnail?.source || null;
     const url = js?.content_urls?.desktop?.page || wikiPageUrl(title);
 
-    return {
-      title,
-      extract,
-      thumbnail: thumb,
-      pageUrl: url,
-      ok: Boolean(title)
-    };
+    return { title, extract, thumbnail: thumb, pageUrl: url, ok: Boolean(title) };
   }
 
-  // 止まらない wiki 取得
   async function getWikiDataSmart(inputTitle) {
     const original = String(inputTitle || "").trim();
     if (!original) throw new Error("empty title");
 
-    // 0) REST 直
     try {
       log(`wiki(rest direct): ${original}`);
       const js = await restSummary(original, { proxy: false });
@@ -362,7 +380,6 @@
       log(`rest direct failed: ${e1.message}`);
     }
 
-    // 1) REST proxy
     try {
       log(`wiki(rest proxy): ${original}`);
       const js = await restSummary(original, { proxy: true });
@@ -371,7 +388,6 @@
       log(`rest proxy failed: ${e2.message}`);
     }
 
-    // 2) search title correction (direct → proxy)
     let best = null;
     try {
       log(`wiki(search direct): ${original}`);
@@ -391,7 +407,6 @@
 
     const corrected = best || original;
 
-    // 3) MediaWiki extracts (direct → proxy)
     try {
       log(`wiki(mw direct): ${corrected}`);
       const data = await fetchViaMediaWiki(corrected, { proxy: false });
@@ -410,7 +425,6 @@
       log(`mw proxy failed: ${e6.message}`);
     }
 
-    // 4) give up (but still return something usable)
     return {
       title: corrected,
       extract: "取得に失敗した。検索リンクから開け。",
@@ -421,7 +435,7 @@
   }
 
   // =====================
-  // OSM Map
+  // OSM Map (warp.html の CSS(mapBox iframe 100%) に合わせる)
   // =====================
   function setMap(lat, lng) {
     const mapBox = $("mapBox");
@@ -446,11 +460,7 @@
 
     const open = `https://www.openstreetmap.org/?mlat=${encodeURIComponent(lat)}&mlon=${encodeURIComponent(lng)}#map=16/${encodeURIComponent(lat)}/${encodeURIComponent(lng)}`;
 
-    mapBox.innerHTML = `
-      <div style="border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.18)">
-        <iframe src="${embed}" style="width:100%;height:300px;border:0" loading="lazy" referrerpolicy="no-referrer"></iframe>
-      </div>
-    `;
+    mapBox.innerHTML = `<iframe src="${embed}" loading="lazy" referrerpolicy="no-referrer"></iframe>`;
 
     if (mapLink) {
       mapLink.href = open;
@@ -475,31 +485,46 @@
     a.style.opacity = "1";
   }
 
+  // warp.html に合わせて「imgBox + .imgPh」を操作（placeImg が無くてもOK）
   function setImage(url) {
     const img = $("placeImg");
-    const ph = $("imgPh");
-    if (!img) return;
+    const box = $("imgBox");
+    const ph = $("imgPh") || box?.querySelector?.(".imgPh");
 
+    // 1) もし placeImg があれば優先
+    if (img) {
+      if (url) {
+        img.src = url;
+        img.style.display = "";
+        if (ph) ph.style.display = "none";
+      } else {
+        img.removeAttribute("src");
+        img.style.display = "none";
+        if (ph) ph.style.display = "";
+      }
+      return;
+    }
+
+    // 2) placeImg が無い場合、imgBox を直接差し替え
+    if (!box) return;
     if (url) {
-      img.src = url;
-      img.style.display = "";
-      if (ph) ph.style.display = "none";
+      box.innerHTML = `<img src="${escapeAttr(url)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block" loading="lazy" referrerpolicy="no-referrer">`;
     } else {
-      img.removeAttribute("src");
-      img.style.display = "none";
-      if (ph) ph.style.display = "";
+      box.innerHTML = `<div class="imgPh">画像なし</div>`;
     }
   }
 
   async function renderPlace(place, { recordLog = true } = {}) {
-    // targets: kuro.html + warp.html share these ids
+    // カオス判定（野獣邸）
+    if (place?.wikiTitle === "野獣邸") triggerChaoticEffect();
+    else document.body.classList.remove("glitch-mode");
+
     const titleEl = $("placeTitle");
     const descEl = $("placeDesc");
     const wikiA = $("wikiLink");
 
     if (!titleEl || !descEl) return;
 
-    // kuro:true は Wikipedia を呼ばない
     if (place?.kuro) {
       const t = place.kuroTitle || place.wikiTitle || "黒歴史";
       const d = place.kuroText || "黒歴史。";
@@ -509,7 +534,6 @@
       setLink(wikiA, place.kuroLink || "#");
       setImage(place.kuroImg || null);
 
-      // map optional
       setMap(
         typeof place.lat === "number" ? place.lat : null,
         typeof place.lng === "number" ? place.lng : null
@@ -517,32 +541,28 @@
 
       if (recordLog) {
         pushWarpLog({ title: t, time: new Date().toLocaleString(), url: place.kuroLink || "kuro.html" });
-        renderWarpLogShort();
+        renderWarpLogs();
       }
       return;
     }
 
-    // normal place → Wikipedia
     const wikiTitle = place?.wikiTitle || "メインページ";
     const data = await getWikiDataSmart(wikiTitle);
 
     titleEl.textContent = data.title || wikiTitle;
-
-    // extract short
     const excerpt = (data.extract || "").trim();
     descEl.textContent = excerpt ? excerpt : "説明の取得に失敗。リンクから開け。";
 
     setLink(wikiA, data.pageUrl || wikiPageUrl(wikiTitle));
     setImage(data.thumbnail || null);
 
-    // map if lat/lng present
     const lat = (typeof place.lat === "number") ? place.lat : null;
     const lng = (typeof place.lng === "number") ? place.lng : null;
     setMap(lat, lng);
 
     if (recordLog) {
       pushWarpLog({ title: data.title || wikiTitle, time: new Date().toLocaleString(), url: data.pageUrl || wikiPageUrl(wikiTitle) });
-      renderWarpLogShort();
+      renderWarpLogs();
     }
   }
 
@@ -559,30 +579,24 @@
     const fade = $("fade");
     const canvas = $("fxCanvas");
 
-    // pick place
     const { index } = pickRandomPlace();
     setCurrentPlaceIndex(index);
 
-    // animate
     if (wrap) wrap.classList.add("opening");
     if (fxParticlesOn()) burstParticles(canvas);
     if (fxSoundOn()) playClickSound();
 
-    // fade
     setTimeout(() => { if (fade) fade.classList.add("fadeIn"); }, 90);
-
-    // go
     setTimeout(() => { location.href = "warp.html"; }, 560);
   }
 
   function initDoor() {
     updateFxUI();
-    renderWarpLogShort();
+    renderWarpLogs();
 
     const btn = $("doorBtn");
     if (btn) btn.addEventListener("click", startDoorWarp);
 
-    // safety log
     if (!Array.isArray(window.PLACES) || !window.PLACES.length) {
       log("WARN: places.js が読めてない（PLACESが空）");
     }
@@ -591,10 +605,18 @@
   // =====================
   // warp.html behavior
   // =====================
+  function warpAgainImpl() {
+    const places = window.PLACES || [];
+    if (!places.length) return;
+    const p = pickRandomPlace(places);
+    setCurrentPlaceIndex(p.index);
+    location.reload();
+  }
+
   async function initWarp() {
     const places = window.PLACES || [];
     if (!places.length) {
-      log("ERR: PLACESが空。places.js を先に読み込め。");
+      log("ERR: PLACESが空。");
       return;
     }
 
@@ -609,25 +631,20 @@
       await renderPlace(places[idx], { recordLog: true });
     } catch (e) {
       log(`render failed: ${e.message}`);
-      // fallback: show search link
       const titleEl = $("placeTitle");
       const descEl = $("placeDesc");
       const wikiA = $("wikiLink");
       if (titleEl) titleEl.textContent = places[idx]?.wikiTitle || "Warp";
-      if (descEl) descEl.textContent = "表示に失敗。リンクから開け。";
+      if (descEl) descEl.textContent = "表示に失敗。";
       if (wikiA) setLink(wikiA, wikiSearchUrl(places[idx]?.wikiTitle || "Wikipedia"));
       setImage(null);
       setMap(null, null);
     }
 
+    // id="warpAgain" があるならイベント、無いなら onclick 用に window.warpAgain を提供
     const again = $("warpAgain");
-    if (again) {
-      again.addEventListener("click", () => {
-        const p = pickRandomPlace(places);
-        setCurrentPlaceIndex(p.index);
-        location.reload();
-      });
-    }
+    if (again) again.addEventListener("click", warpAgainImpl);
+    window.warpAgain = warpAgainImpl;
   }
 
   // =====================
@@ -637,16 +654,11 @@
     const places = window.PLACES || [];
     const kuroList = places.filter(p => p && p.kuro);
     if (!kuroList.length) {
-      log("kuro:true の候補が無い。places.js に追加しろ。");
-      const titleEl = $("placeTitle");
-      const descEl = $("placeDesc");
-      if (titleEl) titleEl.textContent = "黒歴史";
-      if (descEl) descEl.textContent = "kuro:true の候補が無い。";
+      log("kuro:true の候補が無い。");
       return;
     }
-
     const { place } = pickRandomPlace(kuroList);
-    await renderPlace(place, { recordLog: false }); // kuroページ自体はログ増やさない
+    await renderPlace(place, { recordLog: false });
   }
 
   // =====================
@@ -677,7 +689,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     initKonami();
     updateFxUI();
-    renderWarpLogShort();
+    renderWarpLogs();
 
     if (isDoorPage()) initDoor();
     if (isWarpPage()) initWarp();
