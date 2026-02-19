@@ -4,9 +4,24 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>tomoponz｜ネタ置き場</title>
-  <meta name="description" content="画像・文章・リンクなどを置くページ">
+  <meta name="description" content="好きな曲・ネタ・リンクなどを置くページ">
   <link rel="stylesheet" href="style.css">
   <script defer src="app.js"></script>
+  <style>
+    /* YouTube埋め込みを“ちゃんとそれっぽく” */
+    .video{
+      position:relative;
+      width:100%;
+      aspect-ratio:16/9;
+      border-radius:18px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.04);
+      box-shadow: 0 18px 60px rgba(0,0,0,.25);
+    }
+    .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+    .miniBtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  </style>
 </head>
 <body>
   <header class="nav">
@@ -28,33 +43,63 @@
   <main class="wrap">
     <section class="hero">
       <h1 class="h1">ネタ置き場</h1>
-      <p class="sub">画像を置かずとも「カード」にしてネタを積める。あとで画像に差し替へ可。</p>
-      <div class="note">画像を置くなら `assets/` フォルダ作って、そこへアップ → <code>&lt;img src="assets/xxx.png"&gt;</code> とするだけ。</div>
+      <p class="sub">ここに「好きな曲」「黒歴史」「作品」など、好きなだけ積める。</p>
+      <div class="note">画像を置くなら <code>assets/</code> フォルダを作ってアップ → <code>&lt;img src="assets/xxx.png"&gt;</code>。</div>
     </section>
 
     <section class="grid2">
       <div class="card">
-        <h2>🧪 小ネタ</h2>
-        <p class="muted">・「USアルティメット大吉」を引いた者、今日だけ神なり。</p>
-        <p class="muted">・凶多し。されどそれが味。</p>
-      </div>
+        <h2>🎧 好きな曲（プレイヤー）</h2>
+        <p class="muted">友達に“押し付け再生”できるコーナー。</p>
 
-      <div class="card">
-        <h2>🧩 作品リンク</h2>
+        <div class="video" aria-label="YouTube player">
+          <iframe
+            src="https://www.youtube.com/embed/7MaF-bWeLGw"
+            title="YouTube video player"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen>
+          </iframe>
+        </div>
+
+        <div class="miniBtns">
+          <a class="btn" href="https://www.youtube.com/watch?v=7MaF-bWeLGw" target="_blank" rel="noopener">YouTubeで開く</a>
+          <a class="btn" href="links.html">リンク集へ</a>
+        </div>
+
+        <hr class="sep">
+        <h2>🎵 好きな曲メモ（追加用）</h2>
         <ul class="list">
-          <li><a href="#" onclick="alert('ここにリンクを貼る');return false;">YouTube/Note/画像/何でも</a></li>
-          <li><a href="#" onclick="alert('ここにリンクを貼る');return false;">GitHubの別リポ</a></li>
+          <li>RADWIMPS - おしゃかしゃま</li>
+          <li>（ここに増やしていく）</li>
         </ul>
+
+        <div class="note" style="margin-top:12px">
+          ※「プレイリストを埋め込みたい」場合は、YouTubeのプレイリストURLにある <code>list=XXXX</code> が必要。
+        </div>
       </div>
 
       <div class="card">
-        <h2>📌 友達に言ひたいこと</h2>
-        <p class="muted">「怠けたい日もある。だがゼロは積まぬ。」</p>
+        <h2>🧪 小ネタ</h2>
+        <p class="muted">・USアルティメット大吉を引いた者、今日だけ神。</p>
+        <p class="muted">・凶が多い？ それが味。</p>
+        <hr class="sep">
+        <h2>📌 友達に言いたいこと</h2>
+        <p class="muted">「やる気がなくても、着手だけはできる。」</p>
       </div>
 
       <div class="card">
-        <h2>🖼️ 画像スロット（後で差し替へ）</h2>
-        <p class="muted">ここに画像を貼るとギャラリーになる。今はプレースホルダー。</p>
+        <h2>🧩 作品リンク（仮）</h2>
+        <ul class="list">
+          <li><a href="#" onclick="alert('ここに作品リンクを貼る');return false;">作品1（仮）</a></li>
+          <li><a href="#" onclick="alert('ここに作品リンクを貼る');return false;">作品2（仮）</a></li>
+        </ul>
+        <hr class="sep">
+        <p class="muted">リンクは <code>links.html</code> に集約してもOK。</p>
+      </div>
+
+      <div class="card">
+        <h2>🖼️ 画像スロット（後で差し替え）</h2>
+        <p class="muted">ここに画像を貼るとギャラリー化できる。今はプレースホルダー。</p>
         <div class="kpi">
           <span class="pill">📷 slot-1</span>
           <span class="pill">📷 slot-2</span>
