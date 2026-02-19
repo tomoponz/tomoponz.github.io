@@ -91,7 +91,6 @@ function playDoorSound(){
   const ctx = getAudioCtx();
   if(!ctx) return;
 
-  // short click + low sweep + airy noise
   const now = ctx.currentTime;
 
   // click
@@ -113,7 +112,6 @@ function playDoorSound(){
   const data = buf.getChannelData(0);
   for(let i=0;i<data.length;i++){
     const t = i / data.length;
-    // gentle shaped noise
     data[i] = (Math.random()*2-1) * Math.sin(Math.PI * t);
   }
   const src = ctx.createBufferSource();
@@ -142,7 +140,6 @@ function burstParticles(canvas){
   const ctx = canvas.getContext("2d");
   if(!ctx) return;
 
-  // fit canvas
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
   canvas.width = Math.floor(rect.width * dpr);
@@ -175,7 +172,7 @@ function burstParticles(canvas){
     for(const p of ps){
       p.life -= dt;
       if(p.life <= 0) continue;
-      p.vy += 240 * dt; // gravity
+      p.vy += 240 * dt;
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       p.vx *= Math.pow(0.94, dt*60);
@@ -190,11 +187,8 @@ function burstParticles(canvas){
     }
     ctx.globalAlpha = 1;
 
-    if(ps.some(p=>p.life>0)){
-      requestAnimationFrame(step);
-    }else{
-      ctx.clearRect(0,0,W,H);
-    }
+    if(ps.some(p=>p.life>0)) requestAnimationFrame(step);
+    else ctx.clearRect(0,0,W,H);
   }
   requestAnimationFrame(step);
 }
@@ -205,9 +199,7 @@ function loadLog(){
   try{ return JSON.parse(localStorage.getItem(LOG_KEY) || "[]"); }
   catch{ return []; }
 }
-function saveLog(list){
-  localStorage.setItem(LOG_KEY, JSON.stringify(list.slice(0, 40)));
-}
+function saveLog(list){ localStorage.setItem(LOG_KEY, JSON.stringify(list.slice(0, 40))); }
 function addLog(entry){
   const list = loadLog();
   list.unshift(entry);
@@ -358,7 +350,6 @@ async function renderWarp(){
     logConsole("Wikipedia FAIL\nLOG saved\nDONE");
   }
 
-  // warp page: remove fade if any
   setTimeout(() => fadeOut(), 80);
 }
 
