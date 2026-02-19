@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>tomoponz｜Secret Door</title>
+  <meta name="description" content="ドアをタップして世界へワープ（無料MVP）">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="app.js"></script>
+  <script defer src="places.js"></script>
+  <script defer src="portal.js"></script>
+  <style>
+    .stage{min-height: calc(100vh - 140px); display:grid; place-items:center; gap:14px}
+    .doorWrap{
+      width:min(420px, 92vw);
+      aspect-ratio: 3 / 4;
+      border-radius: 26px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+      box-shadow: 0 22px 80px rgba(0,0,0,.35);
+      overflow:hidden;
+      position:relative;
+    }
+    .door{
+      position:absolute; inset:0;
+      background:
+        radial-gradient(1200px 700px at 50% 20%, rgba(124,203,255,.18), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      display:grid; place-items:center;
+      cursor:pointer; user-select:none;
+      transition: transform .6s ease, filter .6s ease;
+      z-index:2;
+    }
+    .panel{
+      width:72%; height:82%;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.04);
+      box-shadow: inset 0 0 0 2px rgba(0,0,0,.12);
+      position:relative;
+    }
+    .knob{
+      position:absolute;
+      right:18px; top:50%;
+      transform: translateY(-50%);
+      width:18px;height:18px;border-radius:50%;
+      background: rgba(255,255,255,.75);
+      box-shadow: 0 0 18px rgba(255,255,255,.25);
+    }
+    .hint{
+      position:absolute; left:16px; right:16px; bottom:14px;
+      text-align:center;
+      color: rgba(234,241,255,.78);
+      font-size: 13px;
+      z-index:3;
+    }
+    .warpGlow{
+      position:absolute; inset:-30%;
+      background: radial-gradient(circle at 50% 50%, rgba(124,203,255,.35), transparent 55%);
+      opacity:0;
+      transition: opacity .6s ease;
+      pointer-events:none;
+      z-index:1;
+    }
+    #fxCanvas{position:absolute; inset:0; width:100%; height:100%; z-index:4; pointer-events:none}
+    #fade{
+      position:fixed; inset:0;
+      background:#000;
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .55s ease;
+      z-index:9999;
+    }
+    .opening .door{ transform: perspective(900px) rotateY(-22deg) translateX(-6%); filter: brightness(1.06); }
+    .opening .warpGlow{ opacity:1; }
+    .fadeIn{ opacity:1 !important; }
+
+    .miniRow{display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
+    .tiny{font-size:12px; color:rgba(234,241,255,.70)}
+  </style>
+</head>
+<body>
+  <div id="fade" aria-hidden="true"></div>
+
+  <header class="nav">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <b>tomoponz</b><br><small>Secret Door（無料）</small>
+      </div>
+    </div>
+    <nav class="navlinks">
+      <a class="chip" href="index.html">プロフィール</a>
+      <a class="chip" href="gallery.html">ネタ置き場</a>
+      <a class="chip" href="games.html">ゲーム</a>
+      <a class="chip" href="door.html">ドア</a>
+      <a class="chip" href="sv-door.html">Street View版</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1 class="h1">ドアをタップせよ</h1>
+      <p class="sub">押した瞬間、世界のどこかにワープする（鍵なし・無料MVP）。</p>
+      <div class="note tiny">演出：効果音／暗転／粒子／ワープログ（ローカル保存）</div>
+    </section>
+
+    <section class="stage">
+      <div class="doorWrap" id="doorWrap">
+        <div class="warpGlow"></div>
+        <canvas id="fxCanvas"></canvas>
+        <div class="door" id="doorBtn" role="button" aria-label="warp door">
+          <div class="panel"><div class="knob"></div></div>
+          <div class="hint">TAP / CLICK</div>
+        </div>
+      </div>
+
+      <div class="miniRow">
+        <button onclick="toggleFxSound()">効果音：<b id="fxSoundState">ON</b></button>
+        <button onclick="toggleFxParticles()">粒子：<b id="fxParticlesState">ON</b></button>
+        <button onclick="clearWarpLog()">ログ消去</button>
+      </div>
+    </section>
+
+    <section class="grid2">
+      <div class="card">
+        <h2>最近のワープ（ログ）</h2>
+        <ul class="list" id="warpLogShort"></ul>
+        <div class="note tiny">※ログはこの端末のブラウザに保存。友達には共有されない。</div>
+      </div>
+
+      <div class="card">
+        <h2>使い方（雑）</h2>
+        <ul class="list">
+          <li>ドア押せ。</li>
+          <li>ワープ先ページで「もう一回ワープ」押せ。</li>
+          <li>気に入ったら「地図で開く」。</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
