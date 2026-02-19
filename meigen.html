@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>tomoponz｜名言集</title>
+  <meta name="description" content="名言・迷言・決め台詞を検索/ランダム表示できるページ">
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* 既存の style.css があっても崩れない程度の最小追加 */
+    .wrap{max-width:1080px;margin:0 auto;padding:18px}
+    .hero{padding:18px;border:1px solid rgba(255,255,255,.10);border-radius:18px;background:rgba(255,255,255,.03)}
+    .h1{font-size:28px;letter-spacing:.5px}
+    .sub{color:rgba(234,241,255,.75)}
+    .grid2{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px}
+    @media (min-width:980px){.grid2{grid-template-columns:1.2fr .8fr}}
+    .card{padding:16px;border:1px solid rgba(255,255,255,.10);border-radius:18px;background:rgba(255,255,255,.03)}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    input,select,button,.btn{
+      border-radius:14px;border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.18);color:inherit;padding:10px 12px
+    }
+    button,.btn{cursor:pointer}
+    .btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none}
+    .pill{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);color:rgba(234,241,255,.78)}
+    .quoteBox{
+      border-radius:18px;border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.22);padding:14px
+    }
+    .quoteText{font-size:18px;line-height:1.7;white-space:pre-wrap}
+    .quoteMeta{margin-top:10px;color:rgba(234,241,255,.78);display:flex;gap:8px;flex-wrap:wrap}
+    .muted{color:rgba(234,241,255,.65)}
+    .list{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+    .qItem{
+      padding:12px;border-radius:16px;border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.03);cursor:pointer
+    }
+    .qItem:hover{background:rgba(255,255,255,.06)}
+    .qSmall{font-size:14px;line-height:1.6;white-space:pre-wrap}
+    .qSmallMeta{margin-top:6px;font-size:12px;color:rgba(234,241,255,.70);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+    .footer{margin-top:18px;color:rgba(234,241,255,.55);font-size:12px;text-align:center}
+  </style>
+</head>
+
+<body>
+  <header class="nav">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <b>tomoponz</b><br><small>名言集</small>
+      </div>
+    </div>
+
+    <!-- warp.html と同じ“全部入り”ナビに統合 -->
+    <nav class="navlinks">
+      <a class="chip" href="index.html">プロフィール</a>
+      <a class="chip" href="omikuji.html">おみくじ</a>
+      <a class="chip" href="shindan.html">診断</a>
+      <a class="chip" href="gallery.html">ネタ置き場</a>
+      <a class="chip" href="links.html">リンク</a>
+      <a class="chip" href="games.html">ゲーム</a>
+      <a class="chip" href="door.html">ドア</a>
+      <a class="chip" href="hachi.html">八百科事典</a>
+      <a class="chip" href="warp.html">Warp</a>
+      <a class="chip" href="meigen.html" aria-current="page">名言集</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1 class="h1" style="margin:0 0 6px">名言集</h1>
+      <p class="sub" style="margin:0 0 12px">検索 / 作品フィルタ / タグフィルタ / ランダム / コピー対応</p>
+
+      <div class="row">
+        <input id="qSearch" type="search" placeholder="検索（セリフ / キャラ / 作品）" style="min-width:260px;flex:1">
+        <select id="qWork">
+          <option value="">作品：すべて</option>
+        </select>
+        <select id="qTag">
+          <option value="">タグ：すべて</option>
+        </select>
+        <button id="btnRandom">ランダム</button>
+        <button id="btnCopy">コピー</button>
+        <span class="pill" id="countPill">0件</span>
+      </div>
+    </section>
+
+    <section class="grid2">
+      <div class="card">
+        <h2 style="margin:0 0 10px">スポットライト</h2>
+        <div class="quoteBox">
+          <div class="quoteText" id="spotText">読み込み中…</div>
+          <div class="quoteMeta" id="spotMeta"></div>
+        </div>
+        <p class="muted" style="margin:10px 0 0">※ 下のリストからクリックして切り替え可能</p>
+      </div>
+
+      <div class="card">
+        <h2 style="margin:0 0 10px">一覧</h2>
+        <ul class="list" id="qList"></ul>
+      </div>
+    </section>
+
+    <div class="footer">© tomoponz / Meigen</div>
+  </main>
+
+  <script>
+    // =========================
+    // データ（全部統合）
+    // =========================
+    const QUOTES = [
+      // --- ネット・バキ童・配信者 ---
+      { text:`バキバキ童貞です。`, work:`YouTube`, character:`ぐんぴぃ（バキ童）`, tags:[`自虐`,`ネットミーム`] },
+      { text:`童貞を殺す服じゃなくて、童貞が殺しに行く服だろ。`, work:`YouTube`, character:`ぐんぴぃ（バキ童）`, tags:[`自虐`,`正論`] },
+      { text:`ウィィィィィッス！どうもー、syamuでーす。`, work:`YouTube`, character:`syamu_game`, tags:[`挨拶`,`伝説`] },
+      { text:`参加者、誰一人来ませんでした……。`, work:`YouTube`, character:`syamu_game`, tags:[`悲哀`,`オフ会`] },
+      { text:`それってあなたの感想ですよね？`, work:`2ちゃんねる/配信`, character:`ひろゆき`, tags:[`論破`,`煽り`] },
+      { text:`なんだろう、嘘つくのやめてもらっていいですか？`, work:`2ちゃんねる/配信`, character:`ひろゆき`, tags:[`論破`,`煽り`] },
+      { text:`野菜食べてますか？`, work:`SNS/実業家`, character:`堀江貴文`, tags:[`煽り`,`健康`] },
+      { text:`手取り20万？お前が悪い。`, work:`SNS/実業家`, character:`堀江貴文`, tags:[`毒舌`,`シビア`] },
+      { text:`ひき肉です！`, work:`YouTube`, character:`ちょんまげ小僧`, tags:[`挨拶`,`流行`] },
+
+      // --- 政治・事件・インタビュー ---
+      { text:`今のままではいけないと思います。だからこそ、日本は今のままではいけないと思っている。`, work:`政治`, character:`小泉進次郎`, tags:[`構文`,`迷言`] },
+      { text:`反省していると言いながら、反省している色が見えない。というご指摘に対しまして、私自身の問題だと反省している。`, work:`政治`, character:`小泉進次郎`, tags:[`構文`,`迷言`] },
+      { text:`この日本を、変えたい！`, work:`政治`, character:`野々村竜太郎`, tags:[`叫び`,`謝罪会見`] },
+      { text:`働いたら負けだと思っている。`, work:`インタビュー`, character:`ニート君`, tags:[`哲学`,`伝説`] },
+      { text:`チャリで来た。`, work:`ネットミーム`, character:`チャリで来た少年`, tags:[`画像ネタ`,`伝説`] },
+      { text:`乗るしかない、このビッグウェーブに。`, work:`インタビュー`, character:`Butch`, tags:[`ポジティブ`,`伝説`] },
+      { text:`物売るっていうレベルじゃねぇぞ！`, work:`インタビュー`, character:`PS3行列の男`, tags:[`怒り`,`伝説`] },
+      { text:`あああああ！水素の音ォ〜！！`, work:`CM`, character:`水素水のお姉さん`, tags:[`迷言`,`聴覚破壊`] },
+      { text:`いいよ、来いよ。`, work:`ネット深淵`, character:`野獣先輩`, tags:[`不朽`,`深淵`] },
+
+      // --- 不明/ネット ---
+      { text:`少数派は声がでかい`, work:`不明/ネット`, character:`おにゐさん`, tags:[`観察`,`皮肉`] },
+
+      // --- ポプテピピック ---
+      { text:`さてはアンチだなオメー`, work:`ポプテピピック`, character:`ポプ子`, tags:[`煽り`,`迷言`] },
+      { text:`えいえい、怒った？`, work:`ポプテピピック`, character:`ポプ子`, tags:[`煽り`,`挑発`] },
+      { text:`「あーそーゆーことね完全に理解した」←わかってない`, work:`ポプテピピック`, character:`ポプ子`, tags:[`迷言`,`自虐`] },
+
+      // --- このすば ---
+      { text:`「真の男女平等主義者な俺は、女の子相手でもドロップキックをくらわせられる男」`, work:`この素晴らしい世界に祝福を！`, character:`カズマ`, tags:[`迷言`,`倫理崩壊`] },
+      { text:`「エクスプロージョン！！」`, work:`この素晴らしい世界に祝福を！`, character:`めぐみん`, tags:[`必殺`,`決め台詞`] },
+
+      // --- ジョジョ ---
+      { text:`「ハーモニー」っつーんですかあ〜〜〜「味の調和」っつーんですかあ〜っ。たとえるならサイモンとガーファンクルのデュエット！　ウッチャンに対するナンチャン！　高森朝雄の原作に対するちばてつやの「あしたのジョー」！...つうーっ感じっスよお〜っ`, work:`ジョジョの奇妙な冒険`, character:`虹村億泰`, tags:[`長台詞`,`例え`,`迷言`] },
+      { text:`おれ頭ワリイからよ〜`, work:`ジョジョの奇妙な冒険`, character:`虹村億泰`, tags:[`自虐`,`愛され`] },
+      { text:`（たったひとつだけ残った策を聞かれ）逃げるんだよォ！`, work:`ジョジョの奇妙な冒険`, character:`ジョセフ・ジョースター`, tags:[`撤退`,`名采配`] },
+      { text:`（時計台を破壊しながら）さ...最後の...エメラルド・スプラッシュ`, work:`ジョジョの奇妙な冒険`, character:`花京院典明`, tags:[`悲壮`,`必殺`] },
+      { text:`（時限爆弾てホントかな？　オレは知らねーけど、でもここはお調子者で行こう）うんうん、そのとおーり！　おれたちが死んだらBOMB（ボム）よ！　BOMB（ボム）`, work:`ジョジョの奇妙な冒険`, character:`ジョセフ・ジョースター`, tags:[`ハッタリ`,`迷言`] },
+      { text:`「4つ」あったのよ...。確かに「タマ」が...`, work:`ジョジョの奇妙な冒険`, character:`広瀬康穂`, tags:[`衝撃`,`迷言`] },
+      { text:`「ありがとう」...それしか言う言葉がみつからない...`, work:`ジョジョの奇妙な冒険`, character:`ジョニィ・ジョースター`, tags:[`感謝`,`泣ける`] },
+      { text:`おまえは今まで食ったパンの枚数をおぼえているのか？`, work:`ジョジョの奇妙な冒険`, character:`ディオ・ブランドー`, tags:[`煽り`,`強者`] },
+      { text:`「ストーン・フリー」。あたしは...この「石の海」から自由になる...`, work:`ジョジョの奇妙な冒険`, character:`空条徐倫`, tags:[`決意`,`自由`] },
+      { text:`「運命」に勝った！`, work:`ジョジョの奇妙な冒険`, character:`川尻早人`, tags:[`勝利`,`覚悟`] },
+      { text:`『パパ』と『ママ』を...守るど！　...おらがッ！ ...『パパ』と『ママ』をあいつから守るどッ！`, work:`ジョジョの奇妙な冒険`, character:`重ちー（矢安宮重清）`, tags:[`家族`,`必死`] },
+      { text:`Exactly（そのとおりでございます）`, work:`ジョジョの奇妙な冒険`, character:`テレンス・T・ダービー`, tags:[`心理戦`,`名物`] },
+      { text:`JOJO...地獄から舞い戻ったぜ`, work:`ジョジョの奇妙な冒険`, character:`ルドル・フォン・シュトロハイム`, tags:[`復活`,`熱さ`] },
+      { text:`UREEYYY（ウリリイイイイイイイイイ）`, work:`ジョジョの奇妙な冒険`, character:`ディオ・ブランドー`, tags:[`叫び`,`迷言`] },
+      { text:`あ...ありのまま今起こったことを話すぜ！　『おれは奴の前で階段を登っていたと思ったらいつの間にか降りていた』。な...何を言っているのかわからねーと思うが、おれも何をされたのかわからなかった... 催眠術だとか超スピードだとか、そんなチャチなもんじゃあ断じてねえ。もっと恐ろしいものの片鱗を味わったぜ`, work:`ジョジョの奇妙な冒険`, character:`ジャン＝ピエール・ポルナレフ`, tags:[`怪異`,`名物`] },
+      { text:`あなた...『覚悟して来てる人』...ですよね。人を「始末」しようとするって事は、逆に「始末」されるかもしれないという危険を常に『覚悟して来てる人』ってわけですよね...`, work:`ジョジョの奇妙な冒険`, character:`ジョルノ・ジョバァーナ`, tags:[`覚悟`,`哲学`] },
+      { text:`あなた様はこの世の帝王ッ！　時を支配して当然ですじゃあああああーッ、ケケケケケケケケケケッ`, work:`ジョジョの奇妙な冒険`, character:`エンヤ婆`, tags:[`ヨイショ`,`迷言`] },
+      { text:`あなた賭け事は好きですか？`, work:`ジョジョの奇妙な冒険`, character:`ダニエル・J・ダービー`, tags:[`ギャンブル`,`心理戦`] },
+      { text:`「アリアリアリアリアリアリアリアリアリアリアリアリアリアリアリアリアリアリアリアリアリアリアリアリアリアリ、アリーヴェデルチ！」`, work:`ジョジョの奇妙な冒険`, character:`ブローノ・ブチャラティ`, tags:[`必殺`,`決め台詞`] },
+      { text:`いいや！　限界だ、押すね！`, work:`ジョジョの奇妙な冒険`, character:`吉良吉影`, tags:[`開き直り`,`決断`] },
+      { text:`う...う...おれはいつも傍観者よ...なにもできねえなにもしてやれねえ`, work:`ジョジョの奇妙な冒険`, character:`ロバート・E・O・スピードワゴン`, tags:[`無力感`,`人間味`] },
+      { text:`うれピーッ`, work:`ジョジョの奇妙な冒険`, character:`ジョセフ・ジョースター`, tags:[`迷言`,`軽さ`] },
+      { text:`エンポリオ、ぼくの名前は...ぼくの名前はエンポリオです`, work:`ジョジョの奇妙な冒険`, character:`エンポリオ・アルニーニョ`, tags:[`名乗り`,`切実`] },
+      { text:`おまえは「運命」に負けたんだ！　正義の道を歩む事こそ「運命」なんだ！！`, work:`ジョジョの奇妙な冒険`, character:`エンポリオ・アルニーニョ`, tags:[`正義`,`宣言`] },
+      { text:`おまえはッ、わたしを本気で怒らせたッ！！`, work:`ジョジョの奇妙な冒険`, character:`ディアボロ`, tags:[`激怒`,`脅し`] },
+      { text:`オレの「命」は...あの時すでに終わっていたんだ`, work:`ジョジョの奇妙な冒険`, character:`ブローノ・ブチャラティ`, tags:[`覚悟`,`哀しみ`] },
+      { text:`オレはこのSBRレースでいつも最短の近道を試みたが『一番の近道は遠回りだった』『遠回りこそが俺の最短の道だった』。この大陸を渡ってくる間ずっとそうだった。そして、おまえがいたからその道を渡って来れた`, work:`ジョジョの奇妙な冒険`, character:`ジャイロ・ツェペリ`, tags:[`人生`,`哲学`,`友情`] },
+      { text:`おれは人間をやめるぞ！　ジョジョーッ！！`, work:`ジョジョの奇妙な冒険`, character:`ディオ・ブランドー`, tags:[`宣言`,`狂気`] },
+      { text:`このジョルノ・ジョバァーナには「夢」がある`, work:`ジョジョの奇妙な冒険`, character:`ジョルノ・ジョバァーナ`, tags:[`夢`,`決意`] },
+      { text:`この味は！　...ウソをついている『味』だぜ...`, work:`ジョジョの奇妙な冒険`, character:`ブローノ・ブチャラティ`, tags:[`洞察`,`名物`] },
+      { text:`さすがディオ！　おれたちにできない事を平然とやってのけるッ。そこにシビレる！　あこがれるゥ！`, work:`ジョジョの奇妙な冒険`, character:`ディオの取り巻き`, tags:[`名物`,`賛辞`] },
+      { text:`だが断る`, work:`ジョジョの奇妙な冒険`, character:`岸辺露伴`, tags:[`拒否`,`決め台詞`] },
+      { text:`つらいことがたくさんあったが...でも楽しかったよ。みんながいたからこの旅は楽しかった`, work:`ジョジョの奇妙な冒険`, character:`ジャン＝ピエール・ポルナレフ`, tags:[`旅`,`友情`,`泣ける`] },
+      { text:`てめーの敗因は..たったひとつだぜ...DIO...たったひとつの単純（シンプル）な答えだ...『てめーはおれを怒らせた』`, work:`ジョジョの奇妙な冒険`, character:`空条承太郎`, tags:[`決着`,`怒り`] },
+      { text:`なにしてんだど？　おまえッ！　理解不能！　理解不能！`, work:`ジョジョの奇妙な冒険`, character:`重ちー（矢安宮重清）`, tags:[`迷言`,`混乱`] },
+      { text:`ふるえるぞハート！ 燃えつきるほどヒート！！ おおおおっ 刻むぞ血液のビート！`, work:`ジョジョの奇妙な冒険`, character:`ジョナサン・ジョースター`, tags:[`熱血`,`決め台詞`] },
+      { text:`最高に「ハイ！」ってやつだアアアアア、アハハハハハハハハハハーッ`, work:`ジョジョの奇妙な冒険`, character:`ディオ・ブランドー`, tags:[`狂気`,`名物`] },
+      { text:`落ちつくんだ...『素数』を数えて落ちつくんだ...`, work:`ジョジョの奇妙な冒険`, character:`エンリコ・プッチ`, tags:[`メンタル`,`対処`] },
+      { text:`行け...徐倫。おまえの事は...いつだって大切に思っていた`, work:`ジョジョの奇妙な冒険`, character:`空条承太郎`, tags:[`親子`,`泣ける`] },
+
+      // --- ONE PIECE ---
+      { text:`海賊王に、俺はなる！`, work:`ONE PIECE`, character:`モンキー・D・ルフィ`, tags:[`夢`,`決意`] },
+      { text:`人はいつ死ぬと思う？・・・人に忘れられた時さ`, work:`ONE PIECE`, character:`ドクター・ヒルルク`, tags:[`人生`,`哲学`] },
+      { text:`人の夢は!!! 終わらねェ!!!!`, work:`ONE PIECE`, character:`黒ひげ`, tags:[`夢`,`宣言`] },
+      { text:`愛してくれて……ありがとう!!!`, work:`ONE PIECE`, character:`ポートガス・D・エース`, tags:[`感謝`,`泣ける`] },
+
+      // --- 進撃 ---
+      { text:`駆逐してやる！！ この世から…一匹…残らず！！`, work:`進撃の巨人`, character:`エレン`, tags:[`復讐`,`宣言`] },
+      { text:`心臓を捧げよ!!`, work:`進撃の巨人`, character:`エルヴィン`, tags:[`覚悟`,`号令`] },
+
+      // --- DEATH NOTE ---
+      { text:`僕が、新世界の神になる`, work:`DEATH NOTE`, character:`夜神月`, tags:[`野望`,`宣言`] },
+      { text:`計画通り`, work:`DEATH NOTE`, character:`夜神月`, tags:[`策`,`ドヤ`] },
+
+      // --- エヴァ ---
+      { text:`逃げちゃダメだ、逃げちゃダメだ、逃げちゃダメだ……！`, work:`新世紀エヴァンゲリオン`, character:`碇シンジ`, tags:[`葛藤`,`自己暗示`] },
+
+      // --- 俺だけレベルアップ ---
+      { text:`起きろ（起きろ）`, work:`俺だけレベルアップな件`, character:`水篠旬`, tags:[`命令`,`覚醒`] },
+
+      // --- 鬼滅 ---
+      { text:`心を燃やせ`, work:`鬼滅の刃`, character:`煉獄杏寿郎`, tags:[`熱血`,`鼓舞`] },
+      { text:`胸を張って生きろ`, work:`鬼滅の刃`, character:`煉獄杏寿郎`, tags:[`人生`,`鼓舞`] },
+      { text:`老いることも死ぬことも 人間という儚い生き物の美しさだ`, work:`鬼滅の刃`, character:`煉獄杏寿郎`, tags:[`人生`,`哲学`] },
+      { text:`生殺与奪の権を他人に握らせるな！`, work:`鬼滅の刃`, character:`冨岡義勇`, tags:[`自立`,`戒め`] },
+
+      // --- 呪術 ---
+      { text:`大丈夫。僕、最強だから`, work:`呪術廻戦`, character:`五条悟`, tags:[`強者`,`安心`] },
+
+      // --- カイジ ---
+      { text:`金はなぁ.......命より重いんだ！`, work:`賭博黙示録カイジ`, character:`利根川幸雄`, tags:[`金`,`哲学`,`圧`] },
+
+      // --- ワンパンマン ---
+      { text:`趣味でヒーローをやっている者だ`, work:`ワンパンマン`, character:`サイタマ`, tags:[`名乗り`,`強者`] },
+      { text:`勝てる勝てないじゃなく ここで俺は お前に立ち向かわなくちゃいけないんだ`, work:`ワンパンマン`, character:`無免ライダー`, tags:[`正義`,`覚悟`] },
+
+      // --- Dr.STONE ---
+      { text:`唆るぜ、これは！！`, work:`Dr.STONE`, character:`石神千空`, tags:[`興奮`,`名物`] },
+
+      // --- ヒロアカ ---
+      { text:`もう大丈夫、私が来た！`, work:`僕のヒーローアカデミア`, character:`オールマイト`, tags:[`安心`,`登場`] },
+      { text:`更に向こうへ！プルスウルトラァァァ！`, work:`僕のヒーローアカデミア`, character:`オールマイト`, tags:[`鼓舞`,`熱血`] },
+
+      // --- 東リベ ---
+      { text:`絶っ対ぇ助けるから`, work:`東京卍リベンジャーズ`, character:`花垣武道（タケミチ）`, tags:[`決意`,`救出`] },
+      { text:`絶っ対ぇ折れねぇ`, work:`東京卍リベンジャーズ`, character:`花垣武道（タケミチ）`, tags:[`根性`,`宣言`] },
+
+      // --- その他 ---
+      { text:`「...ほほう...やっぱりな...こういうことって...たいていはそう...たいていは...夢」`, work:`ジョジョの奇妙な冒険`, character:`J・ゲバル`, tags:[`哲学`,`含み`] },
+      { text:`「...ウッソ...ト...ッッ、トリケラトプス...拳ンン！！？」`, work:`グラップラー刃牙（系列）`, character:`烈海王`, tags:[`迷言`,`衝撃`] },
+      { text:`力みなくして解放のカタルシスはありえねェ`, work:`グラップラー刃牙（系列）`, character:`範馬勇次郎`, tags:[`哲学`,`圧`] },
+      { text:`びゃあ゛ぁ゛゛ぁうまひぃ゛ぃぃ゛`, work:`サザエさん`, character:`フグ田マスオ`, tags:[`迷言`,`リアクション`] },
+    ];
+
+    // =========================
+    // UI
+    // =========================
+    const elSearch = document.getElementById('qSearch');
+    const elWork = document.getElementById('qWork');
+    const elTag = document.getElementById('qTag');
+    const elList = document.getElementById('qList');
+    const elSpotText = document.getElementById('spotText');
+    const elSpotMeta = document.getElementById('spotMeta');
+    const elCount = document.getElementById('countPill');
+    const btnRandom = document.getElementById('btnRandom');
+    const btnCopy = document.getElementById('btnCopy');
+
+    let spotlight = null;
+
+    function uniq(arr){ return [...new Set(arr)].filter(Boolean); }
+
+    function buildFilters(){
+      // 二重追加を防ぐ
+      [...elWork.querySelectorAll('option')].slice(1).forEach(x=>x.remove());
+      [...elTag.querySelectorAll('option')].slice(1).forEach(x=>x.remove());
+
+      const works = uniq(QUOTES.map(q=>q.work)).sort((a,b)=>a.localeCompare(b,'ja'));
+      works.forEach(w=>{
+        const opt = document.createElement('option');
+        opt.value = w; opt.textContent = `作品：${w}`;
+        elWork.appendChild(opt);
+      });
+
+      const tags = uniq(QUOTES.flatMap(q=>q.tags||[])).sort((a,b)=>a.localeCompare(b,'ja'));
+      tags.forEach(t=>{
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = `タグ：${t}`;
+        elTag.appendChild(opt);
+      });
+    }
+
+    function matches(q, kw){
+      if(!kw) return true;
+      const s = kw.trim().toLowerCase();
+      const hay = `${q.text} ${q.work} ${q.character} ${(q.tags||[]).join(' ')}`.toLowerCase();
+      return hay.includes(s);
+    }
+
+    function filtered(){
+      const kw = elSearch.value || '';
+      const w = elWork.value || '';
+      const t = elTag.value || '';
+      return QUOTES.filter(q=>{
+        if(w && q.work !== w) return false;
+        if(t && !(q.tags||[]).includes(t)) return false;
+        return matches(q, kw);
+      });
+    }
+
+    function setSpot(q){
+      if(!q) return;
+      spotlight = q;
+      elSpotText.textContent = q.text;
+      elSpotMeta.innerHTML = '';
+      const items = [
+        {label:`作品`, value:q.work},
+        {label:`人物`, value:q.character},
+        ...(q.tags||[]).map(x=>({label:`タグ`, value:x}))
+      ];
+      items.forEach(it=>{
+        const span = document.createElement('span');
+        span.className = 'pill';
+        span.textContent = `${it.label}：${it.value}`;
+        elSpotMeta.appendChild(span);
+      });
+    }
+
+    function render(){
+      const list = filtered();
+      elCount.textContent = `${list.length}件`;
+      elList.innerHTML = '';
+
+      list.slice(0, 80).forEach((q)=>{
+        const li = document.createElement('li');
+        li.className = 'qItem';
+        li.innerHTML = `
+          <div class="qSmall">${escapeHtml(q.text)}</div>
+          <div class="qSmallMeta">
+            <span>【${escapeHtml(q.work)}】</span>
+            <span>${escapeHtml(q.character)}</span>
+            ${(q.tags||[]).slice(0,4).map(t=>`<span class="pill">${escapeHtml(t)}</span>`).join('')}
+          </div>
+        `;
+        li.addEventListener('click', ()=>setSpot(q));
+        elList.appendChild(li);
+      });
+
+      if(!spotlight){
+        setSpot(list[0] || QUOTES[0]);
+      }
+    }
+
+    function escapeHtml(str){
+      return (str||'').replace(/[&<>"']/g, m => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[m]));
+    }
+
+    function randomPick(){
+      const list = filtered();
+      if(list.length === 0) return null;
+      return list[Math.floor(Math.random()*list.length)];
+    }
+
+    // コピー堅牢化（HTTPSじゃなくても動きやすいフォールバック）
+    async function copySpot(){
+      if(!spotlight) return;
+      const txt = `「${spotlight.text}」\n— ${spotlight.character}（${spotlight.work}）`;
+
+      try{
+        await navigator.clipboard.writeText(txt);
+      }catch(e){
+        const ta = document.createElement('textarea');
+        ta.value = txt;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        ta.style.top = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try{ document.execCommand('copy'); }catch(_){}
+        document.body.removeChild(ta);
+      }
+
+      btnCopy.textContent = 'コピー済み';
+      setTimeout(()=>btnCopy.textContent='コピー', 900);
+    }
+
+    // events
+    ['input','change'].forEach(ev=>{
+      elSearch.addEventListener(ev, render);
+      elWork.addEventListener(ev, render);
+      elTag.addEventListener(ev, render);
+    });
+
+    btnRandom.addEventListener('click', ()=>{
+      const q = randomPick();
+      if(q) setSpot(q);
+    });
+
+    btnCopy.addEventListener('click', copySpot);
+
+    // init
+    buildFilters();
+    render();
+  </script>
+</body>
+</html>
