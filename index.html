@@ -3,17 +3,42 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>tomoponz｜秘密基地</title>
-  <meta name="description" content="友達に見せるネタ用プロフィール（RPG風＋古語おみくじ）">
+  <title>tomoponz｜プロフィール</title>
+  <meta name="description" content="tomoponzのプロフィールページ" />
+
   <link rel="stylesheet" href="style.css">
   <script defer src="app.js"></script>
+
+  <style>
+    /* index専用の微調整（必要なければ消してOK） */
+    .quoteBox{
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.03);
+      border-radius: 18px;
+      padding: 16px;
+    }
+    .quoteText{ font-size: 18px; line-height: 1.7; margin: 0 0 8px; }
+    .quoteBy{ opacity:.75; margin:0; }
+    .btnrow{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+    .btnlike{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:10px 14px; border-radius: 14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      text-decoration:none; color: inherit;
+      cursor:pointer;
+    }
+    .grid3{ display:grid; gap:14px; grid-template-columns: repeat(3, minmax(0,1fr)); }
+    @media (max-width: 900px){ .grid3{ grid-template-columns: 1fr; } }
+  </style>
 </head>
+
 <body>
   <header class="nav">
     <div class="brand">
       <div class="logo"></div>
       <div>
-        <b>tomoponz</b><br><small>友達に見せるネタ用サイト</small>
+        <b>tomoponz</b><br><small>プロフィール</small>
       </div>
     </div>
 
@@ -31,73 +56,165 @@
 
   <main class="wrap">
     <section class="hero">
-      <div class="spread">
-        <div>
-          <h1 class="h1">tomoponz（仮名）</h1>
-          <p class="sub">「最小の努力で最大の成果」…に見せかけて、裏でゴリゴリやるタイプ。</p>
-          <div class="badges">
-            <span class="badge"><span class="dot"></span> オンライン：気分次第</span>
-            <span class="badge">称号：締切前覚醒</span>
-            <span class="badge">弱点：眠気</span>
+      <h1 class="h1" style="margin:0">tomoponz</h1>
+      <p class="sub">秘密基地 / ネタ置き場 / ミニゲーム / いろいろ</p>
+
+      <div class="btnrow">
+        <a class="btnlike" href="games.html">ゲームへ</a>
+        <a class="btnlike" href="links.html">リンク集へ</a>
+        <a class="btnlike" href="kuro.html">黒歴史（注意）</a>
+      </div>
+    </section>
+
+    <section class="grid2">
+      <div class="card">
+        <h2>プロフィール</h2>
+        <ul class="list">
+          <li>名前：tomoponz</li>
+          <li>やってること：Web / ネタ / ちょいゲーム</li>
+          <li>メモ：このサイトは気分で増えます</li>
+        </ul>
+        <div class="note">※好きに追記してOK</div>
+      </div>
+
+      <div class="card">
+        <h2>今日の一言（名言）</h2>
+
+        <div class="quoteBox">
+          <p class="quoteText" id="quoteText">読み込み中…</p>
+          <p class="quoteBy" id="quoteBy"></p>
+
+          <div class="btnrow">
+            <button class="btnlike" type="button" id="nextQuoteBtn">次の名言</button>
+            <button class="btnlike" type="button" id="copyQuoteBtn">コピー</button>
           </div>
         </div>
-        <div class="row">
-          <a class="btn primary" href="omikuji.html">おみくじへ</a>
-          <a class="btn" href="shindan.html">診断へ</a>
-          <a class="btn" href="door.html">ドア</a>
+
+        <div class="note">
+          偉人名言100＋あなたの名言を混ぜる想定（まずはサンプル入り）
         </div>
       </div>
     </section>
 
-    <section class="grid">
-      <div class="card">
-        <h2>ステータス</h2>
-        <div class="rows">
-          <div class="row2"><div class="muted">HP</div><div class="bar hp"><i></i></div></div>
-          <div class="row2"><div class="muted">MP</div><div class="bar mp"><i></i></div></div>
-          <div class="row2"><div class="muted">EXP</div><div class="bar exp"><i></i></div></div>
-        </div>
-        <div class="kpi">
-          <span class="pill">スキル：<code>徹夜デバッグ</code></span>
-          <span class="pill">特技：<code>一夜漬け加速</code></span>
-          <span class="pill">奥義：<code>謎の集中</code></span>
-        </div>
-        <hr class="sep">
-        <h2>最近のログ</h2>
-        <ul class="list">
-          <li>サイトを作った（えらい）</li>
-          <li>友達に見せるネタを準備中</li>
-          <li>たまに真面目モードに変身</li>
-        </ul>
-      </div>
-
-      <div class="card">
-        <h2>今日の一言</h2>
-        <p id="quote" class="muted">読み込み中…</p>
-        <div class="btnrow">
-          <button onclick="setRandomQuote()">更新</button>
-          <a class="btn" href="gallery.html">ネタ置き場</a>
-        </div>
-
-        <hr class="sep">
-
-        <h2>おみくじ（古語ふう）</h2>
-        <p class="muted">押せば今日の運勢が出づ（同日固定）。</p>
-        <div class="btnrow">
-          <button onclick="drawOmikuji()">引く</button>
-          <button onclick="resetOmikuji()">リセット</button>
-          <a class="btn" href="omikuji.html">専用ページへ</a>
-        </div>
-
-        <div id="omikujiBox" style="margin-top:12px;display:none">
-          <div class="pill rank" id="omikujiRank"></div>
-          <p class="muted" id="omikujiMsg" style="margin:10px 0 0"></p>
-          <p class="muted" id="omikujiTips" style="margin:6px 0 0"></p>
-        </div>
-
-        <div class="footer">© tomoponz / Powered by GitHub Pages</div>
+    <section class="card">
+      <h2>ショートカット</h2>
+      <div class="grid3">
+        <a class="btnlike" href="minigames.html">ミニゲーム一覧</a>
+        <a class="btnlike" href="gallery.html">ネタ置き場</a>
+        <a class="btnlike" href="door.html">ドア（ワープ演出）</a>
       </div>
     </section>
+
+    <div class="footer">© tomoponz</div>
   </main>
+
+  <!-- =========================
+       今日の一言：名言ローテ
+       ========================= -->
+  <script>
+    // ここに「偉人の名言100個＋あなたの名言」を足していく
+    // 形式：{ text: "名言", by: "人物名" }
+    const QUOTES = [
+      { text: "Stay hungry, stay foolish.", by: "Steve Jobs" },
+      { text: "天才とは、努力する凡才のことである。", by: "Albert Einstein（意訳）" },
+      { text: "勝つまでやめなければ、負けではない。", by: "tomoponz（仮）" },
+      { text: "完璧を目指すより、完成を急げ。", by: "Reid Hoffman（意訳）" },
+      { text: "思考は現実化する。", by: "Napoleon Hill（要旨）" }
+    ];
+
+    function pickQuote() {
+      const idx = Math.floor(Math.random() * QUOTES.length);
+      return QUOTES[idx];
+    }
+
+    function showQuote(q) {
+      const qt = document.getElementById("quoteText");
+      const qb = document.getElementById("quoteBy");
+      qt.textContent = "“" + q.text + "”";
+      qb.textContent = q.by ? "— " + q.by : "";
+    }
+
+    function loadQuote() {
+      // 1日固定にしたいなら localStorage を日付キーにする等で可能
+      showQuote(pickQuote());
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadQuote();
+
+      document.getElementById("nextQuoteBtn")?.addEventListener("click", loadQuote);
+
+      document.getElementById("copyQuoteBtn")?.addEventListener("click", async () => {
+        const text = document.getElementById("quoteText")?.textContent || "";
+        const by = document.getElementById("quoteBy")?.textContent || "";
+        try {
+          await navigator.clipboard.writeText(text + "\n" + by);
+          alert("コピーしました");
+        } catch {
+          alert("コピーに失敗（ブラウザ設定の可能性）");
+        }
+      });
+    });
+  </script>
+
+  <!-- =========================
+       キリ番（CounterAPI）
+       ※置く場所はここ（</body>直前）推奨
+       ========================= -->
+  <script>
+    // CounterAPIの設定（Workspace名とカウンター名）
+    const WORKSPACE = "tomoponzs-workspace";
+    const COUNTER = "first-counter";
+
+    async function updateCounter() {
+      try {
+        // 1) カウントを1増やす
+        const response = await fetch(`https://api.counterapi.dev/v1/${WORKSPACE}/${COUNTER}/up`);
+        const data = await response.json();
+        const count = parseInt(data.count, 10);
+
+        // 2) フッターに表示（.footerがあるページのみ）
+        const footer = document.querySelector('.footer');
+        if (footer) {
+          footer.innerHTML += ` | <span id="access-count">Access: ${count}</span>`;
+        }
+
+        // 3) キリ番リスト（好きに追加OK）
+        const luckyNumbers = [7, 10, 22, 50, 77, 100, 123, 777, 1000];
+
+        // 4) 判定と演出
+        if (luckyNumbers.includes(count)) {
+          triggerKiribanEvent(count);
+        }
+      } catch (error) {
+        console.log("カウンターの取得に失敗しました。秘密基地はオフラインのようです。");
+      }
+    }
+
+    function triggerKiribanEvent(num) {
+      // A) メッセージ
+      alert(`【🎊 祝・キリ番達成 🎊】\nおめでとうございます！あなたは ${num} 番目の訪問者です！\nこの画面をスクリーンショットして店主に報告してください。`);
+
+      // B) 背景を黄金モード
+      document.body.style.transition = "all 2s ease";
+      document.body.style.background = "linear-gradient(45deg, #ffd700, #ff8c00)";
+      document.body.style.color = "#000";
+
+      // C) ステータスバー（.bar i）があるページだけ虹MAX
+      const bars = document.querySelectorAll('.bar i');
+      bars.forEach(bar => {
+        bar.style.background = "linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet)";
+        bar.style.width = "100%";
+      });
+
+      // D) コンソール秘密メッセ
+      console.log(
+        "%c秘密のメッセージ: あなたは選ばれし者です。コードの裏側を覗くとは、なかなかの手練れですね。",
+        "color: gold; font-size: 20px; font-weight: bold;"
+      );
+    }
+
+    window.addEventListener('load', updateCounter);
+  </script>
 </body>
 </html>
