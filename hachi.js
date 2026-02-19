@@ -1,8 +1,10 @@
 // hachi.js
 // Uncyclopedia(=MediaWiki) を API で取得して “学術資料風” に表示する
+// 直fetchがCORS等で落ちる場合があるので、無料プロキシ(allorigins)へ自動フォールバックする
 
 const WIKI_BASE = "https://ja.uncyclopedia.info";
 const API = `${WIKI_BASE}/w/api.php`;
+const PROXY_RAW = "https://api.allorigins.win/raw?url=";
 
 const el = (id) => document.getElementById(id);
 
@@ -15,20 +17,42 @@ function log(line){
 function apiUrl(params){
   const u = new URL(API);
   Object.entries(params).forEach(([k,v]) => u.searchParams.set(k, String(v)));
-  // MediaWiki の CORS 用
-  u.searchParams.set("origin", "*");
+  u.searchParams.set("origin", "*"); // MediaWikiの定番CORS
+  u.searchParams.set("format", "json");
   return u.toString();
 }
 
-async function getJson(params){
-  const url = apiUrl({ format: "json", ...params });
-  const res = await fetch(url);
+async function fetchTextDirect(url){
+  const res = await fetch(url, { cache: "no-store" });
   if(!res.ok) throw new Error(`HTTP ${res.status}`);
-  return await res.json();
+  return await res.text();
+}
+async function fetchTextViaProxy(url){
+  const proxied = PROXY_RAW + encodeURIComponent(url);
+  const res = await fetch(proxied, { cache: "no-store" });
+  if(!res.ok) throw new Error(`PROXY HTTP ${res.status}`);
+  return await res.text();
+}
+
+async function getJson(params){
+  const url = apiUrl(params);
+
+  // 1) 直
+  try{
+    log(`fetch: direct`);
+    const txt = await fetchTextDirect(url);
+    return JSON.parse(txt);
+  }catch(e1){
+    log(`direct failed: ${e1.message}`);
+
+    // 2) allorigins raw
+    log(`fetch: proxy(allorigins)`);
+    const txt = await fetchTextViaProxy(url);
+    return JSON.parse(txt);
+  }
 }
 
 function normalizeTitleFromHref(href){
-  // /wiki/記事名 → 記事名
   try{
     const u = new URL(href, WIKI_BASE);
     const m = u.pathname.match(/^\/wiki\/(.+)$/);
@@ -43,10 +67,9 @@ function sanitizeAndRewrite(html){
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
 
-  // 余計なもの削除
   doc.querySelectorAll("script, noscript").forEach(n => n.remove());
 
-  // link / img を絶対URL化
+  // rewrite links & images
   doc.querySelectorAll("a").forEach(a => {
     const href = a.getAttribute("href") || "";
     try{
@@ -70,6 +93,21 @@ function sanitizeAndRewrite(html){
   return doc.body.innerHTML;
 }
 
+function showIframeFallback(title){
+  const safeTitle = title || "メインページ";
+  const url = `${WIKI_BASE}/wiki/${encodeURIComponent(safeTitle.replaceAll(" ","_"))}`;
+  el("articleTitle").textContent = safeTitle + "（iframe表示）";
+  el("articleNote").textContent = "API取得に失敗 → iframeで本家を表示（確実に動く逃げ道）";
+  el("articleContent").innerHTML = `
+    <div class="note" style="margin-bottom:10px">
+      ブラウザ/回線の都合でAPIが弾かれた。中身は本家を埋め込みで表示する。
+    </div>
+    <div style="border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.18)">
+      <iframe src="${url}" style="width:100%;height:70vh;border:0" loading="lazy" referrerpolicy="no-referrer"></iframe>
+    </div>
+  `;
+}
+
 async function loadByTitle(title){
   if(!title) return;
 
@@ -77,52 +115,58 @@ async function loadByTitle(title){
   el("articleNote").textContent = `取得中：${title}`;
   el("articleContent").textContent = "Loading…";
 
-  el("btnOpen").href = `${WIKI_BASE}/wiki/${encodeURIComponent(title.replaceAll(" ","_"))}`;
+  const openA = el("btnOpen");
+  if(openA) openA.href = `${WIKI_BASE}/wiki/${encodeURIComponent(title.replaceAll(" ","_"))}`;
 
   log(`parse: ${title}`);
 
-  const js = await getJson({
-    action: "parse",
-    page: title,
-    prop: "text|displaytitle",
-    redirects: 1,
-    formatversion: 2
-  });
+  try{
+    const js = await getJson({
+      action: "parse",
+      page: title,
+      prop: "text|displaytitle",
+      redirects: 1,
+      formatversion: 2
+    });
 
-  if(!js.parse || !js.parse.text){
-    throw new Error("parse result missing");
-  }
-
-  const displayTitle = js.parse.displaytitle
-    ? js.parse.displaytitle.replaceAll(/<[^>]*>/g, "")
-    : title;
-
-  el("articleTitle").textContent = displayTitle;
-  el("articleNote").textContent = "出典：アンサイクロペディア / API取得";
-
-  const cleaned = sanitizeAndRewrite(js.parse.text);
-  el("articleContent").innerHTML = cleaned;
-
-  // 内部リンク（/wiki/...）はこのページ内で読む
-  el("articleContent").querySelectorAll("a").forEach(a => {
-    const href = a.getAttribute("href") || "";
-    const t = normalizeTitleFromHref(href);
-    if(t){
-      a.addEventListener("click", (ev) => {
-        if(ev.ctrlKey || ev.metaKey) return; // Ctrl/Commandは別タブOK
-        ev.preventDefault();
-        el("q").value = t;
-        loadByTitle(t).catch(err=>{
-          log(`ERR: ${err.message}`);
-          window.open(`${WIKI_BASE}/wiki/${encodeURIComponent(t.replaceAll(" ","_"))}`, "_blank", "noopener");
-        });
-      });
-      a.removeAttribute("target");
-      a.removeAttribute("rel");
+    if(!js.parse || !js.parse.text){
+      throw new Error("parse result missing");
     }
-  });
 
-  log("OK");
+    const displayTitle = js.parse.displaytitle
+      ? js.parse.displaytitle.replaceAll(/<[^>]*>/g, "")
+      : title;
+
+    el("articleTitle").textContent = displayTitle;
+    el("articleNote").textContent = "出典：アンサイクロペディア（パロディ百科） / API取得";
+
+    const cleaned = sanitizeAndRewrite(js.parse.text);
+    el("articleContent").innerHTML = cleaned;
+
+    // 内部リンク（/wiki/...）はこのページ内で辿る
+    el("articleContent").querySelectorAll("a").forEach(a => {
+      const href = a.getAttribute("href") || "";
+      const t = normalizeTitleFromHref(href);
+      if(t){
+        a.addEventListener("click", (ev) => {
+          if(ev.ctrlKey || ev.metaKey) return;
+          ev.preventDefault();
+          el("q").value = t;
+          loadByTitle(t).catch(err=>{
+            log(`ERR: ${err.message}`);
+            showIframeFallback(t);
+          });
+        });
+        a.removeAttribute("target");
+        a.removeAttribute("rel");
+      }
+    });
+
+    log("OK");
+  }catch(err){
+    log(`ERR: ${err.message}`);
+    showIframeFallback(title);
+  }
 }
 
 async function loadRandom(){
@@ -143,17 +187,26 @@ async function loadRandom(){
 function wireUI(){
   el("btnSearch").addEventListener("click", () => {
     const t = el("q").value.trim();
-    loadByTitle(t).catch(err=> log(`ERR: ${err.message}`));
+    loadByTitle(t).catch(err=>{
+      log(`ERR: ${err.message}`);
+      showIframeFallback(t);
+    });
   });
 
   el("btnRandom").addEventListener("click", () => {
-    loadRandom().catch(err=> log(`ERR: ${err.message}`));
+    loadRandom().catch(err=>{
+      log(`ERR: ${err.message}`);
+      showIframeFallback("メインページ");
+    });
   });
 
   el("q").addEventListener("keydown", (e) => {
     if(e.key === "Enter"){
       const t = el("q").value.trim();
-      loadByTitle(t).catch(err=> log(`ERR: ${err.message}`));
+      loadByTitle(t).catch(err=>{
+        log(`ERR: ${err.message}`);
+        showIframeFallback(t);
+      });
     }
   });
 }
@@ -165,8 +218,6 @@ document.addEventListener("DOMContentLoaded", () => {
   el("q").value = "メインページ";
   loadByTitle("メインページ").catch(err=>{
     log(`ERR: ${err.message}`);
-    el("articleTitle").textContent = "読み込み失敗";
-    el("articleContent").innerHTML =
-      `<p>APIで取得できなかった。<a href="${WIKI_BASE}/wiki/%E3%83%A1%E3%82%A4%E3%83%B3%E3%83%9A%E3%83%BC%E3%82%B8" target="_blank" rel="noopener">本家で開く</a></p>`;
+    showIframeFallback("メインページ");
   });
 });
