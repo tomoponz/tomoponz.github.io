@@ -2,6 +2,9 @@
 // - Wikipedia取得は多段フォールバックで「止まらない」
 // - タイトル補正（検索）/ プロキシ(allorigins) / リトライ
 // - コナミコマンド（↑↑↓↓←→←→BA）で「隠しワープ」発動（kuro:true優先）
+//
+// ★重要修正：Konamiは keydown のみで判定（keyup二重カウントを廃止）
+// ★押しっぱなし/IME/入力欄フォーカスを無視して誤爆しにくく
 
 console.log("[portal.js] loaded");
 
@@ -286,7 +289,7 @@ function osmEmbed(lat, lng){
   const d = 0.08;
   return `<iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${lng-d}%2C${lat-d}%2C${lng+d}%2C${lat+d}&layer=mapnik&marker=${lat}%2C${lng}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
 }
-// ★ここはGeminiの指摘：google.com/maps?q=... が安定
+// google.com/maps?q=... が安定
 function mapsLink(lat,lng){ return `https://www.google.com/maps?q=${lat},${lng}`; }
 
 // ===== Door sound / particles =====
@@ -390,13 +393,12 @@ function konamiFeed(code, key){
   if(_lastKeyTs && now - _lastKeyTs > 2000) _kpos = 0;
   _lastKeyTs = now;
 
-  // code優先、B/Aはkeyでも拾う
   const expect = KONAMI_CODES[_kpos];
   const got = code || "";
 
   const ok =
     got === expect ||
-    // B/A フォールバック（IME/環境で code が取れない場合）
+    // B/A フォールバック（環境で code が取れない場合）
     ((expect === "KeyB") && (String(key).toLowerCase() === "b")) ||
     ((expect === "KeyA") && (String(key).toLowerCase() === "a"));
 
@@ -445,16 +447,12 @@ function installKonami(){
   if(window.__konamiInstalled) return;
   window.__konamiInstalled = true;
 
-  // capture=true で先に拾う（他のJSが止めても拾いやすい）
+  // ★ここが修正点：keydown だけで拾う（keyupを消して二重カウントを防ぐ）
   window.addEventListener("keydown", (e) => {
-    if(isTypingTarget(document.activeElement)) return; // 入力欄フォーカス時は無視
-    konamiFeed(e.code, e.key);
-  }, true);
+    if(e.repeat) return;                 // 押しっぱなし対策
+    if(e.isComposing) return;            // IME変換中は無視（B/A誤爆防止）
+    if(isTypingTarget(document.activeElement)) return; // 入力欄フォーカス中は無視
 
-  // 一部環境でkeydownが拾えない保険
-  window.addEventListener("keyup", (e) => {
-    if(isTypingTarget(document.activeElement)) return;
-    // keyupは誤爆しやすいので、codeだけ拾う（B/Aはkeyでも拾う）
     konamiFeed(e.code, e.key);
   }, true);
 }
