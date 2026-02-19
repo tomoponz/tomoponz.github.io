@@ -1,112 +1,136 @@
 // places.js
-// portal.js が window.PLACES を読む。100選：ミームの聖地、珍スポット、世界の謎。
+// portal.js が window.PLACES を読む（wikiTitle / lat / lng）
+// 注意：個人宅・特定個人の住所推定に繋がる場所は入れてない（安全のため）。
+// ここは「公共スポット／観光地／ネットでネタにされがちな有名場所」100選（日本語Wikipedia想定）。
 
 window.PLACES = [
-  // --- 日本のネットミーム・聖地 ---
-  { wikiTitle: "北沢 (世田谷区)", lat: 35.662, lng: 139.666 }, // 下北沢（例の邸宅付近）
-  { wikiTitle: "群馬県", lat: 36.389, lng: 139.063 }, // 未開の地グンマ
-  { wikiTitle: "東京都庁舎", lat: 35.689, lng: 139.692 }, // 最終決戦の地
-  { wikiTitle: "白川郷", lat: 36.258, lng: 136.906 }, // 雛見沢村のモデル
-  { wikiTitle: "鷲宮神社", lat: 36.099, lng: 139.666 }, // らき☆すた聖地
-  { wikiTitle: "大洗町", lat: 36.311, lng: 140.575 }, // ガルパン聖地
-  { wikiTitle: "沼津市", lat: 35.102, lng: 138.862 }, // ラブライブサンシャイン聖地
-  { wikiTitle: "秩父市", lat: 35.991, lng: 139.085 }, // あの花聖地
-  { wikiTitle: "牛久大仏", lat: 35.982, lng: 140.220 }, // 世界最強の仏像
-  { wikiTitle: "恐山", lat: 41.328, lng: 141.091 }, // 日本の霊場
-  { wikiTitle: "軍艦島", lat: 32.627, lng: 129.738 }, // 端島。廃墟の王
-  { wikiTitle: "青ヶ島", lat: 32.411, lng: 139.767 }, // 二重カルデラの絶海孤島
-  { wikiTitle: "田代島", lat: 38.292, lng: 141.426 }, // 猫島
-  { wikiTitle: "竹島 (鹿児島県)", lat: 30.814, lng: 130.417 }, // リアル鬼ごっこ
-  { wikiTitle: "成田国際空港第3ターミナル", lat: 35.776, lng: 140.391 }, // 陸上トラック風床
+  // ===== Japan (40) =====
+  { wikiTitle: "渋谷スクランブル交差点", lat: 35.6595, lng: 139.7005 },
+  { wikiTitle: "忠犬ハチ公", lat: 35.6591, lng: 139.7005 },
+  { wikiTitle: "秋葉原", lat: 35.6984, lng: 139.7730 },
+  { wikiTitle: "中野ブロードウェイ", lat: 35.7099, lng: 139.6645 },
+  { wikiTitle: "東京ビッグサイト", lat: 35.6298, lng: 139.7976 },
+  { wikiTitle: "お台場", lat: 35.6273, lng: 139.7766 },
+  { wikiTitle: "レインボーブリッジ", lat: 35.6356, lng: 139.7636 },
+  { wikiTitle: "東京ディズニーランド", lat: 35.6329, lng: 139.8804 },
+  { wikiTitle: "三鷹の森ジブリ美術館", lat: 35.6962, lng: 139.5704 },
+  { wikiTitle: "池袋", lat: 35.7295, lng: 139.7109 },
+  { wikiTitle: "原宿", lat: 35.6702, lng: 139.7026 },
+  { wikiTitle: "新大久保駅", lat: 35.7017, lng: 139.7007 },
+  { wikiTitle: "浅草寺", lat: 35.7148, lng: 139.7967 },
+  { wikiTitle: "東京スカイツリー", lat: 35.7101, lng: 139.8107 },
+  { wikiTitle: "新宿駅", lat: 35.6900, lng: 139.7000 },
+  { wikiTitle: "歌舞伎町", lat: 35.6940, lng: 139.7030 },
+  { wikiTitle: "チームラボプラネッツ", lat: 35.6492, lng: 139.7883 },
 
-  // --- 世界のネットミーム・リミナルスペース ---
-  { wikiTitle: "Sonoma_Valley", lat: 38.248, lng: -122.410 }, // Windows XPの壁紙（Blissの丘）
-  { wikiTitle: "Area_51", lat: 37.233, lng: -115.808 }, // ナルト走りで突入
-  { wikiTitle: "Chernobyl_Exclusion_Zone", lat: 51.389, lng: 30.099 }, // 50,000人いた町
-  { wikiTitle: "Fugging,_Upper_Austria", lat: 48.067, lng: 12.862 }, // 旧名Fucking。標識盗難多発
-  { wikiTitle: "Llanfairpwllgwyngyll", lat: 53.224, lng: -4.204 }, // 世界一長い駅名がある場所
-  { wikiTitle: "North_Sentinel_Island", lat: 11.550, lng: 92.243 }, // 未接触部族（立ち入り禁止）
-  { wikiTitle: "Aokigahara", lat: 35.475, lng: 138.647 }, // 樹海
-  { wikiTitle: "Winchester_Mystery_House", lat: 37.318, lng: -121.951 }, // 永遠に増築される家
-  { wikiTitle: "Svalbard_Global_Seed_Vault", lat: 78.238, lng: 15.411 }, // 世界末日のための種子貯蔵庫
-  { wikiTitle: "Dyatlov_Pass", lat: 61.754, lng: 59.462 }, // ディアトロフ峠事件
-  { wikiTitle: "Loch_Ness", lat: 57.322, lng: -4.424 }, // ネッシー
+  { wikiTitle: "横浜コスモワールド", lat: 35.4550, lng: 139.6360 },
+  { wikiTitle: "横浜中華街", lat: 35.4437, lng: 139.6453 },
+  { wikiTitle: "鎌倉", lat: 35.3192, lng: 139.5467 },
+  { wikiTitle: "鎌倉大仏", lat: 35.3167, lng: 139.5353 },
+  { wikiTitle: "江の島", lat: 35.2993, lng: 139.4808 },
+  { wikiTitle: "富士山", lat: 35.3606, lng: 138.7274 },
 
-  // --- 奇妙な地形・絶景・オーパーツ ---
-  { wikiTitle: "Darvaza_gas_crater", lat: 40.177, lng: 58.439 }, // 地獄の門。50年以上燃え続けている
-  { wikiTitle: "Richat_Structure", lat: 21.126, lng: -11.401 }, // サハラの眼
-  { wikiTitle: "Easter_Island", lat: -27.112, lng: -109.349 }, // モアイ
-  { wikiTitle: "Nazca_Lines", lat: -14.739, lng: -75.131 }, // ナスカの地上絵
-  { wikiTitle: "Stonehenge", lat: 51.178, lng: -1.826 }, // ストーンヘンジ
-  { wikiTitle: "Dead_Sea", lat: 31.500, lng: 35.483 }, // 死海
-  { wikiTitle: "Socotra", lat: 12.500, lng: 53.833 }, // 竜血樹が生える奇妙な島
-  { wikiTitle: "Uyuni_Salt_Flat", lat: -20.133, lng: -67.483 }, // ウユニ塩湖。アニメのOPでよく見る
-  { wikiTitle: "Mount_Roraima", lat: 5.143, lng: -60.758 }, // リアル失われた世界
-  { wikiTitle: "Great_Blue_Hole", lat: 17.315, lng: -87.534 }, // 海の巨大な穴
-  { wikiTitle: "Pyramid_of_Giza", lat: 29.979, lng: 31.134 }, // ギザの大ピラミッド
-  { wikiTitle: "Bermuda_Triangle", lat: 25.000, lng: -71.000 }, // 魔の三角地帯
+  { wikiTitle: "伏見稲荷大社", lat: 34.9671, lng: 135.7727 },
+  { wikiTitle: "清水寺", lat: 34.9949, lng: 135.7849 },
+  { wikiTitle: "嵐山", lat: 35.0094, lng: 135.6668 },
+  { wikiTitle: "京都国際マンガミュージアム", lat: 35.0116, lng: 135.7569 },
 
-  // --- 都市伝説・不思議な場所 ---
-  { wikiTitle: "Roswell,_New_Mexico", lat: 33.387, lng: -104.528 }, // UFO墜落（？）
-  { wikiTitle: "Sedona,_Arizona", lat: 34.869, lng: -111.760 }, // ボルテックス（パワースポット）
-  { wikiTitle: "Lake_Anjikuni", lat: 62.150, lng: -99.983 }, // 村人が全員消えた（都市伝説）
-  { wikiTitle: "Devil%27s_Tower", lat: 44.590, lng: -104.715 }, // 未知との遭遇の山
-  { wikiTitle: "Island_of_the_Dolls", lat: 19.272, lng: -99.087 }, // メキシコの人形島
-  { wikiTitle: "Hashima_Island", lat: 32.627, lng: 129.738 }, // 007 スカイフォールのモデル
+  { wikiTitle: "道頓堀", lat: 34.6687, lng: 135.5010 },
+  { wikiTitle: "通天閣", lat: 34.6525, lng: 135.5063 },
+  { wikiTitle: "ユニバーサル・スタジオ・ジャパン", lat: 34.6654, lng: 135.4323 },
+  { wikiTitle: "大阪城", lat: 34.6873, lng: 135.5259 },
 
-  // --- （以下、100件に達するまでユニークな場所を追加） ---
-  { wikiTitle: "McMurdo_Station", lat: -77.841, lng: 166.686 }, // 南極最大の基地
-  { wikiTitle: "Mount_Everest", lat: 27.988, lng: 86.925 }, // 世界の屋根
-  { wikiTitle: "Mariana_Trench", lat: 11.350, lng: 142.200 }, // チャレンジャー海淵（OSM上は海）
-  { wikiTitle: "Vatican_City", lat: 41.902, lng: 12.453 }, // 世界最小の国
-  { wikiTitle: "Kowloon_Walled_City", lat: 22.332, lng: 114.190 }, // 九龍城砦（跡地）
-  { wikiTitle: "San_Francisco_Maritime_National_Historical_Park", lat: 37.808, lng: -122.421 }, // アルカトラズ島を望む
-  { wikiTitle: "Yellowstone_National_Park", lat: 44.427, lng: -110.588 }, // スーパーヴォルケーノ
-  { wikiTitle: "Angkor_Wat", lat: 13.412, lng: 103.866 }, // アンコールワット
-  { wikiTitle: "Machu_Picchu", lat: -13.163, lng: -72.545 }, // 空中都市
-  { wikiTitle: "Mont_Saint-Michel", lat: 48.636, lng: -1.511 }, // モン・サン＝ミシェル
-  { wikiTitle: "Chichen_Itza", lat: 20.684, lng: -88.567 }, // マヤのピラミッド
-  { wikiTitle: "Cappadocia", lat: 38.641, lng: 34.845 }, // 地下都市
-  { wikiTitle: "Petra", lat: 30.328, lng: 35.444 }, // 岩の都市
-  { wikiTitle: "Great_Wall_of_China", lat: 40.431, lng: 116.570 }, // 万里の長城
-  { wikiTitle: "Colosseum", lat: 41.890, lng: 12.492 }, // コロッセオ
-  { wikiTitle: "Alcatraz_Island", lat: 37.826, lng: -122.422 }, // 監獄島
-  { wikiTitle: "Gal%C3%A1pagos_Islands", lat: -0.639, lng: -90.419 }, // 進化の島
-  { wikiTitle: "Ait_Ben_Haddou", lat: 31.046, lng: -7.129 }, // モロッコの泥の城
-  { wikiTitle: "Meteora", lat: 39.713, lng: 21.631 }, // 空中の修道院
-  { wikiTitle: "Hallstatt", lat: 47.562, lng: 13.649 }, // 世界一美しい湖畔の町
-  { wikiTitle: "Santorini", lat: 36.393, lng: 25.461 }, // 青と白の街
-  { wikiTitle: "The_Wave_(Arizona)", lat: 36.996, lng: -112.006 }, // 絶景
-  { wikiTitle: "Antelope_Canyon", lat: 36.861, lng: -111.374 }, // 幻想的な洞窟
-  { wikiTitle: "Salar_de_Uyuni", lat: -20.133, lng: -67.483 }, // 再掲（表記ゆれ対策）
-  { wikiTitle: "Giant%27s_Causeway", lat: 55.240, lng: -6.511 }, // 巨人の道
-  { wikiTitle: "Pamukkale", lat: 37.923, lng: 29.119 }, // 綿の城（石灰棚）
-  { wikiTitle: "Timbuktu", lat: 16.766, lng: -3.002 }, // 黄金の都
-  { wikiTitle: "Zion_National_Park", lat: 37.298, lng: -113.026 }, // ザイオン
-  { wikiTitle: "Monument_Valley", lat: 36.998, lng: -110.098 }, // 荒野の聖地
-  { wikiTitle: "Uluru", lat: -25.344, lng: 131.036 }, // エアーズロック
-  { wikiTitle: "Mount_Fuji", lat: 35.360, lng: 138.727 }, // 富士山
-  { wikiTitle: "Kyoto", lat: 35.011, lng: 135.768 }, // 古都
-  { wikiTitle: "Itsukushima_Shrine", lat: 34.295, lng: 132.319 }, // 厳島神社
-  { wikiTitle: "Himeji_Castle", lat: 34.839, lng: 134.693 }, // 姫路城
-  { wikiTitle: "Shirakawa-go", lat: 36.258, lng: 136.906 }, // 再掲
-  { wikiTitle: "Yakushima", lat: 30.344, lng: 130.512 }, // 屋久島
-  { wikiTitle: "Shibuya_Crossing", lat: 35.659, lng: 139.700 }, // 渋谷スクランブル交差点
-  { wikiTitle: "Akihabara", lat: 35.698, lng: 139.771 }, // 秋葉原
-  { wikiTitle: "Shinjuku_Ni-chome", lat: 35.690, lng: 139.708 }, // 聖地（新宿二丁目）
-  { wikiTitle: "Yasukuni_Shrine", lat: 35.694, lng: 139.743 }, // 靖国神社
-  { wikiTitle: "Tsukiji_Outer_Market", lat: 35.665, lng: 139.770 }, // 築地
-  { wikiTitle: "Dotombori", lat: 34.668, lng: 135.501 }, // 道頓堀
-  { wikiTitle: "Universal_Studios_Japan", lat: 34.665, lng: 135.432 }, // USJ
-  { wikiTitle: "Tokyo_Disneyland", lat: 35.632, lng: 139.880 }, // TDL
-  { wikiTitle: "Fushimi_Inari-taisha", lat: 34.967, lng: 135.772 }, // 千本鳥居
-  { wikiTitle: "Kinkaku-ji", lat: 35.039, lng: 135.729 }, // 金閣寺
-  { wikiTitle: "Todai-ji", lat: 34.688, lng: 135.839 }, // 奈良の大仏
-  { wikiTitle: "Naoshima", lat: 34.453, lng: 133.996 }, // アートの島
-  { wikiTitle: "Jigokudani_Monkey_Park", lat: 36.732, lng: 138.462 }, // 温泉に入る猿
-  { wikiTitle: "Hachiko", lat: 35.659, lng: 139.700 }, // ハチ公前
-  { wikiTitle: "Ghibli_Museum", lat: 35.696, lng: 139.570 }, // ジブリ美術館
-  { wikiTitle: "Meiji_Shrine", lat: 35.676, lng: 139.699 }, // 明治神宮
-  { wikiTitle: "Asakusa", lat: 35.714, lng: 139.796 }, // 浅草
-  { wikiTitle: "Odaiba", lat: 35.628, lng: 139.773 }, // お台場
+  { wikiTitle: "奈良公園", lat: 34.6851, lng: 135.8430 },
+  { wikiTitle: "東大寺", lat: 34.6889, lng: 135.8398 },
+
+  { wikiTitle: "広島平和記念公園", lat: 34.3955, lng: 132.4536 },
+  { wikiTitle: "厳島神社", lat: 34.2950, lng: 132.3199 },
+
+  { wikiTitle: "札幌市時計台", lat: 43.0621, lng: 141.3544 },
+  { wikiTitle: "すすきの", lat: 43.0544, lng: 141.3520 },
+
+  { wikiTitle: "鳥取砂丘", lat: 35.5417, lng: 134.2203 },
+  { wikiTitle: "青ヶ島", lat: 32.4667, lng: 139.7667 },
+
+  // ★ 追加（指定）
+{ wikiTitle: "野獣邸", lat: 35.6644, lng: 139.6678 },
+
+  // ===== World (60) =====
+  { wikiTitle: "タイムズスクエア", lat: 40.7580, lng: -73.9855 },
+  { wikiTitle: "自由の女神像", lat: 40.6892, lng: -74.0445 },
+  { wikiTitle: "セントラル・パーク", lat: 40.7829, lng: -73.9654 },
+  { wikiTitle: "ゴールデンゲートブリッジ", lat: 37.8199, lng: -122.4783 },
+  { wikiTitle: "シリコンバレー", lat: 37.3875, lng: -122.0575 },
+  { wikiTitle: "ハリウッドサイン", lat: 34.1341, lng: -118.3215 },
+  { wikiTitle: "ディズニーランド", lat: 33.8121, lng: -117.9190 },
+  { wikiTitle: "ラスベガス・ストリップ", lat: 36.1147, lng: -115.1728 },
+  { wikiTitle: "エリア51", lat: 37.2350, lng: -115.8111 },
+  { wikiTitle: "ラシュモア山", lat: 43.8791, lng: -103.4591 },
+  { wikiTitle: "グランドキャニオン", lat: 36.0544, lng: -112.1401 },
+  { wikiTitle: "イエローストーン国立公園", lat: 44.4280, lng: -110.5885 },
+  { wikiTitle: "ナイアガラの滝", lat: 43.0828, lng: -79.0742 },
+  { wikiTitle: "CNタワー", lat: 43.6426, lng: -79.3871 },
+
+  { wikiTitle: "マチュ・ピチュ", lat: -13.1631, lng: -72.5450 },
+  { wikiTitle: "コルコバードのキリスト像", lat: -22.9519, lng: -43.2105 },
+  { wikiTitle: "ナスカの地上絵", lat: -14.7390, lng: -75.1300 },
+  { wikiTitle: "イースター島", lat: -27.1127, lng: -109.3497 },
+
+  { wikiTitle: "ストーンヘンジ", lat: 51.1789, lng: -1.8262 },
+  { wikiTitle: "ジャイアンツ・コーズウェイ", lat: 55.2408, lng: -6.5116 },
+  { wikiTitle: "ネス湖", lat: 57.3229, lng: -4.4244 },
+
+  { wikiTitle: "エッフェル塔", lat: 48.8584, lng: 2.2945 },
+  { wikiTitle: "ルーヴル美術館", lat: 48.8606, lng: 2.3376 },
+  { wikiTitle: "ヴェルサイユ宮殿", lat: 48.8049, lng: 2.1204 },
+  { wikiTitle: "モン・サン＝ミシェル", lat: 48.6361, lng: -1.5115 },
+
+  { wikiTitle: "コロッセオ", lat: 41.8902, lng: 12.4922 },
+  { wikiTitle: "トレビの泉", lat: 41.9009, lng: 12.4833 },
+  { wikiTitle: "ピサの斜塔", lat: 43.7230, lng: 10.3966 },
+  { wikiTitle: "ヴェネツィア", lat: 45.4408, lng: 12.3155 },
+  { wikiTitle: "ポンペイ", lat: 40.7484, lng: 14.4840 },
+
+  { wikiTitle: "サグラダ・ファミリア", lat: 41.4036, lng: 2.1744 },
+  { wikiTitle: "グエル公園", lat: 41.4145, lng: 2.1527 },
+
+  { wikiTitle: "ブランデンブルク門", lat: 52.5163, lng: 13.3777 },
+  { wikiTitle: "ベルリンの壁", lat: 52.5075, lng: 13.4395 },
+
+  { wikiTitle: "赤の広場", lat: 55.7539, lng: 37.6208 },
+  { wikiTitle: "聖ワシリイ大聖堂", lat: 55.7525, lng: 37.6231 },
+
+  { wikiTitle: "万里の長城", lat: 40.4319, lng: 116.5704 },
+  { wikiTitle: "紫禁城", lat: 39.9163, lng: 116.3972 },
+  { wikiTitle: "兵馬俑", lat: 34.3840, lng: 109.2730 },
+
+  { wikiTitle: "ギザの大ピラミッド", lat: 29.9792, lng: 31.1342 },
+  { wikiTitle: "ペトラ", lat: 30.3285, lng: 35.4444 },
+  { wikiTitle: "ブルジュ・ハリファ", lat: 25.1972, lng: 55.2744 },
+
+  { wikiTitle: "タージ・マハル", lat: 27.1751, lng: 78.0421 },
+  { wikiTitle: "アンコール・ワット", lat: 13.4125, lng: 103.8670 },
+  { wikiTitle: "ハロン湾", lat: 20.9101, lng: 107.1839 },
+
+  { wikiTitle: "マリーナベイ・サンズ", lat: 1.2834, lng: 103.8607 },
+  { wikiTitle: "マーライオン", lat: 1.2868, lng: 103.8545 },
+
+  { wikiTitle: "台北101", lat: 25.0339, lng: 121.5645 },
+
+  { wikiTitle: "Nソウルタワー", lat: 37.5512, lng: 126.9882 },
+  { wikiTitle: "景福宮", lat: 37.5796, lng: 126.9770 },
+
+  { wikiTitle: "シドニー・オペラハウス", lat: -33.8568, lng: 151.2153 },
+  { wikiTitle: "ウルル", lat: -25.3444, lng: 131.0369 },
+  { wikiTitle: "グレート・バリア・リーフ", lat: -18.2871, lng: 147.6992 },
+
+  { wikiTitle: "エベレスト", lat: 27.9881, lng: 86.9250 },
+  { wikiTitle: "キリマンジャロ", lat: -3.0674, lng: 37.3556 },
+  { wikiTitle: "セレンゲティ国立公園", lat: -2.3333, lng: 34.8333 },
+
+  { wikiTitle: "テーブルマウンテン", lat: -33.9628, lng: 18.4098 },
+  { wikiTitle: "喜望峰", lat: -34.3568, lng: 18.4740 },
+
+  { wikiTitle: "レイキャビク", lat: 64.1466, lng: -21.9426 },
+  { wikiTitle: "バチカン市国", lat: 41.9029, lng: 12.4534 },
 ];
