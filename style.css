@@ -268,3 +268,24 @@ code{
 }
 .opt input{accent-color: auto}
 .opt:hover{background:rgba(255,255,255,.06)}
+
+/* カオス演出用クラス */
+.glitch-mode {
+  animation: screen-shake 0.1s infinite;
+  filter: invert(1) hue-rotate(90deg);
+  transition: none !important;
+}
+
+@keyframes screen-shake {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(4px, -4px); }
+  50% { transform: translate(-4px, 4px); }
+  75% { transform: translate(4px, 4px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* 演出中のコンソールを赤くする */
+.glitch-mode #warpConsole {
+  color: #ff0000 !important;
+  text-shadow: 0 0 8px red;
+}
