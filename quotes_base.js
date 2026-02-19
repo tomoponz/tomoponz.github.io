@@ -1,9 +1,7 @@
 // quotes_base.js
 // meigen.html の BASE_QUOTES をここへ移動（共通データ）
 window.BASE_QUOTES = [
-  // 例（ここに meigen.html の {text, work, character, tags} を全部コピペ）
-  // { text:`だが断る`, work:`ジョジョの奇妙な冒険`, character:`岸辺露伴`, tags:[`拒否`,`決め台詞`] }, const BASE_QUOTES = [
-      { text:`バキバキ童貞です。`, work:`YouTube`, character:`ぐんぴぃ（バキ童）`, tags:[`自虐`,`ネットミーム`] },
+{ text:`バキバキ童貞です。`, work:`YouTube`, character:`ぐんぴぃ（バキ童）`, tags:[`自虐`,`ネットミーム`] },
       { text:`童貞を殺す服じゃなくて、童貞が殺しに行く服だろ。`, work:`YouTube`, character:`ぐんぴぃ（バキ童）`, tags:[`自虐`,`正論`] },
       { text:`ウィィィィィッス！どうもー、syamuでーす。`, work:`YouTube`, character:`syamu_game`, tags:[`挨拶`,`伝説`] },
       { text:`参加者、誰一人来ませんでした……。`, work:`YouTube`, character:`syamu_game`, tags:[`悲哀`,`オフ会`] },
