@@ -3,149 +3,71 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>tomoponz｜黒歴史</title>
-  <meta name="description" content="隠しページ：黒歴史ワープ">
-
-  <link rel="stylesheet" href="style.css">
-  <script defer src="app.js"></script>
-
-  <!-- 重要：この順番で -->
-  <script defer src="places.js"></script>
-  <script defer src="portal.js"></script>
-
-  <style>
-    #fade{
-      position:fixed; inset:0;
-      background:#000;
-      opacity:0;
-      pointer-events:none;
-      transition: opacity .45s ease;
-      z-index:9999;
-    }
-    .fadeIn{ opacity:1 !important; }
-
-    .imgPh{
-      padding:12px;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.03);
-      color:rgba(234,241,255,.76);
-      font-size:13px;
-    }
-    #imgBox img{
-      width:100%;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.12);
-      display:block;
-    }
-    #mapBox iframe{
-      width:100%;
-      height:320px;
-      border:0;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(0,0,0,.2);
-    }
-    pre.console{
-      white-space:pre-wrap;
-      word-break:break-word;
-      margin:0;
-      padding:12px;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(0,0,0,.22);
-      color:rgba(234,241,255,.82);
-      font-size:12px;
-    }
-  </style>
+  <title>黒歴史ゲート | tomoponz</title>
+  <meta name="description" content="tomoponz の黒歴史ゲート" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="assets/favicon.png" />
 </head>
-
-<body>
-  <div id="fade" aria-hidden="true"></div>
-
-  <!-- 統一メニュー -->
-  <header class="nav">
-    <a class="brand" href="index.html" aria-label="tomoponz ホーム">
-      <span class="logo" aria-hidden="true"></span>
-      <span class="brandText">
-        <span class="brandName">tomoponz</span>
-        <span class="brandSub" id="brandSub"></span>
-      </span>
-    </a>
-
-    <nav class="navlinks" aria-label="メニュー">
-      <a class="chip" href="index.html">プロフィール</a>
-      <a class="chip" href="omikuji.html">おみくじ</a>
-      <a class="chip" href="shindan.html">診断</a>
-      <a class="chip" href="gallery.html">ネタ置き場</a>
-      <a class="chip" href="links.html">リンク</a>
-      <a class="chip" href="games.html">ゲーム</a>
-      <a class="chip" href="door.html">ドア</a>
-      <a class="chip" href="hachi.html">八百科事典</a>
-      <a class="chip active" href="kuro.html">黒歴史</a>
-    </nav>
+<body data-page="kuro">
+  <header class="top">
+    <div class="container top-inner">
+      <a class="brand" href="index.html">tomoponz</a>
+      <nav class="nav">
+        <a href="about.html" data-nav="about">About</a>
+        <a href="works.html" data-nav="works">Works</a>
+        <a href="games.html" data-nav="games">Games</a>
+        <a href="contact.html" data-nav="contact">Contact</a>
+        <a href="warp.html" data-nav="warp">Warp</a>
+      </nav>
+    </div>
   </header>
 
-  <main class="wrap">
-    <section class="hero">
-      <h1 class="h1">黒歴史</h1>
-      <p class="sub">コナミコマンドで来る前提の隠しページ。</p>
+  <main class="container">
+    <section class="card">
+      <div class="row" style="align-items:flex-start; gap:18px; flex-wrap:wrap;">
+        <div style="flex: 1 1 320px; min-width: 280px;">
+          <h2 id="placeTitle">黒歴史</h2>
+          <p class="mut" id="placeDesc">ここは黒歴史ゲート。戻るなら今。</p>
 
-      <div class="btnrow">
-        <button onclick="toggleFxSound()">効果音：<b id="fxSoundState">ON</b></button>
-        <button onclick="toggleFxParticles()">粒子：<b id="fxParticlesState">ON</b></button>
+          <div class="actions" style="margin-top:14px;">
+            <a id="wikiLink" class="btn" href="#" target="_blank" rel="noopener">詳細を見る</a>
+            <a id="mapLink" class="btn ghost" href="#" target="_blank" rel="noopener">地図</a>
+          </div>
 
-        <button class="btn primary" onclick="kuroAgain()">黒歴史を引き直す</button>
-        <a class="btn" href="door.html">ドアへ戻る</a>
-        <a class="btn" href="warp.html">通常ワープへ</a>
-      </div>
+          <p class="mut" style="margin-top:12px;">
+            小説家になろうユーザーページ：
+            <a class="link" href="https://mypage.syosetu.com/2779764/" target="_blank" rel="noopener">mypage.syosetu.com/2779764</a>
+          </p>
 
-      <div class="note" style="margin-top:12px">
-        ※ここは「kuro:true」の枠が存在しないと普通の場所に落ちます。<br>
-        places.js に黒歴史枠（kuro:true + kuroText 等）を入れておけ。
+          <div class="console" id="warpConsole" aria-live="polite"></div>
+        </div>
+
+        <div style="flex: 1 1 360px; min-width: 280px;">
+          <div class="imgbox" id="imgBox" aria-label="image">
+            <div class="imgph" id="imgPh">Image</div>
+            <img id="placeImg" alt="" loading="lazy" />
+          </div>
+          <div class="mapbox" id="mapBox" style="margin-top:12px;"></div>
+        </div>
       </div>
     </section>
 
-    <section class="grid" style="margin-top:12px">
-      <div class="card">
-        <h2>到達先</h2>
-        <div class="row" style="justify-content:space-between;align-items:flex-start;gap:14px">
-          <div style="flex:1;min-width:240px">
-            <div class="pill">TITLE</div>
-            <h2 id="placeTitle" style="margin-top:8px;font-size:22px">読み込み中…</h2>
+    <section class="card" style="margin-top:16px;">
+      <h3>ワープの使い方</h3>
+      <ul class="list">
+        <li>ページを開くと黒歴史候補がランダム表示されます。</li>
+        <li>「詳細を見る」でリンク先へ。</li>
+        <li>戻るときはブラウザバック。</li>
+      </ul>
+    </section>
+  </main>
 
-            <hr class="sep">
-            <div class="pill">TEXT</div>
-            <p id="placeDesc" class="muted" style="margin-top:8px">読み込み中…</p>
+  <footer class="footer">
+    <div class="container">© tomoponz</div>
+  </footer>
 
-            <div class="btnrow">
-              <a class="btn" id="wikiLink" href="#" target="_blank" rel="noopener">リンク</a>
-              <a class="btn" id="mapLink" href="#" target="_blank" rel="noopener">地図</a>
-            </div>
-          </div>
-
-          <div style="flex:1;min-width:240px">
-            <div class="pill">IMAGE</div>
-            <div id="imgBox" style="margin-top:8px">
-              <div class="imgPh">画像なし</div>
-            </div>
-
-            <hr class="sep">
-            <div class="pill">MAP</div>
-            <div id="mapBox" style="margin-top:8px">
-              <div class="imgPh">地図はここに出る</div>
-            </div>
-          </div>
-        </div>
-
-        <hr class="sep">
-        <div class="pill">CONSOLE</div>
-        <pre class="console" id="warpConsole">init…</pre>
-      </div>
-
-      <div class="card">
-        <h2>ログ</h2>
-        <ul class="list" id="warpLogList"></ul>
-        <div class="btnrow">
-          <button onclick="clearWarpLog()">ログ消去</button>
-          <a class="btn" href="warp.html">通常ワープ
+  <script src="places.js"></script>
+  <script src="portal.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

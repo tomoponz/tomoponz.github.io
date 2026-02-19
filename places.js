@@ -136,20 +136,13 @@ window.PLACES = [
   {
     wikiTitle: "黒歴史ゲート",   // 内部用（何でもいい）
     kuro: true,
-    kuroTitle: "🕳️ 黒歴史アーカイブ：封印データ",
-    kuroText:
-`ここは黒歴史枠。
-・過去の自分が書いた痛い文章
-・昔の黒歴史プロジェクト
-・封印したいメモ
-などを置く。
-
-（ここを書き換えて使う）`,
+    kuroTitle: "黒歴史：なろう置き場",
+    kuroText: `小説家になろうに置いている黒歴史（？）置き場。`,
+    kuroLink: "https://mypage.syosetu.com/2779764/",
     // 任意：画像を出したいなら（ローカルでもOK）
     // kuroImg: "img/kuro1.png",
 
     // 任意：リンク（無ければ#で無効化される）
-    // kuroLink: "gallery.html",
 
     // 任意：地図を出したいなら（無くてもOK）
     // lat: 35.0,
