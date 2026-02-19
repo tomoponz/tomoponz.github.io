@@ -1,9 +1,19 @@
 // portal.js（特殊演出・堅牢版：Wikipedia(ja) + OSM）
 // - Wikipedia取得は多段フォールバックで「止まらない」
-// - タイトル補正（検索）/ プロキシ(allorigins) / リトライ
-// - lat/lng が無い場所は地図を非表示にできる
+// - REST(summary) → MediaWiki API(query) → search補正 → proxy(allorigins) → 最後はリンクだけ出す
+// - Konamiコマンド（↑↑↓↓←→←→BA）で「隠しワープ」発動：glitch-mode演出（style.css末尾）を利用
+//   ※ places.js の各placeに { ..., kuro:true } を付けると隠しワープ先の候補になる
+//
+// 依存：window.PLACES（places.js）
+// 期待DOM：
+//  - Doorページ：#doorWrap（クリックでワープ）/ #fxCanvas（任意）/ #fade（任意）
+//  - Warpページ：#placeTitle #placeDesc #imgBox #mapBox #mapLink #wikiLink #warpConsole（任意）
+//  - ログ：#warpLogList（任意）
+//  - FXトグル表示：#fxSoundState #fxParticlesState（任意）
 
-// ===== Places =====
+// =====================
+// ===== Places ========
+// =====================
 function pickRandomPlace(){
   const places = window.PLACES || [];
   if(!places.length) throw new Error("PLACES is empty");
@@ -17,12 +27,14 @@ function getCurrentPlaceIndex(){
   return Number.isFinite(i) ? i : null;
 }
 
-// ===== Wikipedia (JA) config =====
+// =====================
+// ===== Wikipedia =====
+// =====================
 const WIKI_HOST = "https://ja.wikipedia.org";
 const WIKI_REST_SUMMARY = `${WIKI_HOST}/api/rest_v1/page/summary/`;
-const WIKI_PAGE_BASE = `${WIKI_HOST}/wiki/`;
-const WIKI_API = `${WIKI_HOST}/w/api.php`;
-const PROXY_RAW = "https://api.allorigins.win/raw?url=";
+const WIKI_PAGE_BASE    = `${WIKI_HOST}/wiki/`;
+const WIKI_API          = `${WIKI_HOST}/w/api.php`;
+const PROXY_RAW         = "https://api.allorigins.win/raw?url=";
 
 // ===== utils =====
 function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
@@ -30,14 +42,27 @@ function toWikiSlug(title){ return encodeURIComponent(String(title).replaceAll("
 function wikiPageUrl(title){ return WIKI_PAGE_BASE + toWikiSlug(title); }
 function wikiSearchUrl(q){ return `${WIKI_HOST}/w/index.php?search=${encodeURIComponent(String(q))}`; }
 
-async function fetchTextDirect(url){ return await fetch(url, { cache:"no-store" }); }
+async function fetchWithTimeout(url, opts = {}, timeoutMs = 8000){
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try{
+    return await fetch(url, { ...opts, signal: ctrl.signal });
+  }finally{
+    clearTimeout(t);
+  }
+}
+
+async function fetchTextDirect(url){
+  return await fetchWithTimeout(url, { cache:"no-store" }, 9000);
+}
 async function fetchTextViaProxy(url){
   const proxied = PROXY_RAW + encodeURIComponent(url);
-  return await fetch(proxied, { cache:"no-store" });
+  return await fetchWithTimeout(proxied, { cache:"no-store" }, 12000);
 }
 
 async function fetchJsonWithRetry(url, { tryProxy=false, retries=2 } = {}){
   let lastErr = null;
+
   for(let attempt=0; attempt<=retries; attempt++){
     try{
       const res = tryProxy ? await fetchTextViaProxy(url) : await fetchTextDirect(url);
@@ -53,8 +78,16 @@ async function fetchJsonWithRetry(url, { tryProxy=false, retries=2 } = {}){
         e.httpStatus = res.status;
         throw e;
       }
+
       const txt = await res.text();
-      return JSON.parse(txt);
+      try{
+        return JSON.parse(txt);
+      }catch(parseErr){
+        // proxy側がHTMLを返す等
+        const e = new Error("JSON parse failed");
+        e.cause = parseErr;
+        throw e;
+      }
     }catch(e){
       lastErr = e;
       await sleep(200 * Math.pow(2, attempt));
@@ -97,6 +130,7 @@ function pickFromMwQuery(js){
   const page = js?.query?.pages?.[0];
   if(!page) return { missing:true };
   if(page.missing) return { missing:true };
+
   return {
     title: page.title,
     extract: page.extract || "",
@@ -117,6 +151,7 @@ async function fetchViaMediaWiki(title, { proxy=false } = {}){
     pithumbsize: 800,
     inprop: "url"
   }, { proxy });
+
   return pickFromMwQuery(js);
 }
 
@@ -212,7 +247,9 @@ async function getWikiDataSmart(inputTitle, logFn){
   };
 }
 
-// ===== Special FX (聖地演出) =====
+// =====================
+// ===== FX / UI =======
+// =====================
 const FX_KEY = "warp_fx_v1";
 function loadFx(){
   try{
@@ -248,6 +285,7 @@ function renderFxStates(){
 function fadeIn(){ document.getElementById("fade")?.classList.add("fadeIn"); }
 function fadeOut(){ document.getElementById("fade")?.classList.remove("fadeIn"); }
 
+// ===== Sound (WebAudio / user gesture only) =====
 let _audioCtx = null;
 function getAudioCtx(){
   if(_audioCtx) return _audioCtx;
@@ -257,47 +295,50 @@ function getAudioCtx(){
   return _audioCtx;
 }
 
+function playDoorSound(){
+  const fx = loadFx(); if(!fx.sound) return;
+  const ctx = getAudioCtx(); if(!ctx) return;
+
+  const now = ctx.currentTime;
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = "triangle";
+  o.frequency.setValueAtTime(180, now);
+  o.frequency.exponentialRampToValueAtTime(90, now + 0.08);
+
+  g.gain.setValueAtTime(0.0001, now);
+  g.gain.exponentialRampToValueAtTime(0.14, now + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+
+  o.connect(g).connect(ctx.destination);
+  o.start(now);
+  o.stop(now + 0.14);
+}
+
+// ===== glitch-mode 演出（style.css 末尾を利用）=====
 function triggerChaoticEffect() {
   const fx = loadFx();
   document.body.classList.add("glitch-mode");
   setTimeout(() => document.body.classList.remove("glitch-mode"), 3500);
 
-  if (fx.sound) {
-    const ctx = getAudioCtx();
-    if(!ctx) return;
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sawtooth";
-    osc.frequency.setValueAtTime(114, now);
-    osc.frequency.exponentialRampToValueAtTime(81, now + 3);
-    gain.gain.setValueAtTime(0.2, now);
-    gain.gain.linearRampToValueAtTime(0, now + 3.5);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 3.5);
-  }
-}
+  if(!fx.sound) return;
+  const ctx = getAudioCtx();
+  if(!ctx) return;
 
-// ===== OSM =====
-function osmEmbed(lat, lng){
-  const d = 0.08;
-  return `<iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${lng-d}%2C${lat-d}%2C${lng+d}%2C${lat+d}&layer=mapnik&marker=${lat}%2C${lng}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
-}
-function mapsLink(lat,lng){ return `https://www.google.com/maps?q=${lat},${lng}`; }
-
-// ===== Door sound / particles =====
-function playDoorSound(){
-  const fx = loadFx(); if(!fx.sound) return;
-  const ctx = getAudioCtx(); if(!ctx) return;
   const now = ctx.currentTime;
-  const o = ctx.createOscillator();
-  const g = ctx.createGain();
-  o.type = "triangle"; o.frequency.setValueAtTime(180, now);
-  g.gain.setValueAtTime(0.12, now); g.gain.linearRampToValueAtTime(0, now + 0.2);
-  o.connect(g).connect(ctx.destination); o.start(now); o.stop(now + 0.2);
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = "sawtooth";
+  osc.frequency.setValueAtTime(114, now);
+  osc.frequency.exponentialRampToValueAtTime(81, now + 3);
+  gain.gain.setValueAtTime(0.18, now);
+  gain.gain.linearRampToValueAtTime(0, now + 3.5);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 3.5);
 }
 
+// ===== Particles =====
 function burstParticles(canvas){
   const fx = loadFx(); if(!fx.particles) return;
   const ctx = canvas.getContext("2d");
@@ -309,25 +350,66 @@ function burstParticles(canvas){
   canvas.height = Math.floor(rect.height * dpr);
   ctx.setTransform(dpr,0,0,dpr,0,0);
 
-  const ps = Array.from({length:60}, () => ({
-    x:rect.width/2, y:rect.height/2,
-    vx:(Math.random()-0.5)*9, vy:(Math.random()-0.5)*9,
-    life:1
-  }));
-  function step(){
-    ctx.clearRect(0,0,rect.width,rect.height);
-    for(const p of ps){
-      p.x += p.vx; p.y += p.vy; p.life -= 0.02;
-      if(p.life<=0) continue;
-      ctx.fillStyle = `rgba(150,200,255,${p.life})`;
-      ctx.fillRect(p.x, p.y, 4, 4);
-    }
-    if(ps.some(p=>p.life>0)) requestAnimationFrame(step);
+  const W = rect.width, H = rect.height;
+  const cx = W*0.5, cy = H*0.55;
+
+  const n = 70;
+  const ps = [];
+  for(let i=0;i<n;i++){
+    const a = Math.random()*Math.PI*2;
+    const sp = 30 + Math.random()*200;
+    ps.push({
+      x: cx, y: cy,
+      vx: Math.cos(a)*sp,
+      vy: Math.sin(a)*sp - 20,
+      life: 0.55 + Math.random()*0.35,
+      r: 1 + Math.random()*2.4
+    });
   }
-  step();
+
+  let t0 = performance.now();
+  function step(t){
+    const dt = Math.min(0.033, (t - t0)/1000);
+    t0 = t;
+
+    ctx.clearRect(0,0,W,H);
+    for(const p of ps){
+      p.life -= dt;
+      if(p.life <= 0) continue;
+      p.vy += 220 * dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vx *= Math.pow(0.94, dt*60);
+      p.vy *= Math.pow(0.98, dt*60);
+
+      const alpha = Math.max(0, Math.min(1, p.life));
+      ctx.globalAlpha = alpha * 0.9;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = "rgba(160,220,255,1)";
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    if(ps.some(p=>p.life>0)) requestAnimationFrame(step);
+    else ctx.clearRect(0,0,W,H);
+  }
+  requestAnimationFrame(step);
 }
 
-// ===== Log =====
+// =====================
+// ===== Maps / OSM =====
+// =====================
+function osmEmbed(lat, lng){
+  const d = 0.08;
+  return `<iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${lng-d}%2C${lat-d}%2C${lng+d}%2C${lat+d}&layer=mapnik&marker=${lat}%2C${lng}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
+}
+// Googleマップリンク（これが安定）
+function mapsLink(lat,lng){ return `https://www.google.com/maps?q=${lat},${lng}`; }
+
+// =====================
+// ===== Warp Log =======
+// =====================
 const LOG_KEY = "warp_log_v1";
 function loadLog(){ try{ return JSON.parse(localStorage.getItem(LOG_KEY) || "[]"); }catch{ return []; } }
 function addLog(entry){
@@ -338,7 +420,13 @@ function addLog(entry){
 function renderLog(){
   const list = loadLog();
   const el = document.getElementById("warpLogList");
-  if(el) el.innerHTML = list.slice(0,10).map(it => `<li>${escapeHtml(it.title)} (${it.lat?.toFixed?.(2) ?? "--"})</li>`).join("");
+  if(!el) return;
+  el.innerHTML = list.slice(0,10).map(it => {
+    const t = escapeHtml(it.title || "???");
+    const la = Number.isFinite(it.lat) ? it.lat.toFixed(2) : "--";
+    const ln = Number.isFinite(it.lng) ? it.lng.toFixed(2) : "--";
+    return `<li>${t} <span class="muted">(${la}, ${ln})</span></li>`;
+  }).join("");
 }
 function escapeHtml(s){
   return String(s)
@@ -349,16 +437,20 @@ function escapeHtml(s){
     .replaceAll("'","&#039;");
 }
 
-// ===== Init =====
+// =====================
+// ===== Main init ======
+// =====================
 document.addEventListener("DOMContentLoaded", () => {
   renderFxStates();
   renderLog();
 
+  // Door page：#doorWrap があればクリックでワープ
   const doorWrap = document.getElementById("doorWrap");
   if(doorWrap){
     doorWrap.addEventListener("click", () => {
       const { index } = pickRandomPlace();
       setCurrentPlaceIndex(index);
+      sessionStorage.removeItem("warp_kuro"); // 通常ワープでは黒演出フラグを消す
 
       const fxCanvas = document.getElementById("fxCanvas");
       if(fxCanvas) burstParticles(fxCanvas);
@@ -370,16 +462,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Warp page
   if(document.getElementById("placeTitle")) renderWarp();
 });
 
+// =====================
+// ===== Warp page ======
+// =====================
 async function renderWarp(){
   const places = window.PLACES || [];
   if(!places.length) throw new Error("PLACES is empty");
 
   let idx = getCurrentPlaceIndex();
   if(idx == null || idx < 0 || idx >= places.length) idx = pickRandomPlace().index;
-  const p = places[idx];
+
+  const p = places[idx] || { wikiTitle:"日本" };
 
   const titleEl = document.getElementById("placeTitle");
   const descEl  = document.getElementById("placeDesc");
@@ -389,11 +486,16 @@ async function renderWarp(){
   const wikiA   = document.getElementById("wikiLink");
   const c       = document.getElementById("warpConsole");
 
-  // 特殊演出（ミーム）
-  if(p.wikiTitle === "野獣邸"){
+  // 隠し演出フラグ（Konamiでセットされる） or place.kuro=true
+  const kuroFlag = (sessionStorage.getItem("warp_kuro") === "1") || (p.kuro === true);
+  if(kuroFlag){
     triggerChaoticEffect();
-    if(c) c.innerHTML = "<span style='color:red'>WARNING: CHAOTIC SPACE</span>";
+    if(c) c.innerHTML = "<span style='color:red'>KONAMI SECRET WARP</span>";
+    sessionStorage.removeItem("warp_kuro"); // 1回で消す
   }
+
+  if(titleEl) titleEl.textContent = p.wikiTitle || "読み込み中…";
+  if(descEl)  descEl.textContent  = "読み込み中…";
 
   // map
   const hasLatLng = Number.isFinite(p.lat) && Number.isFinite(p.lng);
@@ -406,14 +508,14 @@ async function renderWarp(){
     mapA.style.opacity = hasLatLng ? "1" : "0.5";
   }
 
+  if(c && !kuroFlag) c.textContent = "warp init...\nWikipedia fetch...";
+
   // wiki fetch
-  if(c) c.textContent = "warp init...\nWikipedia fetch...";
   const data = await getWikiDataSmart(p.wikiTitle, (s)=>{ if(c) c.textContent += "\n" + s; });
 
-  if(titleEl) titleEl.textContent = data.title;
-  if(descEl) descEl.textContent = data.extract;
-
-  if(wikiA) wikiA.href = data.pageUrl || wikiSearchUrl(p.wikiTitle);
+  if(titleEl) titleEl.textContent = data.title || p.wikiTitle || "???";
+  if(descEl)  descEl.textContent  = data.extract || "（説明なし）";
+  if(wikiA)   wikiA.href = data.pageUrl || wikiSearchUrl(p.wikiTitle);
 
   if(imgBox){
     imgBox.innerHTML = data.thumbnail
@@ -421,13 +523,88 @@ async function renderWarp(){
       : `<div class="imgPh">画像なし</div>`;
   }
 
-  addLog({ ts: Date.now(), title: data.title, lat: p.lat ?? NaN, lng: p.lng ?? NaN });
+  addLog({ ts: Date.now(), title: data.title, lat: hasLatLng ? p.lat : NaN, lng: hasLatLng ? p.lng : NaN });
   renderLog();
+
   setTimeout(() => fadeOut(), 80);
 }
 
 window.warpAgain = function(){
   setCurrentPlaceIndex(pickRandomPlace().index);
+  sessionStorage.removeItem("warp_kuro");
   fadeIn();
   setTimeout(() => location.reload(), 260);
 };
+
+// ===============================
+// KONAMI 隠しワープ（↑↑↓↓←→←→BA）
+// - コマンド入力だけで飛ぶ（通常クリックとは独立）
+// - style.css の .glitch-mode 演出を利用（renderWarpで発火させる）
+// ===============================
+(function(){
+  if (window.__konamiWarpInited) return;
+  window.__konamiWarpInited = true;
+
+  function pickSecretOrRandomIndex(){
+    const places = window.PLACES || [];
+    if(!places.length) return null;
+
+    const secret = [];
+    for(let i=0;i<places.length;i++){
+      if(places[i] && places[i].kuro === true) secret.push(i);
+    }
+    const pool = secret.length ? secret : places.map((_,i)=>i);
+    return pool[Math.floor(Math.random()*pool.length)];
+  }
+
+  function konamiWarp(){
+    // 隠しワープフラグ（warp側でglitch発火）
+    sessionStorage.setItem("warp_kuro", "1");
+
+    const idx = pickSecretOrRandomIndex();
+    if(idx == null) return;
+    setCurrentPlaceIndex(idx);
+
+    const onWarpPage = !!document.getElementById("placeTitle");
+
+    // ワープページ：リロードで再描画
+    if(onWarpPage){
+      const c = document.getElementById("warpConsole");
+      if(c) c.textContent = "KONAMI DETECTED...\nSECRET WARP...\nRELOADING...";
+      fadeIn();
+      setTimeout(() => location.reload(), 260);
+      return;
+    }
+
+    // ドアページ：warp.htmlへ移動
+    try{
+      const fxCanvas = document.getElementById("fxCanvas");
+      if(fxCanvas) burstParticles(fxCanvas);
+      playDoorSound();
+    }catch{}
+
+    fadeIn();
+    setTimeout(() => { location.href = "warp.html"; }, 520);
+  }
+
+  function initKonami(){
+    const KONAMI = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
+    let buf = [];
+
+    window.addEventListener("keydown", (e) => {
+      const t = e.target;
+      const tag = (t && t.tagName) ? t.tagName.toLowerCase() : "";
+      if(tag === "input" || tag === "textarea" || (t && t.isContentEditable)) return;
+
+      buf.push(e.key);
+      if(buf.length > KONAMI.length) buf.shift();
+
+      if(KONAMI.every((k,i)=>buf[i]===k)){
+        buf = [];
+        konamiWarp();
+      }
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", initKonami);
+})();
