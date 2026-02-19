@@ -236,3 +236,35 @@ code{
 @media (prefers-reduced-motion: reduce){
   *{scroll-behavior:auto !important; transition:none !important; animation:none !important}
 }
+/* ===== shindan form ===== */
+.qList{margin-top:12px; display:grid; gap:10px}
+.q-block{
+  padding:12px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.03);
+}
+.q-title{
+  margin:0 0 8px;
+  font-weight:700;
+  color:rgba(234,241,255,.92);
+}
+.q-opts{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.opt{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 10px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.16);
+  color:rgba(234,241,255,.82);
+  cursor:pointer;
+  user-select:none;
+}
+.opt input{accent-color: auto}
+.opt:hover{background:rgba(255,255,255,.06)}
