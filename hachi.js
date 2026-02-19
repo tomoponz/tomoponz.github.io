@@ -1,6 +1,5 @@
 // hachi.js
 // Uncyclopedia(=MediaWiki) を API で取得して “学術資料風” に表示する
-// MediaWiki Action API: action=parse / action=query など :contentReference[oaicite:1]{index=1}
 
 const WIKI_BASE = "https://ja.uncyclopedia.info";
 const API = `${WIKI_BASE}/w/api.php`;
@@ -16,7 +15,7 @@ function log(line){
 function apiUrl(params){
   const u = new URL(API);
   Object.entries(params).forEach(([k,v]) => u.searchParams.set(k, String(v)));
-  // CORS 回避の定番（MediaWiki）：
+  // MediaWiki の CORS 用
   u.searchParams.set("origin", "*");
   return u.toString();
 }
@@ -41,22 +40,19 @@ function normalizeTitleFromHref(href){
 }
 
 function sanitizeAndRewrite(html){
-  // script 等を落としてリンク挙動を整える
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
 
-  // remove dangerous/annoying nodes
+  // 余計なもの削除
   doc.querySelectorAll("script, noscript").forEach(n => n.remove());
 
-  // rewrite links & images
+  // link / img を絶対URL化
   doc.querySelectorAll("a").forEach(a => {
     const href = a.getAttribute("href") || "";
-    // 相対 → 絶対
     try{
       const abs = new URL(href, WIKI_BASE).toString();
       a.setAttribute("href", abs);
     }catch{}
-    // 見やすさ
     a.setAttribute("target", "_blank");
     a.setAttribute("rel", "noopener");
   });
@@ -84,7 +80,7 @@ async function loadByTitle(title){
   el("btnOpen").href = `${WIKI_BASE}/wiki/${encodeURIComponent(title.replaceAll(" ","_"))}`;
 
   log(`parse: ${title}`);
-  // MediaWiki Parse API: prop=text で HTML を取得 :contentReference[oaicite:2]{index=2}
+
   const js = await getJson({
     action: "parse",
     page: title,
@@ -102,28 +98,25 @@ async function loadByTitle(title){
     : title;
 
   el("articleTitle").textContent = displayTitle;
-  el("articleNote").textContent = "出典：アンサイクロペディア（パロディ百科） / API取得";
+  el("articleNote").textContent = "出典：アンサイクロペディア / API取得";
 
   const cleaned = sanitizeAndRewrite(js.parse.text);
   el("articleContent").innerHTML = cleaned;
 
-  // 内部リンク（/wiki/...）をクリックしたら “このページ内” で読み込む
+  // 内部リンク（/wiki/...）はこのページ内で読む
   el("articleContent").querySelectorAll("a").forEach(a => {
     const href = a.getAttribute("href") || "";
     const t = normalizeTitleFromHref(href);
     if(t){
       a.addEventListener("click", (ev) => {
-        // Ctrl/Command は普通に別タブへ
-        if(ev.ctrlKey || ev.metaKey) return;
+        if(ev.ctrlKey || ev.metaKey) return; // Ctrl/Commandは別タブOK
         ev.preventDefault();
         el("q").value = t;
         loadByTitle(t).catch(err=>{
           log(`ERR: ${err.message}`);
-          // 失敗時は本家へ
           window.open(`${WIKI_BASE}/wiki/${encodeURIComponent(t.replaceAll(" ","_"))}`, "_blank", "noopener");
         });
       });
-      // 内部リンクはタブを変えない（クリックで中で読む）
       a.removeAttribute("target");
       a.removeAttribute("rel");
     }
@@ -169,7 +162,6 @@ document.addEventListener("DOMContentLoaded", () => {
   el("console").textContent = "init…\n";
   wireUI();
 
-  // 初期表示：メインページ
   el("q").value = "メインページ";
   loadByTitle("メインページ").catch(err=>{
     log(`ERR: ${err.message}`);
