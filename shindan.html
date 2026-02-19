@@ -3,21 +3,25 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>tomoponz｜おみくじ</title>
-  <meta name="description" content="10種類：毒舌94% / ちょい良い5% / USアルティメット大吉1%">
+  <title>tomoponz｜診断</title>
+  <meta name="description" content="10問でRPG風に性格診断するページ">
+
   <link rel="stylesheet" href="style.css">
   <script defer src="app.js"></script>
 </head>
-<body>
-  <header class="nav">
-    <div class="brand">
-      <div class="logo"></div>
-      <div>
-        <b>tomoponz</b><br><small>おみくじの間</small>
-      </div>
-    </div>
 
-    <nav class="navlinks">
+<body>
+  <!-- 統一メニュー -->
+  <header class="nav">
+    <a class="brand" href="index.html" aria-label="tomoponz ホーム">
+      <span class="logo" aria-hidden="true"></span>
+      <span class="brandText">
+        <span class="brandName">tomoponz</span>
+        <span class="brandSub" id="brandSub"></span>
+      </span>
+    </a>
+
+    <nav class="navlinks" aria-label="メニュー">
       <a class="chip" href="index.html">プロフィール</a>
       <a class="chip" href="omikuji.html">おみくじ</a>
       <a class="chip" href="shindan.html">診断</a>
@@ -31,40 +35,152 @@
 
   <main class="wrap">
     <section class="hero">
-      <h1 class="h1">おみくじ（古語ふう）</h1>
-      <p class="sub">十種あり。毒舌多し（九割超）。されど稀に奇跡、降りる。</p>
-      <div class="btnrow">
-        <button onclick="drawOmikuji()">おみくじを引く</button>
-        <button onclick="resetOmikuji()">リセット</button>
-        <a class="btn" href="index.html">戻る</a>
+      <h1 class="h1">診断</h1>
+      <p class="sub">
+        10問に答えると、<b>5能力（集中力/好奇心/奔放さ/社交性/胆力）</b>からタイプを決める。
+      </p>
+      <div class="badges">
+        <span class="badge"><span class="dot"></span>全50通り（タイプ×ランク）</span>
+        <span class="badge">出力：コピー可能</span>
+        <span class="badge">世界観：RPG風</span>
       </div>
     </section>
 
     <section class="grid2">
       <div class="card">
-        <h2>結果</h2>
-        <div id="omikujiBox" style="display:none">
-          <div class="pill rank" id="omikujiRank"></div>
-          <p class="muted" id="omikujiMsg" style="margin:10px 0 0"></p>
-          <p class="muted" id="omikujiTips" style="margin:6px 0 0"></p>
+        <h2>性格診断（10問）</h2>
+        <p class="muted">各問：<b>はい=5 / どちらでも=3 / いいえ=1</b>（直感で選べ）</p>
+
+        <div id="shindanForm" class="qList">
+
+          <!-- 集中力 focus x2 -->
+          <div class="q-block">
+            <p class="q-title">Q1. 予定がある日は、開始時刻の前に自然と準備が終わっている？</p>
+            <div class="q-opts">
+              <label class="opt"><input type="radio" name="q1" value="5" data-trait="focus">はい（5）</label>
+              <label class="opt"><input type="radio" name="q1" value="3" data-trait="focus">どちらでも（3）</label>
+              <label class="opt"><input type="radio" name="q1" value="1" data-trait="focus">いいえ（1）</label>
+            </div>
+          </div>
+
+          <div class="q-block">
+            <p class="q-title">Q2. 机の上が多少散らかっていても、作業の優先順位を崩さず進められる？</p>
+            <div class="q-opts">
+              <label class="opt"><input type="radio" name="q2" value="5" data-trait="focus">はい（5）</label>
+              <label class="opt"><input type="radio" name="q2" value="3" data-trait="focus">どちらでも（3）</label>
+              <label class="opt"><input type="radio" name="q2" value="1" data-trait="focus">いいえ（1）</label>
+            </div>
+          </div>
+
+          <!-- 好奇心 curio x2 -->
+          <div class="q-block">
+            <p class="q-title">Q3. 新しい技術・未知の概念を見ると、とりあえず試したくなる？</p>
+            <div class="q-opts">
+              <label class="opt"><input type="radio" name="q3" value="5" data-trait="curio">はい（5）</label>
+              <label class="opt"><input type="radio" name="q3" value="3" data-trait="curio">どちらでも（3）</label>
+              <label class="opt"><input type="radio" name="q3" value="1" data-trait="curio">いいえ（1）</label>
+            </div>
+          </div>
+
+          <div class="q-block">
+            <p class="q-title">Q4. 「なぜそうなる？」を放置できず、原理まで追いたくなる？</p>
+            <div class="q-opts">
+              <label class="opt"><input type="radio" name="q4" value="5" data-trait="curio">はい（5）</label>
+              <label class="opt"><input type="radio" name="q4" value="3" data-trait="curio">どちらでも（3）</label>
+              <label class="opt"><input type="radio" name="q4" value="1" data-trait="curio">いいえ（1）</label>
+            </div>
+          </div>
+
+          <!-- 奔放さ chaos x2 -->
+          <div class="q-block">
+            <p class="q-title">Q5. 計画を立てても、途中で「別ルートの方が面白い」で寄り道しがち？</p>
+            <div class="q-opts">
+              <label class="opt"><input type="radio" name="q5" value="5" data-trait="chaos">はい（5）</label>
+              <label class="opt"><input type="radio" name="q5" value="3" data-trait="chaos">どちらでも（3）</label>
+              <label class="opt"><input type="radio" name="q5" value="1" data-trait="chaos">いいえ（1）</label>
+            </div>
+          </div>
+
+          <div class="q-block">
+            <p class="q-title">Q6. アイデアが出たら、完成度より先に「とりあえず作る」に走る？</p>
+            <div class="q-opts">
+              <label class="opt"><input type="radio" name="q6" value="5" data-trait="chaos">はい（5）</label>
+              <label class="opt"><input type="radio" name="q6" value="3" data-trait="chaos">どちらでも（3）</label>
+              <label class="opt"><input type="radio" name="q6" value="1" data-trait="chaos">いいえ（1）</label>
+            </div>
+          </div>
+
+          <!-- 社交性 social x2 -->
+          <div class="q-block">
+            <p class="q-title">Q7. 人に説明すると、自分の理解も一段深くなると感じる？</p>
+            <div class="q-opts">
+              <label class="opt"><input type="radio" name="q7" value="5" data-trait="social">はい（5）</label>
+              <label class="opt"><input type="radio" name="q7" value="3" data-trait="social">どちらでも（3）</label>
+              <label class="opt"><input type="radio" name="q7" value="1" data-trait="social">いいえ（1）</label>
+            </div>
+          </div>
+
+          <div class="q-block">
+            <p class="q-title">Q8. 初対面の場でも、必要なら自分から話を回せる？</p>
+            <div class="q-opts">
+              <label class="opt"><input type="radio" name="q8" value="5" data-trait="social">はい（5）</label>
+              <label class="opt"><input type="radio" name="q8" value="3" data-trait="social">どちらでも（3）</label>
+              <label class="opt"><input type="radio" name="q8" value="1" data-trait="social">いいえ（1）</label>
+            </div>
+          </div>
+
+          <!-- 胆力 guts x2 -->
+          <div class="q-block">
+            <p class="q-title">Q9. 失敗の可能性があっても、「一回やる」を選びやすい？</p>
+            <div class="q-opts">
+              <label class="opt"><input type="radio" name="q9" value="5" data-trait="guts">はい（5）</label>
+              <label class="opt"><input type="radio" name="q9" value="3" data-trait="guts">どちらでも（3）</label>
+              <label class="opt"><input type="radio" name="q9" value="1" data-trait="guts">いいえ（1）</label>
+            </div>
+          </div>
+
+          <div class="q-block">
+            <p class="q-title">Q10. 他人にどう見られるかより、「やるべき/やりたい」を優先できる？</p>
+            <div class="q-opts">
+              <label class="opt"><input type="radio" name="q10" value="5" data-trait="guts">はい（5）</label>
+              <label class="opt"><input type="radio" name="q10" value="3" data-trait="guts">どちらでも（3）</label>
+              <label class="opt"><input type="radio" name="q10" value="1" data-trait="guts">いいえ（1）</label>
+            </div>
+          </div>
+
         </div>
-        <div class="note" style="margin-top:12px">
-          ※同じ日に引けば、同じ結果なり。<br>
-          変えたければ「リセット」すべし。
+
+        <div class="btnrow">
+          <button class="btn primary" onclick="runShindan()">診断する</button>
+          <button class="btn" onclick="resetShindan()">リセット</button>
         </div>
+
+        <div id="shindanOut" style="margin-top:12px"></div>
       </div>
 
       <div class="card">
-        <h2>確率</h2>
+        <h2>仕様</h2>
         <ul class="list">
-          <li>毒舌：8種類（合計 94%）</li>
-          <li>ちと佳し：1種類（5%）</li>
-          <li>USアルティメット大吉：1種類（1%）</li>
+          <li>計算：<code>value(1/3/5)</code> を trait に加点</li>
+          <li>上位2能力でアーキタイプ決定（<code>ARCHETYPES</code>）</li>
+          <li>合計点でランク決定（D〜S）</li>
+          <li>結果はボタンでコピー可能</li>
         </ul>
         <hr class="sep">
-        <p class="muted">友達に見せるときは、まず引かせよ。空気が作れる。</p>
+        <div class="note" id="quote">（ここに一言が出る）</div>
       </div>
     </section>
+
+    <div class="footer">© tomoponz</div>
   </main>
+
+  <script>
+    function resetShindan(){
+      document.querySelectorAll('#shindanForm input[type="radio"]').forEach(r => r.checked = false);
+      const out = document.getElementById('shindanOut');
+      if(out) out.innerHTML = "";
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+  </script>
 </body>
 </html>
