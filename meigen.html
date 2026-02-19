@@ -43,8 +43,6 @@
     .footer{margin-top:18px;color:rgba(234,241,255,.55);font-size:12px;text-align:center}
   </style>
 </head>
-<script src="quotes_base.js?v=20260220"></script>
-<script src="user_quotes.js?v=20260220"></script>
 
 <body>
   <header class="nav">
@@ -106,20 +104,16 @@
 
     <div class="footer">© tomoponz / Meigen</div>
   </main>
-   <script src="user_quotes.js?v=20260220"></script>
+
+  <!-- ✅ 読み込み順を固定（ここ重要） -->
+  <script src="quotes_base.js?v=20260220"></script>
+  <script src="user_quotes.js?v=20260220"></script>
+
   <script>
-    // =========================
-    // データ（ベース）
-    // =========================
-   const BASE_QUOTES = Array.isArray(window.BASE_QUOTES) ? window.BASE_QUOTES : [];
+    // BASE（共通）
+    const BASE_QUOTES = Array.isArray(window.BASE_QUOTES) ? window.BASE_QUOTES : [];
 
-
-    // =========================
-    // ★ユーザー追加分を合流（user_quotes.js の window.USER_QUOTES）
-    // - 形式は2種類OK
-    //   A) {text, work, character, tags}
-    //   B) {text, author, work?, tags?}  ← authorはcharacter扱い
-    // =========================
+    // USER（追加分）
     function normalizeUserQuote(q){
       if(!q || !q.text) return null;
       const work = q.work || "User";
@@ -128,12 +122,13 @@
       return { text: String(q.text), work: String(work), character: String(character), tags };
     }
 
-    const USER_QUOTES = Array.isArray(window.USER_QUOTES) ? window.USER_QUOTES.map(normalizeUserQuote).filter(Boolean) : [];
+    const USER_QUOTES = Array.isArray(window.USER_QUOTES)
+      ? window.USER_QUOTES.map(normalizeUserQuote).filter(Boolean)
+      : [];
+
     const QUOTES = [...BASE_QUOTES, ...USER_QUOTES];
 
-    // =========================
     // UI
-    // =========================
     const elSearch = document.getElementById('qSearch');
     const elWork = document.getElementById('qWork');
     const elTag = document.getElementById('qTag');
@@ -190,11 +185,13 @@
       spotlight = q;
       elSpotText.textContent = q.text;
       elSpotMeta.innerHTML = '';
+
       const items = [
         {label:`作品`, value:q.work},
         {label:`人物`, value:q.character},
         ...(q.tags||[]).map(x=>({label:`タグ`, value:x}))
       ];
+
       items.forEach(it=>{
         const span = document.createElement('span');
         span.className = 'pill';
@@ -249,7 +246,6 @@
         ta.value = txt;
         ta.style.position = 'fixed';
         ta.style.left = '-9999px';
-        ta.style.top = '0';
         document.body.appendChild(ta);
         ta.focus();
         ta.select();
@@ -261,25 +257,24 @@
       setTimeout(()=>btnCopy.textContent='コピー', 900);
     }
 
-    ['input','change'].forEach(ev=>{
-      elSearch.addEventListener(ev, render);
-      elWork.addEventListener(ev, render);
-      elTag.addEventListener(ev, render);
-    });
+    function init(){
+      buildFilters();
+      render();
 
-    btnRandom.addEventListener('click', ()=>{
-      const q = randomPick();
-      if(q) setSpot(q);
-    });
+      elSearch.addEventListener('input', render);
+      elWork.addEventListener('change', render);
+      elTag.addEventListener('change', render);
 
-    btnCopy.addEventListener('click', copySpot);
+      btnRandom.addEventListener('click', ()=>{
+        const q = randomPick();
+        if(q) setSpot(q);
+      });
 
-    // init
-    buildFilters();
-    render();
+      btnCopy.addEventListener('click', copySpot);
+    }
 
-    // デバッグ：更新確認したい時だけ使う
-    // console.log("QUOTES", QUOTES.length, QUOTES.slice(-3));
+    // ✅ 他のJSがあっても最後に確実に動かす
+    window.addEventListener('load', init);
   </script>
 </body>
 </html>
