@@ -4,10 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>tomoponz｜診断</title>
-  <meta name="description" content="10問でRPG風に性格診断するページ">
+  <meta name="description" content="10問 → 5能力 → 50結果" />
 
   <link rel="stylesheet" href="style.css">
   <script defer src="app.js"></script>
+  <script defer src="counter.js"></script>
 </head>
 
 <body>
@@ -36,151 +37,147 @@
   <main class="wrap">
     <section class="hero">
       <h1 class="h1">診断</h1>
-      <p class="sub">
-        10問に答えると、<b>5能力（集中力/好奇心/奔放さ/社交性/胆力）</b>からタイプを決める。
-      </p>
-      <div class="badges">
-        <span class="badge"><span class="dot"></span>全50通り（タイプ×ランク）</span>
-        <span class="badge">出力：コピー可能</span>
-        <span class="badge">世界観：RPG風</span>
+      <p class="sub">10問 → 5能力 → 50結果。結果はコピペ可能。</p>
+
+      <div class="btnrow">
+        <button onclick="runShindan()">診断する</button>
+        <a class="btn" href="index.html">戻る</a>
       </div>
     </section>
 
-    <section class="grid2">
-      <div class="card">
-        <h2>性格診断（10問）</h2>
-        <p class="muted">各問：<b>はい=5 / どちらでも=3 / いいえ=1</b>（直感で選べ）</p>
+    <section class="card">
+      <h2>回答（5段階）</h2>
+      <p class="muted">各設問：1=当てはまらない ～ 5=めちゃ当てはまる</p>
+      <hr class="sep">
 
-        <div id="shindanForm" class="qList">
-
-          <!-- 集中力 focus x2 -->
-          <div class="q-block">
-            <p class="q-title">Q1. 予定がある日は、開始時刻の前に自然と準備が終わっている？</p>
-            <div class="q-opts">
-              <label class="opt"><input type="radio" name="q1" value="5" data-trait="focus">はい（5）</label>
-              <label class="opt"><input type="radio" name="q1" value="3" data-trait="focus">どちらでも（3）</label>
-              <label class="opt"><input type="radio" name="q1" value="1" data-trait="focus">いいえ（1）</label>
-            </div>
+      <!-- 2問ずつ：focus/curio/chaos/social/guts -->
+      <div class="grid2">
+        <div class="card">
+          <h3>Q1（集中力）</h3>
+          <p class="muted">気が散っても、すぐ戻せる。</p>
+          <div class="btnrow">
+            <label><input type="radio" name="q1" value="1" data-trait="focus">1</label>
+            <label><input type="radio" name="q1" value="2" data-trait="focus">2</label>
+            <label><input type="radio" name="q1" value="3" data-trait="focus">3</label>
+            <label><input type="radio" name="q1" value="4" data-trait="focus">4</label>
+            <label><input type="radio" name="q1" value="5" data-trait="focus">5</label>
           </div>
-
-          <div class="q-block">
-            <p class="q-title">Q2. 机の上が多少散らかっていても、作業の優先順位を崩さず進められる？</p>
-            <div class="q-opts">
-              <label class="opt"><input type="radio" name="q2" value="5" data-trait="focus">はい（5）</label>
-              <label class="opt"><input type="radio" name="q2" value="3" data-trait="focus">どちらでも（3）</label>
-              <label class="opt"><input type="radio" name="q2" value="1" data-trait="focus">いいえ（1）</label>
-            </div>
-          </div>
-
-          <!-- 好奇心 curio x2 -->
-          <div class="q-block">
-            <p class="q-title">Q3. 新しい技術・未知の概念を見ると、とりあえず試したくなる？</p>
-            <div class="q-opts">
-              <label class="opt"><input type="radio" name="q3" value="5" data-trait="curio">はい（5）</label>
-              <label class="opt"><input type="radio" name="q3" value="3" data-trait="curio">どちらでも（3）</label>
-              <label class="opt"><input type="radio" name="q3" value="1" data-trait="curio">いいえ（1）</label>
-            </div>
-          </div>
-
-          <div class="q-block">
-            <p class="q-title">Q4. 「なぜそうなる？」を放置できず、原理まで追いたくなる？</p>
-            <div class="q-opts">
-              <label class="opt"><input type="radio" name="q4" value="5" data-trait="curio">はい（5）</label>
-              <label class="opt"><input type="radio" name="q4" value="3" data-trait="curio">どちらでも（3）</label>
-              <label class="opt"><input type="radio" name="q4" value="1" data-trait="curio">いいえ（1）</label>
-            </div>
-          </div>
-
-          <!-- 奔放さ chaos x2 -->
-          <div class="q-block">
-            <p class="q-title">Q5. 計画を立てても、途中で「別ルートの方が面白い」で寄り道しがち？</p>
-            <div class="q-opts">
-              <label class="opt"><input type="radio" name="q5" value="5" data-trait="chaos">はい（5）</label>
-              <label class="opt"><input type="radio" name="q5" value="3" data-trait="chaos">どちらでも（3）</label>
-              <label class="opt"><input type="radio" name="q5" value="1" data-trait="chaos">いいえ（1）</label>
-            </div>
-          </div>
-
-          <div class="q-block">
-            <p class="q-title">Q6. アイデアが出たら、完成度より先に「とりあえず作る」に走る？</p>
-            <div class="q-opts">
-              <label class="opt"><input type="radio" name="q6" value="5" data-trait="chaos">はい（5）</label>
-              <label class="opt"><input type="radio" name="q6" value="3" data-trait="chaos">どちらでも（3）</label>
-              <label class="opt"><input type="radio" name="q6" value="1" data-trait="chaos">いいえ（1）</label>
-            </div>
-          </div>
-
-          <!-- 社交性 social x2 -->
-          <div class="q-block">
-            <p class="q-title">Q7. 人に説明すると、自分の理解も一段深くなると感じる？</p>
-            <div class="q-opts">
-              <label class="opt"><input type="radio" name="q7" value="5" data-trait="social">はい（5）</label>
-              <label class="opt"><input type="radio" name="q7" value="3" data-trait="social">どちらでも（3）</label>
-              <label class="opt"><input type="radio" name="q7" value="1" data-trait="social">いいえ（1）</label>
-            </div>
-          </div>
-
-          <div class="q-block">
-            <p class="q-title">Q8. 初対面の場でも、必要なら自分から話を回せる？</p>
-            <div class="q-opts">
-              <label class="opt"><input type="radio" name="q8" value="5" data-trait="social">はい（5）</label>
-              <label class="opt"><input type="radio" name="q8" value="3" data-trait="social">どちらでも（3）</label>
-              <label class="opt"><input type="radio" name="q8" value="1" data-trait="social">いいえ（1）</label>
-            </div>
-          </div>
-
-          <!-- 胆力 guts x2 -->
-          <div class="q-block">
-            <p class="q-title">Q9. 失敗の可能性があっても、「一回やる」を選びやすい？</p>
-            <div class="q-opts">
-              <label class="opt"><input type="radio" name="q9" value="5" data-trait="guts">はい（5）</label>
-              <label class="opt"><input type="radio" name="q9" value="3" data-trait="guts">どちらでも（3）</label>
-              <label class="opt"><input type="radio" name="q9" value="1" data-trait="guts">いいえ（1）</label>
-            </div>
-          </div>
-
-          <div class="q-block">
-            <p class="q-title">Q10. 他人にどう見られるかより、「やるべき/やりたい」を優先できる？</p>
-            <div class="q-opts">
-              <label class="opt"><input type="radio" name="q10" value="5" data-trait="guts">はい（5）</label>
-              <label class="opt"><input type="radio" name="q10" value="3" data-trait="guts">どちらでも（3）</label>
-              <label class="opt"><input type="radio" name="q10" value="1" data-trait="guts">いいえ（1）</label>
-            </div>
-          </div>
-
         </div>
 
-        <div class="btnrow">
-          <button class="btn primary" onclick="runShindan()">診断する</button>
-          <button class="btn" onclick="resetShindan()">リセット</button>
+        <div class="card">
+          <h3>Q2（好奇心）</h3>
+          <p class="muted">未知の分野でも、調べ始めるのが楽しい。</p>
+          <div class="btnrow">
+            <label><input type="radio" name="q2" value="1" data-trait="curio">1</label>
+            <label><input type="radio" name="q2" value="2" data-trait="curio">2</label>
+            <label><input type="radio" name="q2" value="3" data-trait="curio">3</label>
+            <label><input type="radio" name="q2" value="4" data-trait="curio">4</label>
+            <label><input type="radio" name="q2" value="5" data-trait="curio">5</label>
+          </div>
         </div>
 
-        <div id="shindanOut" style="margin-top:12px"></div>
+        <div class="card">
+          <h3>Q3（奔放さ）</h3>
+          <p class="muted">予定が崩れても、ノリで別ルートを作れる。</p>
+          <div class="btnrow">
+            <label><input type="radio" name="q3" value="1" data-trait="chaos">1</label>
+            <label><input type="radio" name="q3" value="2" data-trait="chaos">2</label>
+            <label><input type="radio" name="q3" value="3" data-trait="chaos">3</label>
+            <label><input type="radio" name="q3" value="4" data-trait="chaos">4</label>
+            <label><input type="radio" name="q3" value="5" data-trait="chaos">5</label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Q4（社交性）</h3>
+          <p class="muted">初対面でも、話題を作って回せる。</p>
+          <div class="btnrow">
+            <label><input type="radio" name="q4" value="1" data-trait="social">1</label>
+            <label><input type="radio" name="q4" value="2" data-trait="social">2</label>
+            <label><input type="radio" name="q4" value="3" data-trait="social">3</label>
+            <label><input type="radio" name="q4" value="4" data-trait="social">4</label>
+            <label><input type="radio" name="q4" value="5" data-trait="social">5</label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Q5（胆力）</h3>
+          <p class="muted">失敗が怖くても、まず踏み込める。</p>
+          <div class="btnrow">
+            <label><input type="radio" name="q5" value="1" data-trait="guts">1</label>
+            <label><input type="radio" name="q5" value="2" data-trait="guts">2</label>
+            <label><input type="radio" name="q5" value="3" data-trait="guts">3</label>
+            <label><input type="radio" name="q5" value="4" data-trait="guts">4</label>
+            <label><input type="radio" name="q5" value="5" data-trait="guts">5</label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Q6（集中力）</h3>
+          <p class="muted">締切が近いとき、優先順位で迷いにくい。</p>
+          <div class="btnrow">
+            <label><input type="radio" name="q6" value="1" data-trait="focus">1</label>
+            <label><input type="radio" name="q6" value="2" data-trait="focus">2</label>
+            <label><input type="radio" name="q6" value="3" data-trait="focus">3</label>
+            <label><input type="radio" name="q6" value="4" data-trait="focus">4</label>
+            <label><input type="radio" name="q6" value="5" data-trait="focus">5</label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Q7（好奇心）</h3>
+          <p class="muted">「なぜ？」が出ると、放置できない。</p>
+          <div class="btnrow">
+            <label><input type="radio" name="q7" value="1" data-trait="curio">1</label>
+            <label><input type="radio" name="q7" value="2" data-trait="curio">2</label>
+            <label><input type="radio" name="q7" value="3" data-trait="curio">3</label>
+            <label><input type="radio" name="q7" value="4" data-trait="curio">4</label>
+            <label><input type="radio" name="q7" value="5" data-trait="curio">5</label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Q8（奔放さ）</h3>
+          <p class="muted">計画より、ひらめきで進める方が多い。</p>
+          <div class="btnrow">
+            <label><input type="radio" name="q8" value="1" data-trait="chaos">1</label>
+            <label><input type="radio" name="q8" value="2" data-trait="chaos">2</label>
+            <label><input type="radio" name="q8" value="3" data-trait="chaos">3</label>
+            <label><input type="radio" name="q8" value="4" data-trait="chaos">4</label>
+            <label><input type="radio" name="q8" value="5" data-trait="chaos">5</label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Q9（社交性）</h3>
+          <p class="muted">人に説明・共有するのが苦じゃない。</p>
+          <div class="btnrow">
+            <label><input type="radio" name="q9" value="1" data-trait="social">1</label>
+            <label><input type="radio" name="q9" value="2" data-trait="social">2</label>
+            <label><input type="radio" name="q9" value="3" data-trait="social">3</label>
+            <label><input type="radio" name="q9" value="4" data-trait="social">4</label>
+            <label><input type="radio" name="q9" value="5" data-trait="social">5</label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Q10（胆力）</h3>
+          <p class="muted">批判されても、やるべきなら押し切れる。</p>
+          <div class="btnrow">
+            <label><input type="radio" name="q10" value="1" data-trait="guts">1</label>
+            <label><input type="radio" name="q10" value="2" data-trait="guts">2</label>
+            <label><input type="radio" name="q10" value="3" data-trait="guts">3</label>
+            <label><input type="radio" name="q10" value="4" data-trait="guts">4</label>
+            <label><input type="radio" name="q10" value="5" data-trait="guts">5</label>
+          </div>
+        </div>
       </div>
 
-      <div class="card">
-        <h2>仕様</h2>
-        <ul class="list">
-          <li>計算：<code>value(1/3/5)</code> を trait に加点</li>
-          <li>上位2能力でアーキタイプ決定（<code>ARCHETYPES</code>）</li>
-          <li>合計点でランク決定（D〜S）</li>
-          <li>結果はボタンでコピー可能</li>
-        </ul>
-        <hr class="sep">
-        <div class="note" id="quote">（ここに一言が出る）</div>
-      </div>
+      <hr class="sep">
+      <div id="shindanOut"></div>
     </section>
 
-    <div class="footer">© tomoponz</div>
+    <div class="footer">© tomoponz / Shindan</div>
   </main>
-
-  <script>
-    function resetShindan(){
-      document.querySelectorAll('#shindanForm input[type="radio"]').forEach(r => r.checked = false);
-      const out = document.getElementById('shindanOut');
-      if(out) out.innerHTML = "";
-      window.scrollTo({top:0, behavior:"smooth"});
-    }
-  </script>
 </body>
 </html>
