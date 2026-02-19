@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>tomoponz｜名言集</title>
   <meta name="description" content="名言・迷言・決め台詞を検索/ランダム表示できるページ">
-  <link rel="stylesheet" href="style.css">
+
+  <!-- ★更新時は v= の数字を変える（キャッシュ対策） -->
+  <link rel="stylesheet" href="style.css?v=20260220">
 
   <style>
-    /* 既存の style.css があっても崩れない程度の最小追加 */
     .wrap{max-width:1080px;margin:0 auto;padding:18px}
     .hero{padding:18px;border:1px solid rgba(255,255,255,.10);border-radius:18px;background:rgba(255,255,255,.03)}
     .h1{font-size:28px;letter-spacing:.5px}
@@ -52,7 +53,6 @@
       </div>
     </div>
 
-    <!-- warp.html と同じ“全部入り”ナビに統合 -->
     <nav class="navlinks">
       <a class="chip" href="index.html">プロフィール</a>
       <a class="chip" href="omikuji.html">おみくじ</a>
@@ -104,13 +104,12 @@
 
     <div class="footer">© tomoponz / Meigen</div>
   </main>
-
+   <script src="user_quotes.js?v=20260220"></script>
   <script>
     // =========================
-    // データ（全部統合）
+    // データ（ベース）
     // =========================
-    const QUOTES = [
-      // --- ネット・バキ童・配信者 ---
+    const BASE_QUOTES = [
       { text:`バキバキ童貞です。`, work:`YouTube`, character:`ぐんぴぃ（バキ童）`, tags:[`自虐`,`ネットミーム`] },
       { text:`童貞を殺す服じゃなくて、童貞が殺しに行く服だろ。`, work:`YouTube`, character:`ぐんぴぃ（バキ童）`, tags:[`自虐`,`正論`] },
       { text:`ウィィィィィッス！どうもー、syamuでーす。`, work:`YouTube`, character:`syamu_game`, tags:[`挨拶`,`伝説`] },
@@ -121,7 +120,6 @@
       { text:`手取り20万？お前が悪い。`, work:`SNS/実業家`, character:`堀江貴文`, tags:[`毒舌`,`シビア`] },
       { text:`ひき肉です！`, work:`YouTube`, character:`ちょんまげ小僧`, tags:[`挨拶`,`流行`] },
 
-      // --- 政治・事件・インタビュー ---
       { text:`今のままではいけないと思います。だからこそ、日本は今のままではいけないと思っている。`, work:`政治`, character:`小泉進次郎`, tags:[`構文`,`迷言`] },
       { text:`反省していると言いながら、反省している色が見えない。というご指摘に対しまして、私自身の問題だと反省している。`, work:`政治`, character:`小泉進次郎`, tags:[`構文`,`迷言`] },
       { text:`この日本を、変えたい！`, work:`政治`, character:`野々村竜太郎`, tags:[`叫び`,`謝罪会見`] },
@@ -132,19 +130,8 @@
       { text:`あああああ！水素の音ォ〜！！`, work:`CM`, character:`水素水のお姉さん`, tags:[`迷言`,`聴覚破壊`] },
       { text:`いいよ、来いよ。`, work:`ネット深淵`, character:`野獣先輩`, tags:[`不朽`,`深淵`] },
 
-      // --- 不明/ネット ---
       { text:`少数派は声がでかい`, work:`不明/ネット`, character:`おにゐさん`, tags:[`観察`,`皮肉`] },
-
-      // --- ポプテピピック ---
-      { text:`さてはアンチだなオメー`, work:`ポプテピピック`, character:`ポプ子`, tags:[`煽り`,`迷言`] },
-      { text:`えいえい、怒った？`, work:`ポプテピピック`, character:`ポプ子`, tags:[`煽り`,`挑発`] },
-      { text:`「あーそーゆーことね完全に理解した」←わかってない`, work:`ポプテピピック`, character:`ポプ子`, tags:[`迷言`,`自虐`] },
-
-      // --- このすば ---
-      { text:`「真の男女平等主義者な俺は、女の子相手でもドロップキックをくらわせられる男」`, work:`この素晴らしい世界に祝福を！`, character:`カズマ`, tags:[`迷言`,`倫理崩壊`] },
-      { text:`「エクスプロージョン！！」`, work:`この素晴らしい世界に祝福を！`, character:`めぐみん`, tags:[`必殺`,`決め台詞`] },
-
-      // --- ジョジョ ---
+            // --- ジョジョ ---
       { text:`「ハーモニー」っつーんですかあ〜〜〜「味の調和」っつーんですかあ〜っ。たとえるならサイモンとガーファンクルのデュエット！　ウッチャンに対するナンチャン！　高森朝雄の原作に対するちばてつやの「あしたのジョー」！...つうーっ感じっスよお〜っ`, work:`ジョジョの奇妙な冒険`, character:`虹村億泰`, tags:[`長台詞`,`例え`,`迷言`] },
       { text:`おれ頭ワリイからよ〜`, work:`ジョジョの奇妙な冒険`, character:`虹村億泰`, tags:[`自虐`,`愛され`] },
       { text:`（たったひとつだけ残った策を聞かれ）逃げるんだよォ！`, work:`ジョジョの奇妙な冒険`, character:`ジョセフ・ジョースター`, tags:[`撤退`,`名采配`] },
@@ -237,7 +224,33 @@
       { text:`「...ウッソ...ト...ッッ、トリケラトプス...拳ンン！！？」`, work:`グラップラー刃牙（系列）`, character:`烈海王`, tags:[`迷言`,`衝撃`] },
       { text:`力みなくして解放のカタルシスはありえねェ`, work:`グラップラー刃牙（系列）`, character:`範馬勇次郎`, tags:[`哲学`,`圧`] },
       { text:`びゃあ゛ぁ゛゛ぁうまひぃ゛ぃぃ゛`, work:`サザエさん`, character:`フグ田マスオ`, tags:[`迷言`,`リアクション`] },
+
+
+      { text:`さてはアンチだなオメー`, work:`ポプテピピック`, character:`ポプ子`, tags:[`煽り`,`迷言`] },
+      { text:`えいえい、怒った？`, work:`ポプテピピック`, character:`ポプ子`, tags:[`煽り`,`挑発`] },
+      { text:`「あーそーゆーことね完全に理解した」←わかってない`, work:`ポプテピピック`, character:`ポプ子`, tags:[`迷言`,`自虐`] },
+
+      { text:`「真の男女平等主義者な俺は、女の子相手でもドロップキックをくらわせられる男」`, work:`この素晴らしい世界に祝福を！`, character:`カズマ`, tags:[`迷言`,`倫理崩壊`] },
+      { text:`「エクスプロージョン！！」`, work:`この素晴らしい世界に祝福を！`, character:`めぐみん`, tags:[`必殺`,`決め台詞`] },
+
     ];
+
+    // =========================
+    // ★ユーザー追加分を合流（user_quotes.js の window.USER_QUOTES）
+    // - 形式は2種類OK
+    //   A) {text, work, character, tags}
+    //   B) {text, author, work?, tags?}  ← authorはcharacter扱い
+    // =========================
+    function normalizeUserQuote(q){
+      if(!q || !q.text) return null;
+      const work = q.work || "User";
+      const character = q.character || q.author || "tomoponz";
+      const tags = Array.isArray(q.tags) ? q.tags : [];
+      return { text: String(q.text), work: String(work), character: String(character), tags };
+    }
+
+    const USER_QUOTES = Array.isArray(window.USER_QUOTES) ? window.USER_QUOTES.map(normalizeUserQuote).filter(Boolean) : [];
+    const QUOTES = [...BASE_QUOTES, ...USER_QUOTES];
 
     // =========================
     // UI
@@ -257,7 +270,6 @@
     function uniq(arr){ return [...new Set(arr)].filter(Boolean); }
 
     function buildFilters(){
-      // 二重追加を防ぐ
       [...elWork.querySelectorAll('option')].slice(1).forEach(x=>x.remove());
       [...elTag.querySelectorAll('option')].slice(1).forEach(x=>x.remove());
 
@@ -312,6 +324,12 @@
       });
     }
 
+    function escapeHtml(str){
+      return (str||'').replace(/[&<>"']/g, m => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[m]));
+    }
+
     function render(){
       const list = filtered();
       elCount.textContent = `${list.length}件`;
@@ -332,15 +350,7 @@
         elList.appendChild(li);
       });
 
-      if(!spotlight){
-        setSpot(list[0] || QUOTES[0]);
-      }
-    }
-
-    function escapeHtml(str){
-      return (str||'').replace(/[&<>"']/g, m => ({
-        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-      }[m]));
+      if(!spotlight) setSpot(list[0] || QUOTES[0]);
     }
 
     function randomPick(){
@@ -349,7 +359,6 @@
       return list[Math.floor(Math.random()*list.length)];
     }
 
-    // コピー堅牢化（HTTPSじゃなくても動きやすいフォールバック）
     async function copySpot(){
       if(!spotlight) return;
       const txt = `「${spotlight.text}」\n— ${spotlight.character}（${spotlight.work}）`;
@@ -373,7 +382,6 @@
       setTimeout(()=>btnCopy.textContent='コピー', 900);
     }
 
-    // events
     ['input','change'].forEach(ev=>{
       elSearch.addEventListener(ev, render);
       elWork.addEventListener(ev, render);
@@ -390,6 +398,9 @@
     // init
     buildFilters();
     render();
+
+    // デバッグ：更新確認したい時だけ使う
+    // console.log("QUOTES", QUOTES.length, QUOTES.slice(-3));
   </script>
 </body>
 </html>
