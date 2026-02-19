@@ -1,697 +1,687 @@
-// portal.js（特殊演出・堅牢版：Wikipedia(ja) + OSM）
-// - Wikipedia取得は多段フォールバックで「止まらない」
-// - タイトル補正（検索）/ プロキシ(allorigins) / リトライ
-// - コナミコマンド（↑↑↓↓←→←→BA）で「黒歴史ページ(kuro.html)」へ即ワープ
-// - kuro:true の場所は「Wikipediaを呼ばずに」ローカル文章で表示できる（kuroText / kuroTitle）
+// portal.js（堅牢版：Wikipedia(ja) + OSM / Door→Warp / ログ / トグル / コナミ）
+// - door.html: ドア演出 → warp.html へ
+// - warp.html: 選ばれた場所を表示（Wikipedia要約 + 画像 + 地図）
+// - kuro.html: 「黒歴史」専用表示（kuro:true の候補からランダム）
+// - Wikipedia取得は REST→MediaWiki API→検索補正→proxy(allorigins) の多段フォールバック
+// - Konami command (↑↑↓↓←→←→BA) で kuro.html に即ワープ
+// - places.js の各要素：
+//   { wikiTitle, lat, lng } or { kuro:true, kuroTitle, kuroText, kuroLink, kuroImg?, lat?, lng? }
 
-console.log("[portal.js] loaded");
+(() => {
+  "use strict";
 
-// =====================
-// Places
-// =====================
-function pickRandomPlace(){
-  const places = window.PLACES || [];
-  if(!places.length) throw new Error("PLACES is empty");
-  const i = Math.floor(Math.random() * places.length);
-  return { place: places[i], index: i };
-}
-function setCurrentPlaceIndex(i){ sessionStorage.setItem("warp_place_index", String(i)); }
-function getCurrentPlaceIndex(){
-  const v = sessionStorage.getItem("warp_place_index");
-  const i = Number(v);
-  return Number.isFinite(i) ? i : null;
-}
+  console.log("[portal.js] loaded");
 
-// =====================
-// Wikipedia (JA) config
-// =====================
-const WIKI_HOST = "https://ja.wikipedia.org";
-const WIKI_REST_SUMMARY = `${WIKI_HOST}/api/rest_v1/page/summary/`;
-const WIKI_PAGE_BASE = `${WIKI_HOST}/wiki/`;
-const WIKI_API = `${WIKI_HOST}/w/api.php`;
-const PROXY_RAW = "https://api.allorigins.win/raw?url=";
+  // =====================
+  // Config
+  // =====================
+  const WIKI_HOST = "https://ja.wikipedia.org";
+  const WIKI_REST_SUMMARY = `${WIKI_HOST}/api/rest_v1/page/summary/`;
+  const WIKI_PAGE_BASE = `${WIKI_HOST}/wiki/`;
+  const WIKI_API = `${WIKI_HOST}/w/api.php`;
 
-// =====================
-// Utils
-// =====================
-function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
-function toWikiSlug(title){ return encodeURIComponent(String(title).replaceAll(" ", "_")); }
-function wikiPageUrl(title){ return WIKI_PAGE_BASE + toWikiSlug(title); }
-function wikiSearchUrl(q){ return `${WIKI_HOST}/w/index.php?search=${encodeURIComponent(String(q))}`; }
+  const PROXY_RAW = "https://api.allorigins.win/raw?url=";
 
-function escapeHtml(s){
-  return String(s)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
+  const WARP_INDEX_KEY = "warp_place_index"; // sessionStorage
+  const WARP_LOG_KEY = "warp_log_v1";        // localStorage
 
-async function fetchTextDirect(url){ return await fetch(url, { cache:"no-store" }); }
-async function fetchTextViaProxy(url){
-  const proxied = PROXY_RAW + encodeURIComponent(url);
-  return await fetch(proxied, { cache:"no-store" });
-}
+  const FX_SOUND_KEY = "fx_sound_v1";
+  const FX_PARTICLES_KEY = "fx_particles_v1";
 
-async function fetchJsonWithRetry(url, { tryProxy=false, retries=2 } = {}){
-  let lastErr = null;
-  for(let attempt=0; attempt<=retries; attempt++){
-    try{
-      const res = tryProxy ? await fetchTextViaProxy(url) : await fetchTextDirect(url);
+  // =====================
+  // Helpers
+  // =====================
+  const $ = (id) => document.getElementById(id);
 
-      // 429/5xx は待って再試行
-      if([429, 500, 502, 503, 504].includes(res.status)){
-        lastErr = new Error(`HTTP ${res.status}`);
-        await sleep(250 * Math.pow(2, attempt));
-        continue;
-      }
-      if(!res.ok){
-        const e = new Error(`HTTP ${res.status}`);
-        e.httpStatus = res.status;
-        throw e;
-      }
-      const txt = await res.text();
-      return JSON.parse(txt);
-    }catch(e){
-      lastErr = e;
-      await sleep(200 * Math.pow(2, attempt));
+  function pageFile() {
+    return (location.pathname.split("/").pop() || "index.html").toLowerCase();
+  }
+  function isDoorPage() { return pageFile() === "door.html"; }
+  function isWarpPage() { return pageFile() === "warp.html"; }
+  function isKuroPage() { return pageFile() === "kuro.html" || document.body?.dataset?.page === "kuro"; }
+
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function toWikiSlug(title) {
+    return encodeURIComponent(String(title).replaceAll(" ", "_"));
+  }
+  function wikiPageUrl(title) {
+    return WIKI_PAGE_BASE + toWikiSlug(title);
+  }
+  function wikiSearchUrl(q) {
+    return `${WIKI_HOST}/w/index.php?search=${encodeURIComponent(String(q))}`;
+  }
+
+  function log(line) {
+    const c = $("warpConsole") || $("console");
+    if (c) {
+      c.textContent += (c.textContent ? "\n" : "") + line;
+    } else {
+      console.log(line);
     }
   }
-  throw lastErr || new Error("fetch failed");
-}
 
-function apiUrl(params){
-  const u = new URL(WIKI_API);
-  Object.entries(params).forEach(([k,v]) => u.searchParams.set(k, String(v)));
-  u.searchParams.set("origin", "*");
-  u.searchParams.set("format", "json");
-  u.searchParams.set("formatversion", "2");
-  return u.toString();
-}
+  // =====================
+  // Places selection
+  // =====================
+  function pickRandomPlace(list) {
+    const places = Array.isArray(list) ? list : (window.PLACES || []);
+    if (!places.length) throw new Error("PLACES is empty");
+    const i = Math.floor(Math.random() * places.length);
+    return { place: places[i], index: i };
+  }
 
-async function mwApi(params, { proxy=false } = {}){
-  const url = apiUrl(params);
-  return await fetchJsonWithRetry(url, { tryProxy: proxy, retries: 2 });
-}
+  function setCurrentPlaceIndex(i) {
+    sessionStorage.setItem(WARP_INDEX_KEY, String(i));
+  }
+  function getCurrentPlaceIndex() {
+    const v = sessionStorage.getItem(WARP_INDEX_KEY);
+    const i = Number(v);
+    return Number.isFinite(i) ? i : null;
+  }
 
-async function restSummary(title, { proxy=false } = {}){
-  const url = WIKI_REST_SUMMARY + toWikiSlug(title);
-  return await fetchJsonWithRetry(url, { tryProxy: proxy, retries: 2 });
-}
+  // =====================
+  // Warp Log
+  // =====================
+  function loadWarpLog() {
+    try {
+      const raw = localStorage.getItem(WARP_LOG_KEY);
+      if (!raw) return [];
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch {
+      return [];
+    }
+  }
+  function saveWarpLog(arr) {
+    const cut = Array.isArray(arr) ? arr.slice(0, 200) : [];
+    localStorage.setItem(WARP_LOG_KEY, JSON.stringify(cut));
+  }
+  function pushWarpLog(item) {
+    const arr = loadWarpLog();
+    arr.unshift(item);
+    saveWarpLog(arr);
+  }
 
-async function searchBestTitle(query, { proxy=false } = {}){
-  const js = await mwApi({
-    action: "query",
-    list: "search",
-    srsearch: query,
-    srlimit: 1,
-    srprop: ""
-  }, { proxy });
-  return js?.query?.search?.[0]?.title || null;
-}
+  function renderWarpLogShort() {
+    const ul = $("warpLogShort");
+    if (!ul) return;
 
-function pickFromMwQuery(js){
-  const page = js?.query?.pages?.[0];
-  if(!page) return { missing:true };
-  if(page.missing) return { missing:true };
-  return {
-    title: page.title,
-    extract: page.extract || "",
-    thumbnail: page?.thumbnail?.source || null,
-    pageUrl: page?.fullurl || wikiPageUrl(page.title)
+    const arr = loadWarpLog().slice(0, 6);
+    ul.innerHTML = arr.length
+      ? arr.map(x => `<li>${escapeHtml(x.title)} <span class="muted">(${escapeHtml(x.time)})</span></li>`).join("")
+      : `<li class="muted">まだログなし</li>`;
+  }
+
+  window.clearWarpLog = function () {
+    localStorage.removeItem(WARP_LOG_KEY);
+    renderWarpLogShort();
+    alert("ログ消した。");
   };
-}
 
-async function fetchViaMediaWiki(title, { proxy=false } = {}){
-  const js = await mwApi({
-    action: "query",
-    prop: "extracts|pageimages|info",
-    titles: title,
-    redirects: 1,
-    explaintext: 1,
-    exintro: 1,
-    piprop: "thumbnail",
-    pithumbsize: 800,
-    inprop: "url"
-  }, { proxy });
-  return pickFromMwQuery(js);
-}
-
-// =====================
-// Smart wiki (stopless)
-// =====================
-async function getWikiDataSmart(inputTitle, logFn){
-  const original = String(inputTitle || "").trim() || "日本";
-  const log = (s)=>{ try{ logFn && logFn(s); }catch{} };
-
-  // 最終的に必ずリンクは出す
-  let fallbackLink = wikiPageUrl(original);
-
-  // 1) REST direct
-  try{
-    log("REST(direct)...");
-    const sum = await restSummary(original, { proxy:false });
-    const extract = sum?.extract || "";
-    if(extract){
-      return {
-        title: sum?.title || original,
-        extract,
-        thumbnail: sum?.thumbnail?.source || null,
-        pageUrl: sum?.content_urls?.desktop?.page || wikiPageUrl(sum?.title || original)
-      };
-    }
-    fallbackLink = sum?.content_urls?.desktop?.page || fallbackLink;
-    log("REST empty -> fallback");
-  }catch(e){
-    log(`REST fail: ${e.message}`);
+  // =====================
+  // FX toggles (Door)
+  // =====================
+  function getBoolLS(key, def) {
+    const v = localStorage.getItem(key);
+    if (v == null) return def;
+    return v === "1";
+  }
+  function setBoolLS(key, val) {
+    localStorage.setItem(key, val ? "1" : "0");
   }
 
-  // 2) MW direct
-  try{
-    log("MW(direct)...");
-    const mw = await fetchViaMediaWiki(original, { proxy:false });
-    if(!mw.missing && mw.extract){
-      return mw;
-    }
-    log("MW missing/empty -> search");
-  }catch(e){
-    log(`MW fail: ${e.message}`);
+  function fxSoundOn() { return getBoolLS(FX_SOUND_KEY, true); }
+  function fxParticlesOn() { return getBoolLS(FX_PARTICLES_KEY, true); }
+
+  function updateFxUI() {
+    const s = $("fxSoundState");
+    const p = $("fxParticlesState");
+    if (s) s.textContent = fxSoundOn() ? "ON" : "OFF";
+    if (p) p.textContent = fxParticlesOn() ? "ON" : "OFF";
   }
 
-  // 3) Search direct -> MW direct
-  try{
-    log("Search(direct)...");
-    const best = await searchBestTitle(original, { proxy:false });
-    if(best){
-      fallbackLink = wikiPageUrl(best);
-      log(`Search -> ${best}`);
-      const mw2 = await fetchViaMediaWiki(best, { proxy:false });
-      if(!mw2.missing && mw2.extract) return mw2;
-    }else{
-      fallbackLink = wikiSearchUrl(original);
-    }
-  }catch(e){
-    log(`Search fail: ${e.message}`);
-    fallbackLink = wikiSearchUrl(original);
-  }
-
-  // 4) REST proxy
-  try{
-    log("REST(proxy)...");
-    const sumP = await restSummary(original, { proxy:true });
-    const extractP = sumP?.extract || "";
-    if(extractP){
-      return {
-        title: sumP?.title || original,
-        extract: extractP,
-        thumbnail: sumP?.thumbnail?.source || null,
-        pageUrl: sumP?.content_urls?.desktop?.page || fallbackLink
-      };
-    }
-  }catch(e){
-    log(`REST proxy fail: ${e.message}`);
-  }
-
-  // 5) MW proxy
-  try{
-    log("MW(proxy)...");
-    const mwP = await fetchViaMediaWiki(original, { proxy:true });
-    if(!mwP.missing && mwP.extract) return mwP;
-  }catch(e){
-    log(`MW proxy fail: ${e.message}`);
-  }
-
-  // FINAL
-  log("FINAL fallback");
-  return {
-    title: original,
-    extract: "Wikipediaの説明取得に失敗（回線/CORS/仕様変更/記事無しなど）。でもワープ自体は成功。",
-    thumbnail: null,
-    pageUrl: fallbackLink || wikiSearchUrl(original)
+  window.toggleFxSound = function () {
+    setBoolLS(FX_SOUND_KEY, !fxSoundOn());
+    updateFxUI();
   };
-}
+  window.toggleFxParticles = function () {
+    setBoolLS(FX_PARTICLES_KEY, !fxParticlesOn());
+    updateFxUI();
+  };
 
-// =====================
-// FX
-// =====================
-const FX_KEY = "warp_fx_v1";
-function loadFx(){
-  try{
-    const v = JSON.parse(localStorage.getItem(FX_KEY) || "{}");
-    return { sound: v.sound !== false, particles: v.particles !== false };
-  }catch{
-    return { sound:true, particles:true };
+  // =====================
+  // Door: sound + particles
+  // =====================
+  function playClickSound() {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = "triangle";
+      o.frequency.value = 880;
+      g.gain.value = 0.03;
+      o.connect(g);
+      g.connect(ctx.destination);
+      o.start();
+      setTimeout(() => {
+        o.stop();
+        ctx.close();
+      }, 120);
+    } catch {}
   }
-}
-function saveFx(fx){ localStorage.setItem(FX_KEY, JSON.stringify(fx)); }
 
-window.toggleFxSound = function(){
-  const fx = loadFx();
-  fx.sound = !fx.sound;
-  saveFx(fx);
-  renderFxStates();
-};
-window.toggleFxParticles = function(){
-  const fx = loadFx();
-  fx.particles = !fx.particles;
-  saveFx(fx);
-  renderFxStates();
-};
+  function burstParticles(canvas) {
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-function renderFxStates(){
-  const fx = loadFx();
-  const s = document.getElementById("fxSoundState");
-  const p = document.getElementById("fxParticlesState");
-  if(s) s.textContent = fx.sound ? "ON" : "OFF";
-  if(p) p.textContent = fx.particles ? "ON" : "OFF";
-}
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+    canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+    ctx.scale(dpr, dpr);
 
-function fadeIn(){ document.getElementById("fade")?.classList.add("fadeIn"); }
-function fadeOut(){ document.getElementById("fade")?.classList.remove("fadeIn"); }
+    const W = rect.width, H = rect.height;
+    const N = 120;
+    const parts = Array.from({ length: N }, () => {
+      const a = Math.random() * Math.PI * 2;
+      const sp = 0.6 + Math.random() * 2.2;
+      return {
+        x: W / 2,
+        y: H / 2,
+        vx: Math.cos(a) * sp,
+        vy: Math.sin(a) * sp,
+        r: 1 + Math.random() * 2,
+        life: 40 + Math.random() * 30
+      };
+    });
 
-// Sound
-let _audioCtx = null;
-function getAudioCtx(){
-  if(_audioCtx) return _audioCtx;
-  const AC = window.AudioContext || window.webkitAudioContext;
-  if(!AC) return null;
-  _audioCtx = new AC();
-  return _audioCtx;
-}
+    let t = 0;
+    function step() {
+      t++;
+      ctx.clearRect(0, 0, W, H);
+      ctx.globalAlpha = 0.9;
 
-function playDoorSound(){
-  const fx = loadFx(); if(!fx.sound) return;
-  const ctx = getAudioCtx(); if(!ctx) return;
-  const now = ctx.currentTime;
-  const o = ctx.createOscillator();
-  const g = ctx.createGain();
-  o.type = "triangle";
-  o.frequency.setValueAtTime(180, now);
-  g.gain.setValueAtTime(0.12, now);
-  g.gain.linearRampToValueAtTime(0, now + 0.2);
-  o.connect(g).connect(ctx.destination);
-  o.start(now);
-  o.stop(now + 0.2);
-}
+      parts.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.985;
+        p.vy *= 0.985;
+        p.life -= 1;
 
-// Chaos effect (uses .glitch-mode from your style.css)
-function triggerChaoticEffect() {
-  const fx = loadFx();
-  document.body.classList.add("glitch-mode");
-  setTimeout(() => document.body.classList.remove("glitch-mode"), 3500);
+        if (p.life > 0) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(190,230,255,0.85)";
+          ctx.fill();
+        }
+      });
 
-  if (fx.sound) {
-    const ctx = getAudioCtx();
-    if(!ctx) return;
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sawtooth";
-    osc.frequency.setValueAtTime(114, now);
-    osc.frequency.exponentialRampToValueAtTime(81, now + 3);
-    gain.gain.setValueAtTime(0.2, now);
-    gain.gain.linearRampToValueAtTime(0, now + 3.5);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 3.5);
-  }
-}
-
-function burstParticles(canvas){
-  const fx = loadFx(); if(!fx.particles) return;
-  const ctx = canvas.getContext("2d");
-  if(!ctx) return;
-
-  const rect = canvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = Math.floor(rect.width * dpr);
-  canvas.height = Math.floor(rect.height * dpr);
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-
-  const ps = Array.from({length:60}, () => ({
-    x:rect.width/2, y:rect.height/2,
-    vx:(Math.random()-0.5)*9, vy:(Math.random()-0.5)*9,
-    life:1
-  }));
-  function step(){
-    ctx.clearRect(0,0,rect.width,rect.height);
-    for(const p of ps){
-      p.x += p.vx; p.y += p.vy; p.life -= 0.02;
-      if(p.life<=0) continue;
-      ctx.fillStyle = `rgba(150,200,255,${p.life})`;
-      ctx.fillRect(p.x, p.y, 4, 4);
+      if (t < 70) requestAnimationFrame(step);
+      else ctx.clearRect(0, 0, W, H);
     }
-    if(ps.some(p=>p.life>0)) requestAnimationFrame(step);
-  }
-  step();
-}
-
-// =====================
-// OSM
-// =====================
-function osmEmbed(lat, lng){
-  const d = 0.08;
-  return `<iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${lng-d}%2C${lat-d}%2C${lng+d}%2C${lat+d}&layer=mapnik&marker=${lat}%2C${lng}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
-}
-// google.com/maps?q=... が安定
-function mapsLink(lat,lng){ return `https://www.google.com/maps?q=${lat},${lng}`; }
-
-// =====================
-// Warp Log
-// =====================
-const LOG_KEY = "warp_log_v1";
-function loadLog(){ try{ return JSON.parse(localStorage.getItem(LOG_KEY) || "[]"); }catch{ return []; } }
-function saveLog(list){ localStorage.setItem(LOG_KEY, JSON.stringify(list.slice(0,40))); }
-function addLog(entry){
-  const list = loadLog();
-  list.unshift(entry);
-  saveLog(list);
-}
-function formatTs(ts){
-  const d = new Date(ts);
-  const hh = String(d.getHours()).padStart(2,"0");
-  const mm = String(d.getMinutes()).padStart(2,"0");
-  return `${hh}:${mm}`;
-}
-function renderLog(){
-  const list = loadLog();
-
-  const shortEl = document.getElementById("warpLogShort");
-  if(shortEl){
-    shortEl.innerHTML = "";
-    const items = list.slice(0,6);
-    if(!items.length){
-      shortEl.innerHTML = `<li class="muted">まだワープしてない</li>`;
-    }else{
-      for(const it of items){
-        const li = document.createElement("li");
-        li.innerHTML = `<b>${formatTs(it.ts)}</b> ${escapeHtml(it.title)}`;
-        shortEl.appendChild(li);
-      }
-    }
+    requestAnimationFrame(step);
   }
 
-  const fullEl = document.getElementById("warpLogList");
-  if(fullEl){
-    fullEl.innerHTML = "";
-    const items = list.slice(0,18);
-    if(!items.length){
-      fullEl.innerHTML = `<li class="muted">ログなし</li>`;
-    }else{
-      for(const it of items){
-        const li = document.createElement("li");
-        const lat = Number.isFinite(it.lat) ? it.lat.toFixed(3) : "--";
-        const lng = Number.isFinite(it.lng) ? it.lng.toFixed(3) : "--";
-        li.innerHTML = `<b>${formatTs(it.ts)}</b> ${escapeHtml(it.title)} <span class="muted">(${lat}, ${lng})</span>`;
-        fullEl.appendChild(li);
-      }
-    }
+  // =====================
+  // Wikipedia fetch (robust)
+  // =====================
+  async function fetchTextDirect(url) {
+    return await fetch(url, { cache: "no-store" });
   }
-}
-window.clearWarpLog = function(){
-  localStorage.removeItem(LOG_KEY);
-  renderLog();
-};
-
-// =====================
-// Hidden(Kuro) mode
-// =====================
-const KURO_KEY = "warp_kuro";
-function setKuroMode(on){ on ? sessionStorage.setItem(KURO_KEY,"1") : sessionStorage.removeItem(KURO_KEY); }
-function consumeKuroMode(){
-  const on = sessionStorage.getItem(KURO_KEY) === "1";
-  sessionStorage.removeItem(KURO_KEY);
-  return on;
-}
-function pickIndexPreferKuro(){
-  const places = window.PLACES || [];
-  if(!places.length) return null;
-
-  const kuros = [];
-  for(let i=0;i<places.length;i++){
-    if(places[i]?.kuro === true) kuros.push(i);
-  }
-  const pool = kuros.length ? kuros : places.map((_,i)=>i);
-  return pool[Math.floor(Math.random() * pool.length)];
-}
-
-// =====================
-// Konami command
-// =====================
-// ↑↑↓↓←→←→BA
-const KONAMI_CODES = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","KeyB","KeyA"];
-let _kpos = 0;
-let _lastKeyTs = 0;
-
-function isTypingTarget(el){
-  if(!el) return false;
-  const tag = (el.tagName || "").toLowerCase();
-  return tag === "input" || tag === "textarea" || el.isContentEditable;
-}
-
-function konamiFeed(code, key){
-  const now = Date.now();
-  if(_lastKeyTs && now - _lastKeyTs > 2000) _kpos = 0;
-  _lastKeyTs = now;
-
-  const expect = KONAMI_CODES[_kpos];
-  const got = code || "";
-
-  const ok =
-    got === expect ||
-    ((expect === "KeyB") && (String(key).toLowerCase() === "b")) ||
-    ((expect === "KeyA") && (String(key).toLowerCase() === "a"));
-
-  if(ok){
-    _kpos++;
-    if(_kpos >= KONAMI_CODES.length){
-      _kpos = 0;
-      onKonami();
-    }
-  }else{
-    _kpos = (got === KONAMI_CODES[0]) ? 1 : 0;
-  }
-}
-
-function onKonami(){
-  console.log("[portal.js] KONAMI DETECTED");
-  setKuroMode(true);
-
-  const idx = pickIndexPreferKuro();
-  if(idx != null) setCurrentPlaceIndex(idx);
-
-  const isWarpLike = !!document.getElementById("placeTitle"); // warp.html / kuro.html 判定
-
-  if(isWarpLike){
-    const c = document.getElementById("warpConsole");
-    if(c) c.textContent += "\nKONAMI DETECTED -> KURO MODE\n";
-    fadeIn();
-    setTimeout(() => location.reload(), 260);
-    return;
+  async function fetchTextViaProxy(url) {
+    const proxied = PROXY_RAW + encodeURIComponent(url);
+    return await fetch(proxied, { cache: "no-store" });
   }
 
-  // door側：演出付きで kuro.html へ
-  const fxCanvas = document.getElementById("fxCanvas");
-  if(fxCanvas) burstParticles(fxCanvas);
-  playDoorSound();
+  async function fetchJsonWithRetry(url, { tryProxy = false, retries = 2 } = {}) {
+    let lastErr = null;
 
-  const doorWrap = document.getElementById("doorWrap");
-  if(doorWrap) doorWrap.classList.add("opening");
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const res = tryProxy ? await fetchTextViaProxy(url) : await fetchTextDirect(url);
 
-  setTimeout(() => fadeIn(), 140);
-  setTimeout(() => { location.href = "kuro.html"; }, 520);
-}
+        if ([429, 500, 502, 503, 504].includes(res.status)) {
+          lastErr = new Error(`HTTP ${res.status}`);
+          await sleep(200 * Math.pow(2, attempt));
+          continue;
+        }
+        if (!res.ok) {
+          const e = new Error(`HTTP ${res.status}`);
+          e.httpStatus = res.status;
+          throw e;
+        }
 
-function installKonami(){
-  if(window.__konamiInstalled) return;
-  window.__konamiInstalled = true;
-
-  window.addEventListener("keydown", (e) => {
-    if(e.repeat) return;
-    if(e.isComposing) return;
-    if(isTypingTarget(document.activeElement)) return;
-
-    // 途中入力中は矢印スクロールを止めると安定
-    const interested =
-      ["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","KeyA","KeyB"].includes(e.code);
-    if(interested) e.preventDefault();
-
-    konamiFeed(e.code, e.key);
-  }, true);
-}
-
-// =====================
-// Page logic
-// =====================
-function logConsole(line){
-  const el = document.getElementById("warpConsole");
-  if(!el) return;
-  el.textContent += `\n${line}`;
-}
-
-async function renderWarpLikePage(){
-  const places = window.PLACES || [];
-  if(!places.length) throw new Error("PLACES is empty");
-
-  // コナミ（kuro）なら kuro:true を優先して選ぶ
-  let kuroJustActivated = false;
-  if(sessionStorage.getItem(KURO_KEY) === "1"){
-    const forced = pickIndexPreferKuro();
-    if(forced != null) setCurrentPlaceIndex(forced);
-    kuroJustActivated = consumeKuroMode();
-  }
-
-  let idx = getCurrentPlaceIndex();
-  if(idx == null || idx < 0 || idx >= places.length) idx = pickRandomPlace().index;
-  const p = places[idx];
-
-  const titleEl = document.getElementById("placeTitle");
-  const descEl  = document.getElementById("placeDesc");
-  const imgBox  = document.getElementById("imgBox");
-  const mapBox  = document.getElementById("mapBox");
-  const mapA    = document.getElementById("mapLink");
-  const wikiA   = document.getElementById("wikiLink");
-  const c       = document.getElementById("warpConsole");
-
-  // 演出：kuro:true / コナミ直後 / 特定ミーム
-  const isChaos = kuroJustActivated || p.kuro === true || p.wikiTitle === "野獣邸";
-  if(isChaos){
-    triggerChaoticEffect();
-    if(c) c.innerHTML = "<span style='color:red'>WARNING: CHAOTIC SPACE</span>";
-  }
-
-  // Map
-  const hasLatLng = Number.isFinite(p.lat) && Number.isFinite(p.lng);
-  if(mapBox){
-    mapBox.innerHTML = hasLatLng ? osmEmbed(p.lat, p.lng) : `<div class="imgPh">地図は非表示（座標なし）</div>`;
-  }
-  if(mapA){
-    mapA.href = hasLatLng ? mapsLink(p.lat, p.lng) : "#";
-    mapA.style.pointerEvents = hasLatLng ? "auto" : "none";
-    mapA.style.opacity = hasLatLng ? "1" : "0.5";
-  }
-
-  // ---- KURO PLACE: Wikipediaを呼ばずにローカル文を出す ----
-  const hasKuroText = typeof p.kuroText === "string" && p.kuroText.trim().length > 0;
-  if(p.kuro === true && hasKuroText){
-    const kuroTitle = (p.kuroTitle || p.wikiTitle || "黒歴史");
-    const kuroText = p.kuroText;
-
-    if(titleEl) titleEl.textContent = kuroTitle;
-    if(descEl) descEl.innerHTML = escapeHtml(kuroText).replaceAll("\n","<br>");
-
-    if(wikiA){
-      // 黒歴史リンク（任意）：kuroLink があればそれ、なければ無効
-      const link = p.kuroLink || "#";
-      wikiA.href = link;
-      wikiA.style.pointerEvents = (link === "#") ? "none" : "auto";
-      wikiA.style.opacity = (link === "#") ? "0.5" : "1";
-    }
-
-    if(imgBox){
-      // kuroImg があれば表示（任意）
-      if(typeof p.kuroImg === "string" && p.kuroImg.trim()){
-        imgBox.innerHTML = `<img src="${p.kuroImg}" alt="${escapeHtml(kuroTitle)}">`;
-      }else{
-        imgBox.innerHTML = `<div class="imgPh">画像なし（黒歴史）</div>`;
+        const txt = await res.text();
+        return JSON.parse(txt);
+      } catch (e) {
+        lastErr = e;
+        await sleep(150 * Math.pow(2, attempt));
       }
     }
 
-    addLog({ ts: Date.now(), title: kuroTitle, lat: p.lat ?? NaN, lng: p.lng ?? NaN, mode:"kuro" });
-    renderLog();
-    setTimeout(() => fadeOut(), 80);
-    return;
-  }
-  // ---------------------------------------------------------
-
-  // Wikipedia fetch
-  if(c) c.textContent = "warp init...\nWikipedia fetch...";
-  const data = await getWikiDataSmart(p.wikiTitle, (s)=>{ if(c) c.textContent += "\n" + s; });
-
-  if(titleEl) titleEl.textContent = data.title;
-  if(descEl) descEl.textContent = data.extract;
-
-  if(wikiA) wikiA.href = data.pageUrl || wikiSearchUrl(p.wikiTitle);
-
-  if(imgBox){
-    imgBox.innerHTML = data.thumbnail
-      ? `<img src="${data.thumbnail}" alt="${escapeHtml(data.title)}">`
-      : `<div class="imgPh">画像なし</div>`;
+    throw lastErr || new Error("fetch failed");
   }
 
-  addLog({ ts: Date.now(), title: data.title, lat: p.lat ?? NaN, lng: p.lng ?? NaN, mode:"free" });
-  renderLog();
-  logConsole("DONE");
-  setTimeout(() => fadeOut(), 80);
-}
+  function apiUrl(params) {
+    const u = new URL(WIKI_API);
+    Object.entries(params).forEach(([k, v]) => u.searchParams.set(k, String(v)));
+    u.searchParams.set("origin", "*");
+    u.searchParams.set("format", "json");
+    u.searchParams.set("formatversion", "2");
+    return u.toString();
+  }
 
-// =====================
-// Global actions
-// =====================
-window.warpAgain = function(){
-  setCurrentPlaceIndex(pickRandomPlace().index);
-  fadeIn();
-  setTimeout(() => location.reload(), 260);
-};
+  async function mwApi(params, { proxy = false } = {}) {
+    const url = apiUrl(params);
+    return await fetchJsonWithRetry(url, { tryProxy: proxy, retries: 2 });
+  }
 
-// kuro.html 用：黒歴史を引き直す（kuro:true優先）
-window.kuroAgain = function(){
-  setKuroMode(true);
-  const idx = pickIndexPreferKuro();
-  if(idx != null) setCurrentPlaceIndex(idx);
-  fadeIn();
-  setTimeout(() => location.reload(), 260);
-};
+  async function restSummary(title, { proxy = false } = {}) {
+    const url = WIKI_REST_SUMMARY + toWikiSlug(title);
+    return await fetchJsonWithRetry(url, { tryProxy: proxy, retries: 2 });
+  }
 
-// =====================
-// Init
-// =====================
-document.addEventListener("DOMContentLoaded", () => {
-  renderFxStates();
-  renderLog();
-  installKonami();
+  async function searchBestTitle(query, { proxy = false } = {}) {
+    const js = await mwApi({
+      action: "query",
+      list: "search",
+      srsearch: query,
+      srlimit: 1,
+      srprop: ""
+    }, { proxy });
+    return js?.query?.search?.[0]?.title || null;
+  }
 
-  // Door page
-  const doorBtn  = document.getElementById("doorBtn");
-  const doorWrap = document.getElementById("doorWrap");
-  const fxCanvas = document.getElementById("fxCanvas");
+  function pickFromMwQuery(js) {
+    const page = js?.query?.pages?.[0];
+    if (!page || page.missing) return { missing: true };
 
-  const clickable = doorBtn || doorWrap;
-  if(clickable){
-    clickable.addEventListener("click", (e) => {
-      // ボタンがある場合は二重発火しやすいので、wrapに付けてる時は止める
-      // （doorBtnに付いた場合は不要だが、無害）
-      e.stopPropagation();
+    return {
+      title: page.title,
+      extract: page.extract || "",
+      thumbnail: page?.thumbnail?.source || null,
+      pageUrl: page?.fullurl || wikiPageUrl(page.title)
+    };
+  }
 
-      const isKuroPending = sessionStorage.getItem(KURO_KEY) === "1";
+  async function fetchViaMediaWiki(title, { proxy = false } = {}) {
+    const js = await mwApi({
+      action: "query",
+      prop: "extracts|pageimages|info",
+      titles: title,
+      redirects: 1,
+      explaintext: 1,
+      exintro: 1,
+      piprop: "thumbnail",
+      pithumbsize: 900,
+      inprop: "url"
+    }, { proxy });
+    return pickFromMwQuery(js);
+  }
 
-      // 通常：ランダム、黒歴史待機：kuro:true優先
-      let idx = null;
-      if(isKuroPending){
-        idx = pickIndexPreferKuro();
-        consumeKuroMode(); // doorクリックで使ったら消す
-      }else{
-        idx = pickRandomPlace().index;
+  function normalizeFromRest(js, fallbackTitle) {
+    // REST summary shape: { title, displaytitle, extract, thumbnail{source}, content_urls{desktop{page}} ... }
+    const title = js?.title || fallbackTitle;
+    const extract = js?.extract || "";
+    const thumb = js?.thumbnail?.source || null;
+    const url = js?.content_urls?.desktop?.page || wikiPageUrl(title);
+
+    return {
+      title,
+      extract,
+      thumbnail: thumb,
+      pageUrl: url,
+      ok: Boolean(title)
+    };
+  }
+
+  // 止まらない wiki 取得
+  async function getWikiDataSmart(inputTitle) {
+    const original = String(inputTitle || "").trim();
+    if (!original) throw new Error("empty title");
+
+    // 0) REST 直
+    try {
+      log(`wiki(rest direct): ${original}`);
+      const js = await restSummary(original, { proxy: false });
+      return normalizeFromRest(js, original);
+    } catch (e1) {
+      log(`rest direct failed: ${e1.message}`);
+    }
+
+    // 1) REST proxy
+    try {
+      log(`wiki(rest proxy): ${original}`);
+      const js = await restSummary(original, { proxy: true });
+      return normalizeFromRest(js, original);
+    } catch (e2) {
+      log(`rest proxy failed: ${e2.message}`);
+    }
+
+    // 2) search title correction (direct → proxy)
+    let best = null;
+    try {
+      log(`wiki(search direct): ${original}`);
+      best = await searchBestTitle(original, { proxy: false });
+    } catch (e3) {
+      log(`search direct failed: ${e3.message}`);
+    }
+
+    if (!best) {
+      try {
+        log(`wiki(search proxy): ${original}`);
+        best = await searchBestTitle(original, { proxy: true });
+      } catch (e4) {
+        log(`search proxy failed: ${e4.message}`);
       }
-      if(idx != null) setCurrentPlaceIndex(idx);
+    }
 
-      if(fxCanvas) burstParticles(fxCanvas);
-      playDoorSound();
+    const corrected = best || original;
 
-      if(doorWrap) doorWrap.classList.add("opening");
+    // 3) MediaWiki extracts (direct → proxy)
+    try {
+      log(`wiki(mw direct): ${corrected}`);
+      const data = await fetchViaMediaWiki(corrected, { proxy: false });
+      if (!data.missing) return { ...data, ok: true };
+      throw new Error("mw missing");
+    } catch (e5) {
+      log(`mw direct failed: ${e5.message}`);
+    }
 
-      setTimeout(() => fadeIn(), 180);
-      setTimeout(() => { location.href = isKuroPending ? "kuro.html" : "warp.html"; }, 560);
-    }, true);
+    try {
+      log(`wiki(mw proxy): ${corrected}`);
+      const data = await fetchViaMediaWiki(corrected, { proxy: true });
+      if (!data.missing) return { ...data, ok: true };
+      throw new Error("mw missing");
+    } catch (e6) {
+      log(`mw proxy failed: ${e6.message}`);
+    }
+
+    // 4) give up (but still return something usable)
+    return {
+      title: corrected,
+      extract: "取得に失敗した。検索リンクから開け。",
+      thumbnail: null,
+      pageUrl: wikiSearchUrl(original),
+      ok: false
+    };
   }
 
-  // Warp / Kuro page
-  if(document.getElementById("placeTitle")){
-    renderWarpLikePage().catch(err => {
-      console.error(err);
-      const el = document.getElementById("placeDesc");
-      if(el) el.textContent = "致命的エラー：PLACESが空、またはJS読み込み順が壊れている。";
+  // =====================
+  // OSM Map
+  // =====================
+  function setMap(lat, lng) {
+    const mapBox = $("mapBox");
+    const mapLink = $("mapLink");
+    if (!mapBox) return;
+
+    if (typeof lat !== "number" || typeof lng !== "number") {
+      mapBox.innerHTML = "";
+      if (mapLink) {
+        mapLink.href = "#";
+        mapLink.style.pointerEvents = "none";
+        mapLink.style.opacity = "0.5";
+      }
+      return;
+    }
+
+    const d = 0.01;
+    const left = lng - d, right = lng + d, top = lat + d, bottom = lat - d;
+    const embed = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(
+      `${left},${bottom},${right},${top}`
+    )}&layer=mapnik&marker=${encodeURIComponent(`${lat},${lng}`)}`;
+
+    const open = `https://www.openstreetmap.org/?mlat=${encodeURIComponent(lat)}&mlon=${encodeURIComponent(lng)}#map=16/${encodeURIComponent(lat)}/${encodeURIComponent(lng)}`;
+
+    mapBox.innerHTML = `
+      <div style="border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.18)">
+        <iframe src="${embed}" style="width:100%;height:300px;border:0" loading="lazy" referrerpolicy="no-referrer"></iframe>
+      </div>
+    `;
+
+    if (mapLink) {
+      mapLink.href = open;
+      mapLink.style.pointerEvents = "";
+      mapLink.style.opacity = "1";
+    }
+  }
+
+  // =====================
+  // UI rendering
+  // =====================
+  function setLink(a, href) {
+    if (!a) return;
+    if (!href || href === "#") {
+      a.href = "#";
+      a.style.pointerEvents = "none";
+      a.style.opacity = "0.5";
+      return;
+    }
+    a.href = href;
+    a.style.pointerEvents = "";
+    a.style.opacity = "1";
+  }
+
+  function setImage(url) {
+    const img = $("placeImg");
+    const ph = $("imgPh");
+    if (!img) return;
+
+    if (url) {
+      img.src = url;
+      img.style.display = "";
+      if (ph) ph.style.display = "none";
+    } else {
+      img.removeAttribute("src");
+      img.style.display = "none";
+      if (ph) ph.style.display = "";
+    }
+  }
+
+  async function renderPlace(place, { recordLog = true } = {}) {
+    // targets: kuro.html + warp.html share these ids
+    const titleEl = $("placeTitle");
+    const descEl = $("placeDesc");
+    const wikiA = $("wikiLink");
+
+    if (!titleEl || !descEl) return;
+
+    // kuro:true は Wikipedia を呼ばない
+    if (place?.kuro) {
+      const t = place.kuroTitle || place.wikiTitle || "黒歴史";
+      const d = place.kuroText || "黒歴史。";
+      titleEl.textContent = t;
+      descEl.textContent = d;
+
+      setLink(wikiA, place.kuroLink || "#");
+      setImage(place.kuroImg || null);
+
+      // map optional
+      setMap(
+        typeof place.lat === "number" ? place.lat : null,
+        typeof place.lng === "number" ? place.lng : null
+      );
+
+      if (recordLog) {
+        pushWarpLog({ title: t, time: new Date().toLocaleString(), url: place.kuroLink || "kuro.html" });
+        renderWarpLogShort();
+      }
+      return;
+    }
+
+    // normal place → Wikipedia
+    const wikiTitle = place?.wikiTitle || "メインページ";
+    const data = await getWikiDataSmart(wikiTitle);
+
+    titleEl.textContent = data.title || wikiTitle;
+
+    // extract short
+    const excerpt = (data.extract || "").trim();
+    descEl.textContent = excerpt ? excerpt : "説明の取得に失敗。リンクから開け。";
+
+    setLink(wikiA, data.pageUrl || wikiPageUrl(wikiTitle));
+    setImage(data.thumbnail || null);
+
+    // map if lat/lng present
+    const lat = (typeof place.lat === "number") ? place.lat : null;
+    const lng = (typeof place.lng === "number") ? place.lng : null;
+    setMap(lat, lng);
+
+    if (recordLog) {
+      pushWarpLog({ title: data.title || wikiTitle, time: new Date().toLocaleString(), url: data.pageUrl || wikiPageUrl(wikiTitle) });
+      renderWarpLogShort();
+    }
+  }
+
+  // =====================
+  // door.html behavior
+  // =====================
+  let doorBusy = false;
+
+  function startDoorWarp() {
+    if (doorBusy) return;
+    doorBusy = true;
+
+    const wrap = $("doorWrap");
+    const fade = $("fade");
+    const canvas = $("fxCanvas");
+
+    // pick place
+    const { index } = pickRandomPlace();
+    setCurrentPlaceIndex(index);
+
+    // animate
+    if (wrap) wrap.classList.add("opening");
+    if (fxParticlesOn()) burstParticles(canvas);
+    if (fxSoundOn()) playClickSound();
+
+    // fade
+    setTimeout(() => { if (fade) fade.classList.add("fadeIn"); }, 90);
+
+    // go
+    setTimeout(() => { location.href = "warp.html"; }, 560);
+  }
+
+  function initDoor() {
+    updateFxUI();
+    renderWarpLogShort();
+
+    const btn = $("doorBtn");
+    if (btn) btn.addEventListener("click", startDoorWarp);
+
+    // safety log
+    if (!Array.isArray(window.PLACES) || !window.PLACES.length) {
+      log("WARN: places.js が読めてない（PLACESが空）");
+    }
+  }
+
+  // =====================
+  // warp.html behavior
+  // =====================
+  async function initWarp() {
+    const places = window.PLACES || [];
+    if (!places.length) {
+      log("ERR: PLACESが空。places.js を先に読み込め。");
+      return;
+    }
+
+    let idx = getCurrentPlaceIndex();
+    if (idx == null || !places[idx]) {
+      const p = pickRandomPlace(places);
+      idx = p.index;
+      setCurrentPlaceIndex(idx);
+    }
+
+    try {
+      await renderPlace(places[idx], { recordLog: true });
+    } catch (e) {
+      log(`render failed: ${e.message}`);
+      // fallback: show search link
+      const titleEl = $("placeTitle");
+      const descEl = $("placeDesc");
+      const wikiA = $("wikiLink");
+      if (titleEl) titleEl.textContent = places[idx]?.wikiTitle || "Warp";
+      if (descEl) descEl.textContent = "表示に失敗。リンクから開け。";
+      if (wikiA) setLink(wikiA, wikiSearchUrl(places[idx]?.wikiTitle || "Wikipedia"));
+      setImage(null);
+      setMap(null, null);
+    }
+
+    const again = $("warpAgain");
+    if (again) {
+      again.addEventListener("click", () => {
+        const p = pickRandomPlace(places);
+        setCurrentPlaceIndex(p.index);
+        location.reload();
+      });
+    }
+  }
+
+  // =====================
+  // kuro.html behavior
+  // =====================
+  async function initKuro() {
+    const places = window.PLACES || [];
+    const kuroList = places.filter(p => p && p.kuro);
+    if (!kuroList.length) {
+      log("kuro:true の候補が無い。places.js に追加しろ。");
+      const titleEl = $("placeTitle");
+      const descEl = $("placeDesc");
+      if (titleEl) titleEl.textContent = "黒歴史";
+      if (descEl) descEl.textContent = "kuro:true の候補が無い。";
+      return;
+    }
+
+    const { place } = pickRandomPlace(kuroList);
+    await renderPlace(place, { recordLog: false }); // kuroページ自体はログ増やさない
+  }
+
+  // =====================
+  // Konami command → kuro.html
+  // =====================
+  function initKonami() {
+    const seq = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
+    let i = 0;
+
+    window.addEventListener("keydown", (e) => {
+      const key = e.key;
+      const ok = (key === seq[i]) || (key.toLowerCase() === seq[i]);
+      if (ok) {
+        i++;
+        if (i >= seq.length) {
+          i = 0;
+          location.href = "kuro.html";
+        }
+      } else {
+        i = 0;
+      }
     });
   }
-});
+
+  // =====================
+  // Init
+  // =====================
+  document.addEventListener("DOMContentLoaded", () => {
+    initKonami();
+    updateFxUI();
+    renderWarpLogShort();
+
+    if (isDoorPage()) initDoor();
+    if (isWarpPage()) initWarp();
+    if (isKuroPage()) initKuro();
+  });
+
+})();
