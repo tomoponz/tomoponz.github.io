@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>tomoponz｜おみくじ</title>
+  <meta name="description" content="10種類：毒舌94% / ちょい良い5% / USアルティメット大吉1%">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="nav">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <b>tomoponz</b><br><small>おみくじの間</small>
+      </div>
+    </div>
+    <nav class="navlinks">
+      <a class="chip" href="index.html">プロフィール</a>
+      <a class="chip" href="omikuji.html">おみくじ</a>
+      <a class="chip" href="shindan.html">診断</a>
+      <a class="chip" href="gallery.html">ネタ置き場</a>
+      <a class="chip" href="links.html">リンク</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1 class="h1">おみくじ（古語ふう）</h1>
+      <p class="sub">十種あり。毒舌多し（九割超）。されど稀に奇跡、降りる。</p>
+      <div class="btnrow">
+        <button onclick="drawOmikuji()">おみくじを引く</button>
+        <button onclick="resetOmikuji()">リセット</button>
+        <a class="btn" href="index.html">戻る</a>
+      </div>
+    </section>
+
+    <section class="grid2">
+      <div class="card">
+        <h2>結果</h2>
+        <div id="omikujiBox" style="display:none">
+          <div class="pill rank" id="omikujiRank"></div>
+          <p class="muted" id="omikujiMsg" style="margin:10px 0 0"></p>
+          <p class="muted" id="omikujiTips" style="margin:6px 0 0"></p>
+        </div>
+        <div class="note" style="margin-top:12px">
+          ※同じ日に引けば、同じ結果なり。<br>
+          変えたければ「リセット」すべし。
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>確率</h2>
+        <ul class="list">
+          <li>毒舌：8種類（合計 94%）</li>
+          <li>ちと佳し：1種類（5%）</li>
+          <li>USアルティメット大吉：1種類（1%）</li>
+        </ul>
+        <hr class="sep">
+        <p class="muted">友達に見せるときは、まず引かせよ。空気が作れる。</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
