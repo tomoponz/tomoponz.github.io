@@ -8,10 +8,8 @@
 
   <!-- ★更新時は v= の数字を変える（キャッシュ対策） -->
   <link rel="stylesheet" href="style.css?v=20260220">
-  <script defer src="app.js?v=20260220"></script>
 
   <style>
-    /* index専用の微調整（必要なければ消してOK） */
     .quoteBox{
       border:1px solid rgba(255,255,255,.10);
       background:rgba(255,255,255,.03);
@@ -92,7 +90,7 @@
         </div>
 
         <div class="note">
-          偉人名言＋あなたの名言（user_quotes.js）を混ぜる想定
+          meigen の BASE_QUOTES + user_quotes.js を混ぜる
         </div>
       </div>
     </section>
@@ -106,114 +104,99 @@
       </div>
     </section>
 
-    <!-- フッター（ここに常にカウンター表示枠を置く） -->
     <div class="footer">
       © tomoponz | <span id="access-count">Access: ...</span>
     </div>
   </main>
 
-  <!-- ★ユーザー追加名言（window.USER_QUOTES）を先に読み込む：キャッシュ対策 v= -->
+  <!-- ✅ app.js はここへ移動（上書き事故を避ける） -->
+  <script src="app.js?v=20260220"></script>
+
+  <!-- ✅ 共通名言 + ユーザー追加（1回ずつ） -->
+  <script src="quotes_base.js?v=20260220"></script>
   <script src="user_quotes.js?v=20260220"></script>
 
-  <!-- =========================
-       今日の一言：名言ローテ
-       - BASE_QUOTES + USER_QUOTES を合流
-       ========================= -->
- <!-- ★共通名言データ（meigenと共通） -->
-<script src="quotes_base.js?v=20260220"></script>
+  <!-- 今日の一言ローテ（BASE+USER） -->
+  <script>
+    const BASE = Array.isArray(window.BASE_QUOTES) ? window.BASE_QUOTES : [];
 
-<!-- ★ユーザー追加名言（空でもOK。残すならファイルも残す） -->
-<script src="user_quotes.js?v=20260220"></script>
+    function normalizeUserQuote(q){
+      if(!q || !q.text) return null;
+      return {
+        text: String(q.text),
+        work: String(q.work || "User"),
+        character: String(q.character || q.author || "tomoponz"),
+        tags: Array.isArray(q.tags) ? q.tags : []
+      };
+    }
 
-<script>
-  // BASE: {text, work, character, tags}
-  const BASE = Array.isArray(window.BASE_QUOTES) ? window.BASE_QUOTES : [];
+    const USER = Array.isArray(window.USER_QUOTES)
+      ? window.USER_QUOTES.map(normalizeUserQuote).filter(Boolean)
+      : [];
 
-  // USER: user_quotes.js 用（形式ゆるめ対応）
-  function normalizeUserQuote(q){
-    if(!q || !q.text) return null;
-    return {
-      text: String(q.text),
-      work: String(q.work || "User"),
-      character: String(q.character || q.author || "tomoponz"),
-      tags: Array.isArray(q.tags) ? q.tags : []
-    };
-  }
-  const USER = Array.isArray(window.USER_QUOTES)
-    ? window.USER_QUOTES.map(normalizeUserQuote).filter(Boolean)
-    : [];
+    const QUOTES = [...BASE, ...USER];
 
-  const QUOTES = [...BASE, ...USER];
+    function pickQuote() {
+      if (QUOTES.length === 0) return { text:"(名言データが空)", work:"", character:"" };
+      return QUOTES[Math.floor(Math.random() * QUOTES.length)];
+    }
 
-  function pickQuote() {
-    if (QUOTES.length === 0) return { text:"(名言データが空)", work:"", character:"", tags:[] };
-    return QUOTES[Math.floor(Math.random() * QUOTES.length)];
-  }
+    function showQuote(q) {
+      const qt = document.getElementById("quoteText");
+      const qb = document.getElementById("quoteBy");
+      if (!qt || !qb) return;
 
-  function showQuote(q) {
-    const qt = document.getElementById("quoteText");
-    const qb = document.getElementById("quoteBy");
-    if (!qt || !qb) return;
+      qt.textContent = "“" + q.text + "”";
+      const meta = [];
+      if (q.character) meta.push(q.character);
+      if (q.work) meta.push(`（${q.work}）`);
+      qb.textContent = meta.length ? "— " + meta.join("") : "";
+    }
 
-    qt.textContent = "“" + q.text + "”";
-    const meta = [];
-    if (q.character) meta.push(q.character);
-    if (q.work) meta.push(`（${q.work}）`);
-    qb.textContent = meta.length ? "— " + meta.join("") : "";
-  }
+    function loadQuote(){ showQuote(pickQuote()); }
 
-  function loadQuote() { showQuote(pickQuote()); }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    loadQuote();
-
-    document.getElementById("nextQuoteBtn")?.addEventListener("click", loadQuote);
-
-    document.getElementById("copyQuoteBtn")?.addEventListener("click", async () => {
+    async function copyCurrent(){
       const text = document.getElementById("quoteText")?.textContent || "";
       const by = document.getElementById("quoteBy")?.textContent || "";
       const payload = (text + "\n" + by).trim();
-
-      try {
+      try{
         await navigator.clipboard.writeText(payload);
         alert("コピーしました");
-      } catch {
-        // フォールバック
+      }catch{
         const ta = document.createElement("textarea");
         ta.value = payload;
         ta.style.position = "fixed";
         ta.style.left = "-9999px";
         document.body.appendChild(ta);
         ta.focus(); ta.select();
-        try { document.execCommand("copy"); alert("コピーしました"); } catch { alert("コピー失敗"); }
+        try{ document.execCommand("copy"); alert("コピーしました"); }catch{ alert("コピー失敗"); }
         document.body.removeChild(ta);
       }
+    }
+
+    // ✅ app.js より後に、最後に確実に反映
+    window.addEventListener("load", () => {
+      loadQuote();
+      document.getElementById("nextQuoteBtn")?.addEventListener("click", loadQuote);
+      document.getElementById("copyQuoteBtn")?.addEventListener("click", copyCurrent);
     });
-  });
-</script>
-  <!-- =========================
-       キリ番（CounterAPI）
-       index.html のみで完結
-       ========================= -->
+  </script>
+
+  <!-- キリ番（CounterAPI） -->
   <script>
     const WORKSPACE = "tomoponzs-workspace";
     const COUNTER = "first-counter";
 
     async function updateCounter() {
       try {
-        // 1) 開いたらカウント +1
         const res = await fetch(`https://api.counterapi.dev/v1/${WORKSPACE}/${COUNTER}/up`);
         const data = await res.json();
         const count = parseInt(data.count, 10);
 
-        // 2) 常に表示（追記じゃなく上書き）
         const accessEl = document.getElementById("access-count");
         if (accessEl) accessEl.textContent = `Access: ${count}`;
 
-        // 3) キリ番リスト
         const luckyNumbers = [7, 10, 22, 50, 77, 100, 123, 777, 1000];
-
-        // 4) 発動
         if (luckyNumbers.includes(count)) triggerKiribanEvent(count);
 
       } catch (e) {
@@ -229,21 +212,14 @@
         `おめでとうございます！あなたは ${num} 番目の訪問者です！\n` +
         `この画面をスクリーンショットして店主に報告してください。`
       );
-
       document.body.style.transition = "all 2s ease";
       document.body.style.background = "linear-gradient(45deg, #ffd700, #ff8c00)";
       document.body.style.color = "#000";
-
       const bars = document.querySelectorAll(".bar i");
       bars.forEach(bar => {
         bar.style.background = "linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet)";
         bar.style.width = "100%";
       });
-
-      console.log(
-        "%c秘密のメッセージ: あなたは選ばれし者です。コードの裏側を覗くとは、なかなかの手練れですね。",
-        "color: gold; font-size: 20px; font-weight: bold;"
-      );
     }
 
     window.addEventListener("load", updateCounter);
