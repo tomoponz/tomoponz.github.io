@@ -3,277 +3,96 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>tomoponz｜プロフィール</title>
+  <title>tomoponz｜秘密基地</title>
   <meta name="description" content="友達に見せるネタ用プロフィール（RPG風＋古語おみくじ）">
-  <style>
-    :root{
-      --bg:#0b0f19; --card:rgba(255,255,255,.04);
-      --bd:rgba(255,255,255,.12); --tx:#e8eefc; --mut:rgba(232,238,252,.78);
-      --good:#7CFFB2; --warn:#FFD27C; --bad:#FF7C7C;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;background:var(--bg);color:var(--tx);line-height:1.7}
-    a{color:inherit}
-    .wrap{max-width:980px;margin:0 auto;padding:42px 18px}
-    .top{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
-    .badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--bd);background:var(--card);border-radius:999px;padding:6px 12px;color:var(--mut);font-size:13px}
-    .dot{width:10px;height:10px;border-radius:50%;background:var(--good)}
-    .card{border:1px solid var(--bd);border-radius:18px;background:var(--card);padding:20px}
-    h1{margin:0;font-size:28px;letter-spacing:.02em}
-    .sub{margin:6px 0 0;color:var(--mut)}
-    .grid{display:grid;gap:12px;margin-top:12px}
-    @media (min-width:900px){.grid{grid-template-columns:1.3fr .7fr}}
-    .miniGrid{display:grid;gap:12px}
-    @media (min-width:900px){.miniGrid{grid-template-columns:repeat(2,1fr)}}
-    .mini{border:1px solid var(--bd);border-radius:16px;background:rgba(255,255,255,.03);padding:14px}
-    h2{margin:0 0 8px;font-size:16px}
-    .muted{color:var(--mut);font-size:14px}
-    .kpi{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-    .pill{border:1px solid var(--bd);border-radius:999px;padding:6px 10px;font-size:13px;color:var(--mut);background:rgba(255,255,255,.03);display:inline-block}
-    .bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid var(--bd);overflow:hidden}
-    .bar > i{display:block;height:100%}
-    .bar.hp > i{background:var(--good);width:85%}
-    .bar.mp > i{background:var(--warn);width:18%}
-    .bar.exp > i{background:#7CCBFF;width:42%}
-    .rows{display:grid;gap:10px}
-    .row{display:grid;grid-template-columns:70px 1fr;gap:10px;align-items:center}
-    code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:8px}
-    button{
-      padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.2);
-      background:transparent;color:inherit;cursor:pointer
-    }
-    button:hover{background:rgba(255,255,255,.06)}
-    .footer{margin-top:18px;font-size:12px;color:var(--mut)}
-    .danger{color:var(--bad)}
-    .ok{color:var(--good)}
-
-    /* おみくじ用 */
-    .rank{font-weight:700}
-    .rank-toxic{border-color:rgba(255,124,124,.55); color:var(--bad)}
-    .rank-good{border-color:rgba(124,203,255,.50); color:#7CCBFF}
-    .rank-ultra{border-color:rgba(124,255,178,.55); color:var(--good)}
-  </style>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="app.js"></script>
 </head>
 <body>
-  <div class="wrap">
-
-    <div class="top">
-      <span class="badge"><span class="dot"></span> オンライン：気分次第</span>
-      <span class="badge">目的：友達に見せるネタ</span>
-      <span class="badge">Lv.<span id="lv">17</span></span>
-    </div>
-
-    <div class="card">
-      <h1>tomoponz（仮名）</h1>
-      <p class="sub">「最小の努力で最大の成果」…に見せかけて、裏でゴリゴリやるタイプ。</p>
-
-      <div class="kpi">
-        <span class="pill">属性：<strong>理系</strong></span>
-        <span class="pill">職業：<strong>学生</strong></span>
-        <span class="pill">称号：<strong>締切前覚醒</strong></span>
-        <span class="pill">弱点：<strong class="danger">眠気</strong></span>
-      </div>
-
-      <div class="grid">
-        <div class="miniGrid">
-          <div class="mini">
-            <h2>ステータス</h2>
-            <div class="rows">
-              <div class="row"><div class="muted">HP</div><div class="bar hp"><i></i></div></div>
-              <div class="row"><div class="muted">MP</div><div class="bar mp"><i></i></div></div>
-              <div class="row"><div class="muted">EXP</div><div class="bar exp"><i></i></div></div>
-            </div>
-            <p class="muted" style="margin:10px 0 0">スキル：<code>徹夜デバッグ</code> / <code>一夜漬け加速</code> / <code>謎の集中</code></p>
-          </div>
-
-          <div class="mini">
-            <h2>最近のログ</h2>
-            <ul class="muted" style="margin:0;padding-left:18px">
-              <li>サイトを作った（えらい）</li>
-              <li>友達に見せるネタを準備中</li>
-              <li>たまに真面目モードに変身</li>
-            </ul>
-          </div>
-
-          <div class="mini">
-            <h2>好き / 苦手</h2>
-            <p class="muted" style="margin:0">
-              好き：物理 / プログラミング / シュール系<br>
-              苦手：無意味な待ち時間 / 眠気 / 連絡の遅延
-            </p>
-          </div>
-
-          <div class="mini">
-            <h2>今日の一言（ランダム）</h2>
-            <p id="quote" class="muted" style="margin:0 0 10px">読み込み中…</p>
-            <button onclick="nextQuote()">更新</button>
-          </div>
-
-          <!-- おみくじ（10種類：毒舌94% / ちょい良い5% / USアルティメット大吉1%） -->
-          <div class="mini">
-            <h2>おみくじ（古語ふう）</h2>
-            <p class="muted" style="margin:0 0 10px">押せば今日の運勢が出づ。<span class="muted">（一日一回、結果固定）</span></p>
-
-            <button onclick="drawOmikuji()">おみくじを引く</button>
-            <button onclick="resetOmikuji()" style="margin-left:8px">リセット</button>
-
-            <div id="omikujiBox" style="margin-top:12px;display:none">
-              <div class="pill rank" id="omikujiRank"></div>
-              <p class="muted" id="omikujiMsg" style="margin:10px 0 0"></p>
-              <p class="muted" id="omikujiTips" style="margin:6px 0 0"></p>
-            </div>
-          </div>
-        </div>
-
-        <div class="mini">
-          <h2>友達向けメニュー</h2>
-          <p class="muted">ここはリンク集にすると便利。必要なら後でページを増やせる。</p>
-
-          <ul class="muted" style="padding-left:18px;margin:0">
-            <li><a href="#" onclick="alert('まだ工事中なり');return false;">黒歴史フォルダ（閲覧注意）</a></li>
-            <li><a href="#" onclick="alert('準備中：診断メーカー風ページ');return false;">診断：そなたは何属性？</a></li>
-            <li><a href="#" onclick="alert('準備中：ホラー風ページ');return false;">深夜閲覧推奨ページ</a></li>
-          </ul>
-
-          <hr style="border:none;border-top:1px solid var(--bd);margin:14px 0">
-
-          <p class="muted">
-            連絡先を置くなら：<br>
-            <span class="ok">※メールは公開せぬが安全</span><br>
-            必要ならSNSリンクだけ貼る。
-          </p>
-        </div>
-      </div>
-
-      <div class="footer">
-        © tomoponz / Powered by GitHub Pages
+  <header class="nav">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <b>tomoponz</b><br><small>友達に見せるネタ用サイト</small>
       </div>
     </div>
-  </div>
+    <nav class="navlinks">
+      <a class="chip" href="index.html">プロフィール</a>
+      <a class="chip" href="omikuji.html">おみくじ</a>
+      <a class="chip" href="shindan.html">診断</a>
+      <a class="chip" href="gallery.html">ネタ置き場</a>
+      <a class="chip" href="links.html">リンク</a>
+    </nav>
+  </header>
 
-  <script>
-    // 今日の一言
-    const quotes = [
-      "今日の目標：『1mmでも前進』",
-      "最強の魔法：締切の48時間前着手",
-      "勝ち筋：小さく作って公開して育てる",
-      "バグは敵じゃない、イベントだ",
-      "眠いときは寝る（例外：締切前）",
-      "やる気は後からついてくる。まず着手。",
-      "今の自分に勝つ。過去の自分は倒した。"
-    ];
-    function nextQuote(){
-      const i = Math.floor(Math.random()*quotes.length);
-      document.getElementById("quote").textContent = quotes[i];
-    }
-    nextQuote();
+  <main class="wrap">
+    <section class="hero">
+      <div class="spread">
+        <div>
+          <h1 class="h1">tomoponz（仮名）</h1>
+          <p class="sub">「最小の努力で最大の成果」…に見せかけて、裏でゴリゴリやるタイプ。</p>
+          <div class="badges">
+            <span class="badge"><span class="dot"></span> オンライン：気分次第</span>
+            <span class="badge">称号：締切前覚醒</span>
+            <span class="badge">弱点：眠気</span>
+          </div>
+        </div>
+        <div class="row">
+          <a class="btn primary" href="omikuji.html">おみくじへ</a>
+          <a class="btn" href="shindan.html">診断へ</a>
+        </div>
+      </div>
+    </section>
 
-    // おみくじ（1日1回固定）
-    function todayKey(){
-      const d = new Date();
-      return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();
-    }
+    <section class="grid">
+      <div class="card">
+        <h2>ステータス</h2>
+        <div class="rows">
+          <div class="row2"><div class="muted">HP</div><div class="bar hp"><i></i></div></div>
+          <div class="row2"><div class="muted">MP</div><div class="bar mp"><i></i></div></div>
+          <div class="row2"><div class="muted">EXP</div><div class="bar exp"><i></i></div></div>
+        </div>
+        <div class="kpi">
+          <span class="pill">スキル：<code>徹夜デバッグ</code></span>
+          <span class="pill">特技：<code>一夜漬け加速</code></span>
+          <span class="pill">奥義：<code>謎の集中</code></span>
+        </div>
+        <hr class="sep">
+        <h2>最近のログ</h2>
+        <ul class="list">
+          <li>サイトを作った（えらい）</li>
+          <li>友達に見せるネタを準備中</li>
+          <li>たまに真面目モードに変身</li>
+        </ul>
+      </div>
 
-    function drawOmikuji(){
-      const pool = [
-        // 毒舌 8種類：合計 94%
-        { rank:"凶", cls:"rank-toxic", w:12,
-          msg:"いとよろしくなし。手を出すほど泥沼なり。",
-          tips:"戒め：急ぐな。まず一息つけ。／開運：水を飲みて寝よ。" },
+      <div class="card">
+        <h2>今日の一言</h2>
+        <p id="quote" class="muted">読み込み中…</p>
+        <div class="btnrow">
+          <button onclick="setRandomQuote()">更新</button>
+          <a class="btn" href="gallery.html">ネタ置き場</a>
+        </div>
 
-        { rank:"大凶", cls:"rank-toxic", w:12,
-          msg:"おほかた終はる。されど今日のうちに修正すれば命はある。",
-          tips:"戒め：大事な操作は二度三度確かむべし。／開運：バックアップ。" },
+        <hr class="sep">
 
-        { rank:"末凶", cls:"rank-toxic", w:12,
-          msg:"末に崩るる兆し。最初の一手を誤るべからず。",
-          tips:"戒め：着手は小さく。／開運：TODOを一つに絞れ。" },
+        <h2>おみくじ（古語ふう）</h2>
+        <p class="muted">押せば今日の運勢が出づ（同日固定）。</p>
+        <div class="btnrow">
+          <button onclick="drawOmikuji()">引く</button>
+          <button onclick="resetOmikuji()">リセット</button>
+          <a class="btn" href="omikuji.html">専用ページへ</a>
+        </div>
 
-        { rank:"凶相", cls:"rank-toxic", w:12,
-          msg:"顔に書かれたり、『まだ準備せず』とな。",
-          tips:"戒め：装備（資料・道具）を整へよ。／開運：机を片づけよ。" },
+        <div id="omikujiBox" style="margin-top:12px;display:none">
+          <div class="pill rank" id="omikujiRank"></div>
+          <p class="muted" id="omikujiMsg" style="margin:10px 0 0"></p>
+          <p class="muted" id="omikujiTips" style="margin:6px 0 0"></p>
+        </div>
 
-        { rank:"災凶", cls:"rank-toxic", w:12,
-          msg:"災ひは外より来たるにあらず。己が油断より起こる。",
-          tips:"戒め：見落とし一箇所が致命なり。／開運：チェックリスト。" },
-
-        { rank:"虚凶", cls:"rank-toxic", w:12,
-          msg:"中身は空、やる気も空。だが動けば生まるる。",
-          tips:"戒め：気分を待つな。／開運：五分だけ始めよ。" },
-
-        { rank:"笑止凶", cls:"rank-toxic", w:11,
-          msg:"をかしきほどに運なし。笑ふしかなし。されど笑へ。",
-          tips:"戒め：自滅ムーブを慎め。／開運：散歩して戻れ。" },
-
-        { rank:"無慈悲凶", cls:"rank-toxic", w:11,
-          msg:"情け容赦なし。今日の世界は君を甘やかさぬ。",
-          tips:"戒め：一点突破せよ。／開運：通知を切れ。" },
-
-        // ちょっといい：5%
-        { rank:"ちと佳し", cls:"rank-good", w:5,
-          msg:"よろし。大勝ちはせずとも、堅実に利あり。",
-          tips:"勧め：小さき成功を積め。／開運：早寝早起き、まこと大事。" },
-
-        // 1%：ウルトラースーパーアルティメット大吉
-        { rank:"ウルトラースーパーアルティメット大吉", cls:"rank-ultra", w:1,
-          msg:"いみじくよし。天も地も味方せり。今引けば通る。",
-          tips:"勧め：やりたきこと、今日のうちに放て。／開運：勢ひのまま提出せよ。" },
-      ];
-
-      // まず「今日の結果」があればそれを返す（1日固定）
-      const raw = localStorage.getItem("omikuji_today");
-      if(raw){
-        try{
-          const obj = JSON.parse(raw);
-          if(obj.date === todayKey()){
-            showOmikuji(obj.picked);
-            return;
-          }
-        }catch(e){}
-      }
-
-      // 重み付き抽選
-      const total = pool.reduce((s,x)=>s+x.w,0);
-      let r = Math.random()*total;
-      let picked = pool[0];
-      for(const item of pool){
-        r -= item.w;
-        if(r <= 0){ picked = item; break; }
-      }
-
-      showOmikuji(picked);
-      localStorage.setItem("omikuji_today", JSON.stringify({date: todayKey(), picked}));
-    }
-
-    function showOmikuji(picked){
-      const box = document.getElementById("omikujiBox");
-      const rankEl = document.getElementById("omikujiRank");
-      const msgEl = document.getElementById("omikujiMsg");
-      const tipsEl = document.getElementById("omikujiTips");
-
-      rankEl.className = "pill rank " + picked.cls;
-      rankEl.textContent = "結果： " + picked.rank;
-      msgEl.textContent = picked.msg;
-      tipsEl.textContent = picked.tips;
-
-      box.style.display = "block";
-    }
-
-    function resetOmikuji(){
-      localStorage.removeItem("omikuji_today");
-      document.getElementById("omikujiBox").style.display = "none";
-    }
-
-    // ページ読み込み時に「今日の結果」を復元
-    (function restoreOmikuji(){
-      const raw = localStorage.getItem("omikuji_today");
-      if(!raw) return;
-      try{
-        const obj = JSON.parse(raw);
-        if(obj.date !== todayKey()) return;
-        showOmikuji(obj.picked);
-      }catch(e){}
-    })();
-  </script>
+        <div class="footer">© tomoponz / Powered by GitHub Pages</div>
+      </div>
+    </section>
+  </main>
 </body>
 </html>
