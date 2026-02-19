@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>tomoponz｜八百科事典</title>
+  <meta name="description" content="アンサイクロペディアを学術資料風に閲覧するページ（無料）">
+
+  <link rel="stylesheet" href="style.css">
+  <script defer src="app.js"></script>
+  <script defer src="hachi.js"></script>
+
+  <style>
+    /* 学術資料風（紙・余白・セリフ） */
+    .paper {
+      border: 1px solid rgba(255,255,255,.10);
+      background:
+        radial-gradient(1400px 900px at 20% 0%, rgba(255,255,255,.06), transparent 55%),
+        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border-radius: 22px;
+      box-shadow: 0 18px 70px rgba(0,0,0,.28);
+      padding: 18px;
+    }
+    .scholar {
+      font-family: ui-serif, "Times New Roman", Times, "Noto Serif JP", serif;
+      color: rgba(234,241,255,.90);
+      line-height: 1.9;
+      letter-spacing: .02em;
+    }
+    .controls{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+      margin-top: 10px;
+    }
+    .controls input{
+      flex: 1;
+      min-width: 220px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      color: rgba(234,241,255,.92);
+      outline:none;
+    }
+    .metaRow{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+      margin-top: 10px;
+      color: rgba(234,241,255,.70);
+      font-size: 12px;
+    }
+    .metaRow a{ color: rgba(190,230,255,.92); text-decoration: none; }
+    .metaRow a:hover{ text-decoration: underline; }
+
+    .articleTitle{
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: .04em;
+    }
+    .tag{
+      display:inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      font-size: 12px;
+      color: rgba(234,241,255,.75);
+    }
+
+    /* 取得した記事HTMLの見た目を整える（過剰なwiki装飾を抑える） */
+    #articleContent img{
+      max-width:100%;
+      height:auto;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.10);
+    }
+    #articleContent table{
+      width:100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+    #articleContent th, #articleContent td{
+      border: 1px solid rgba(255,255,255,.12);
+      padding: 8px;
+      background: rgba(0,0,0,.12);
+    }
+    #articleContent blockquote{
+      margin: 12px 0;
+      padding: 10px 12px;
+      border-left: 3px solid rgba(190,230,255,.45);
+      background: rgba(0,0,0,.16);
+      border-radius: 12px;
+    }
+    #articleContent .mw-editsection,
+    #articleContent .reference,
+    #articleContent .mw-references-wrap{
+      opacity: .85;
+    }
+
+    .console{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      color: rgba(234,241,255,.78);
+      white-space: pre-wrap;
+      background: rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding: 12px;
+      min-height: 96px;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="nav">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <b>tomoponz</b><br><small>八百科事典</small>
+      </div>
+    </div>
+    <nav class="navlinks">
+      <a class="chip" href="index.html">プロフィール</a>
+      <a class="chip" href="gallery.html">ネタ置き場</a>
+      <a class="chip" href="games.html">ゲーム</a>
+      <a class="chip" href="door.html">ドア</a>
+      <a class="chip" href="hachi.html">八百科事典</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:baseline">
+        <h1 class="h1" style="margin:0">八百科事典</h1>
+        <span class="tag">学術資料風UI</span>
+        <span class="tag">ソース：アンサイクロペディア</span>
+      </div>
+      <p class="sub" style="max-width: 70ch">
+        これは真面目な学術資料“風”の閲覧器。中身はアンサイクロペディア（※パロディ百科）。
+      </p>
+
+      <div class="controls">
+        <input id="q" type="text" placeholder="記事名で検索（例：メインページ / 日本 / 数学）" />
+        <button id="btnSearch">検索して読む</button>
+        <button id="btnRandom">ランダム</button>
+        <a class="btn" id="btnOpen" href="https://ja.uncyclopedia.info/wiki/%E3%83%A1%E3%82%A4%E3%83%B3%E3%83%9A%E3%83%BC%E3%82%B8" target="_blank" rel="noopener">本家で開く</a>
+      </div>
+
+      <div class="metaRow">
+        <span>読込先：</span>
+        <a href="https://ja.uncyclopedia.info/wiki/%E3%83%A1%E3%82%A4%E3%83%B3%E3%83%9A%E3%83%BC%E2%80%8B%E2%80%8B%E2%80%8B%E2%80%8B%E2%80%8B" target="_blank" rel="noopener">ja.uncyclopedia.info</a>
+        <span>｜内部リンクは“このページ内”で辿れる</span>
+      </div>
+    </section>
+
+    <section class="grid2">
+      <div class="card paper scholar">
+        <h2 class="articleTitle" id="articleTitle">読み込み中…</h2>
+        <div class="note" id="articleNote">初期表示：メインページ</div>
+        <hr style="border:0;border-top:1px solid rgba(255,255,255,.10); margin: 12px 0">
+        <div id="articleContent">Loading…</div>
+      </div>
+
+      <div class="card">
+        <h2>Console</h2>
+        <div class="console" id="console">init…</div>
+        <div class="note" style="margin-top:10px">
+          もし読み込みが失敗する場合：ネットワーク / CORS / 相手側仕様変更の可能性。最悪「本家で開く」で逃げられる。
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">© tomoponz / Hachi Encyclopedia</div>
+  </main>
+</body>
+</html>
