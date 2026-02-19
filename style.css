@@ -218,6 +218,7 @@ code{
 /* list buttons: prevent overlap */
 .list li{ margin:10px 0; }
 .list li a.btn{ display:block; width:100%; }
+
 .kpi{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
 
 .rows{display:grid;gap:10px}
@@ -252,6 +253,7 @@ code{
 @media (prefers-reduced-motion: reduce){
   *{scroll-behavior:auto !important; transition:none !important; animation:none !important}
 }
+
 /* ===== shindan form ===== */
 .qList{margin-top:12px; display:grid; gap:10px}
 .q-block{
@@ -305,7 +307,6 @@ code{
   color: #ff0000 !important;
   text-shadow: 0 0 8px red;
 }
-
 
 .quote-meta{
   margin-top:8px;
