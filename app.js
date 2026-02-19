@@ -1,3 +1,4 @@
+// app.js
 // ========== utilities ==========
 function $(id){ return document.getElementById(id); }
 function todayKey(){
@@ -25,21 +26,28 @@ function setActiveNav(){
     "gallery.html": "ネタ置き場",
     "links.html": "リンク",
     "games.html": "ゲーム",
+    "minigames.html": "ミニゲーム",
     "door.html": "ドア",
-    "warp.html": "ドア",
+    "warp.html": "ワープ",
     "hachi.html": "八百科事典",
     "404.html": "迷ひ道"
   };
 
-  const sub = document.getElementById("brandSub");
+  // brandSub があるページも、<small>だけのページも両対応
+  const sub = document.getElementById("brandSub") || document.querySelector(".brand small");
   if(sub) sub.textContent = labelMap[file] || "";
 
   document.querySelectorAll(".navlinks a.chip").forEach(a=>{
     a.classList.remove("active");
     const href = (a.getAttribute("href") || "").toLowerCase();
+
     const isActive =
       href === file ||
-      (file === "warp.html" && href === "door.html");
+      // warp.html は「ドア」扱いでアクティブにしたい
+      (file === "warp.html" && href === "door.html") ||
+      // minigames は nav に直リンクが無いので「ゲーム」をアクティブにする
+      (file === "minigames.html" && href === "games.html");
+
     if(isActive) a.classList.add("active");
   });
 }
@@ -204,8 +212,11 @@ function getTop2Traits(traitScore){
   });
   return [arr[0].k, arr[1].k];
 }
+
+// ★ここが致命バグだった：アルファベット順ソートだと ARCHETYPES と噛み合わない
+const PAIR_ORDER = { focus:0, curio:1, chaos:2, social:3, guts:4 };
 function pairKey(a,b){
-  const sorted = [a,b].sort();
+  const sorted = [a,b].sort((x,y)=> (PAIR_ORDER[x] ?? 999) - (PAIR_ORDER[y] ?? 999));
   return sorted.join("+");
 }
 
