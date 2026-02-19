@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>tomoponz｜診断</title>
-  <meta name="description" content="10問で診断。結果は50通り（10タイプ×5ランク）。">
+  <title>tomoponz｜おみくじ</title>
+  <meta name="description" content="10種類：毒舌94% / ちょい良い5% / USアルティメット大吉1%">
   <link rel="stylesheet" href="style.css">
   <script defer src="app.js"></script>
 </head>
@@ -13,137 +13,57 @@
     <div class="brand">
       <div class="logo"></div>
       <div>
-        <b>tomoponz</b><br><small>診断メーカー風</small>
+        <b>tomoponz</b><br><small>おみくじの間</small>
       </div>
     </div>
+
     <nav class="navlinks">
       <a class="chip" href="index.html">プロフィール</a>
       <a class="chip" href="omikuji.html">おみくじ</a>
       <a class="chip" href="shindan.html">診断</a>
       <a class="chip" href="gallery.html">ネタ置き場</a>
       <a class="chip" href="links.html">リンク</a>
+      <a class="chip" href="games.html">ゲーム</a>
+      <a class="chip" href="door.html">ドア</a>
+      <a class="chip" href="hachi.html">八百科事典</a>
     </nav>
   </header>
 
   <main class="wrap">
     <section class="hero">
-      <h1 class="h1">診断：あなたの“戦い方”はどれ？</h1>
-      <p class="sub">10問選ぶだけ。結果は <b>50通り</b>（10タイプ×5ランク）。友達に押し付けて遊べ。</p>
+      <h1 class="h1">おみくじ（古語ふう）</h1>
+      <p class="sub">十種あり。毒舌多し（九割超）。されど稀に奇跡、降りる。</p>
       <div class="btnrow">
-        <button onclick="runShindan()">診断する</button>
+        <button onclick="drawOmikuji()">おみくじを引く</button>
+        <button onclick="resetOmikuji()">リセット</button>
         <a class="btn" href="index.html">戻る</a>
       </div>
     </section>
 
     <section class="grid2">
       <div class="card">
-        <h2>質問（10問）</h2>
-        <p class="muted">※各問1つだけ選ぶ。深く考えるな、直感でOK。</p>
-
-        <hr class="sep">
-
-        <!-- 集中力 focus (2 questions) -->
-        <div class="muted"><b>Q1.</b> 予定が詰まってる日、まず何をする？</div>
-        <label class="muted"><input type="radio" name="q1" value="1" data-trait="focus"> その場のノリで動く</label><br>
-        <label class="muted"><input type="radio" name="q1" value="2" data-trait="focus"> とりあえず目先の用事</label><br>
-        <label class="muted"><input type="radio" name="q1" value="3" data-trait="focus"> 優先度だけ決める</label><br>
-        <label class="muted"><input type="radio" name="q1" value="4" data-trait="focus"> 手順をざっくり組む</label><br>
-        <label class="muted"><input type="radio" name="q1" value="5" data-trait="focus"> 時間割まで決めて回す</label>
-
-        <hr class="sep">
-
-        <div class="muted"><b>Q2.</b> 長めの課題、あなたの勝ちパターンは？</div>
-        <label class="muted"><input type="radio" name="q2" value="1" data-trait="focus"> 期限直前に気合</label><br>
-        <label class="muted"><input type="radio" name="q2" value="2" data-trait="focus"> 途中で飽きがち</label><br>
-        <label class="muted"><input type="radio" name="q2" value="3" data-trait="focus"> 波はあるけど完走</label><br>
-        <label class="muted"><input type="radio" name="q2" value="4" data-trait="focus"> 早めに着手して積む</label><br>
-        <label class="muted"><input type="radio" name="q2" value="5" data-trait="focus"> 先に8割まで作って勝つ</label>
-
-        <hr class="sep">
-
-        <!-- 好奇心 curio -->
-        <div class="muted"><b>Q3.</b> 気になる分野を見つけたら？</div>
-        <label class="muted"><input type="radio" name="q3" value="1" data-trait="curio"> たぶん放置</label><br>
-        <label class="muted"><input type="radio" name="q3" value="2" data-trait="curio"> まとめ記事だけ見る</label><br>
-        <label class="muted"><input type="radio" name="q3" value="3" data-trait="curio"> ちょい調べて満足</label><br>
-        <label class="muted"><input type="radio" name="q3" value="4" data-trait="curio"> 参考資料まで掘る</label><br>
-        <label class="muted"><input type="radio" name="q3" value="5" data-trait="curio"> 深掘りして手を動かす</label>
-
-        <hr class="sep">
-
-        <div class="muted"><b>Q4.</b> 学ぶときのスタイルは？</div>
-        <label class="muted"><input type="radio" name="q4" value="1" data-trait="curio"> 必要になったら</label><br>
-        <label class="muted"><input type="radio" name="q4" value="2" data-trait="curio"> 要点だけでいい</label><br>
-        <label class="muted"><input type="radio" name="q4" value="3" data-trait="curio"> ほどほどに理解</label><br>
-        <label class="muted"><input type="radio" name="q4" value="4" data-trait="curio"> 原理まで知りたい</label><br>
-        <label class="muted"><input type="radio" name="q4" value="5" data-trait="curio"> 原理→実験→検証が好き</label>
-
-        <hr class="sep">
-
-        <!-- 奔放さ chaos -->
-        <div class="muted"><b>Q5.</b> 思いついたらすぐやる？</div>
-        <label class="muted"><input type="radio" name="q5" value="1" data-trait="chaos"> ほぼやらない</label><br>
-        <label class="muted"><input type="radio" name="q5" value="2" data-trait="chaos"> たまにやる</label><br>
-        <label class="muted"><input type="radio" name="q5" value="3" data-trait="chaos"> 半々</label><br>
-        <label class="muted"><input type="radio" name="q5" value="4" data-trait="chaos"> 結構やる</label><br>
-        <label class="muted"><input type="radio" name="q5" value="5" data-trait="chaos"> だいたい即着手</label>
-
-        <hr class="sep">
-
-        <div class="muted"><b>Q6.</b> 机・PCの整理整頓は？</div>
-        <label class="muted"><input type="radio" name="q6" value="1" data-trait="chaos"> 常に整ってる</label><br>
-        <label class="muted"><input type="radio" name="q6" value="2" data-trait="chaos"> 基本きれい</label><br>
-        <label class="muted"><input type="radio" name="q6" value="3" data-trait="chaos"> まあ普通</label><br>
-        <label class="muted"><input type="radio" name="q6" value="4" data-trait="chaos"> 気づくと散らかる</label><br>
-        <label class="muted"><input type="radio" name="q6" value="5" data-trait="chaos"> だいたいカオス</label>
-
-        <hr class="sep">
-
-        <!-- 社交性 social -->
-        <div class="muted"><b>Q7.</b> グループ作業、あなたは？</div>
-        <label class="muted"><input type="radio" name="q7" value="1" data-trait="social"> できれば避ける</label><br>
-        <label class="muted"><input type="radio" name="q7" value="2" data-trait="social"> 受け身ならOK</label><br>
-        <label class="muted"><input type="radio" name="q7" value="3" data-trait="social"> 普通にこなす</label><br>
-        <label class="muted"><input type="radio" name="q7" value="4" data-trait="social"> まとめ役になりがち</label><br>
-        <label class="muted"><input type="radio" name="q7" value="5" data-trait="social"> 仕切るのが得意</label>
-
-        <hr class="sep">
-
-        <div class="muted"><b>Q8.</b> 友達に何か説明するときは？</div>
-        <label class="muted"><input type="radio" name="q8" value="1" data-trait="social"> ほぼ説明しない</label><br>
-        <label class="muted"><input type="radio" name="q8" value="2" data-trait="social"> 要点だけ</label><br>
-        <label class="muted"><input type="radio" name="q8" value="3" data-trait="social"> 相手に合わせる</label><br>
-        <label class="muted"><input type="radio" name="q8" value="4" data-trait="social"> 図や例を使う</label><br>
-        <label class="muted"><input type="radio" name="q8" value="5" data-trait="social"> 相手ができるまで付き合う</label>
-
-        <hr class="sep">
-
-        <!-- 胆力 guts -->
-        <div class="muted"><b>Q9.</b> 失敗しそうでも挑戦する？</div>
-        <label class="muted"><input type="radio" name="q9" value="1" data-trait="guts"> まず避ける</label><br>
-        <label class="muted"><input type="radio" name="q9" value="2" data-trait="guts"> 安全ならやる</label><br>
-        <label class="muted"><input type="radio" name="q9" value="3" data-trait="guts"> 半々</label><br>
-        <label class="muted"><input type="radio" name="q9" value="4" data-trait="guts"> だいたい行く</label><br>
-        <label class="muted"><input type="radio" name="q9" value="5" data-trait="guts"> 失敗しても行く</label>
-
-        <hr class="sep">
-
-        <div class="muted"><b>Q10.</b> 苦手分野に当たったら？</div>
-        <label class="muted"><input type="radio" name="q10" value="1" data-trait="guts"> 先送りする</label><br>
-        <label class="muted"><input type="radio" name="q10" value="2" data-trait="guts"> 誰かに頼る</label><br>
-        <label class="muted"><input type="radio" name="q10" value="3" data-trait="guts"> 少しずつやる</label><br>
-        <label class="muted"><input type="radio" name="q10" value="4" data-trait="guts"> 勝ち筋を探して突破</label><br>
-        <label class="muted"><input type="radio" name="q10" value="5" data-trait="guts"> 正面から殴って突破</label>
-
-        <hr class="sep">
-
-        <div class="btnrow">
-          <button onclick="runShindan()">診断する</button>
-          <a class="btn" href="index.html">戻る</a>
+        <h2>結果</h2>
+        <div id="omikujiBox" style="display:none">
+          <div class="pill rank" id="omikujiRank"></div>
+          <p class="muted" id="omikujiMsg" style="margin:10px 0 0"></p>
+          <p class="muted" id="omikujiTips" style="margin:6px 0 0"></p>
+        </div>
+        <div class="note" style="margin-top:12px">
+          ※同じ日に引けば、同じ結果なり。<br>
+          変えたければ「リセット」すべし。
         </div>
       </div>
 
-      <div id="shindanOut"></div>
+      <div class="card">
+        <h2>確率</h2>
+        <ul class="list">
+          <li>毒舌：8種類（合計 94%）</li>
+          <li>ちと佳し：1種類（5%）</li>
+          <li>USアルティメット大吉：1種類（1%）</li>
+        </ul>
+        <hr class="sep">
+        <p class="muted">友達に見せるときは、まず引かせよ。空気が作れる。</p>
+      </div>
     </section>
   </main>
 </body>
