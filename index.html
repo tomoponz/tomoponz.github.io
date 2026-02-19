@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>tomoponz｜プロフィール</title>
-  <meta name="description" content="友達に見せるネタ用プロフィール（RPG風）">
+  <meta name="description" content="友達に見せるネタ用プロフィール（RPG風＋古語おみくじ）">
   <style>
     :root{
       --bg:#0b0f19; --card:rgba(255,255,255,.04);
@@ -29,9 +29,9 @@
     h2{margin:0 0 8px;font-size:16px}
     .muted{color:var(--mut);font-size:14px}
     .kpi{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-    .pill{border:1px solid var(--bd);border-radius:999px;padding:6px 10px;font-size:13px;color:var(--mut);background:rgba(255,255,255,.03)}
+    .pill{border:1px solid var(--bd);border-radius:999px;padding:6px 10px;font-size:13px;color:var(--mut);background:rgba(255,255,255,.03);display:inline-block}
     .bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid var(--bd);overflow:hidden}
-    .bar > i{display:block;height:100%;width:60%}
+    .bar > i{display:block;height:100%}
     .bar.hp > i{background:var(--good);width:85%}
     .bar.mp > i{background:var(--warn);width:18%}
     .bar.exp > i{background:#7CCBFF;width:42%}
@@ -46,6 +46,12 @@
     .footer{margin-top:18px;font-size:12px;color:var(--mut)}
     .danger{color:var(--bad)}
     .ok{color:var(--good)}
+
+    /* おみくじ用 */
+    .rank{font-weight:700}
+    .rank-toxic{border-color:rgba(255,124,124,.55); color:var(--bad)}
+    .rank-good{border-color:rgba(124,203,255,.50); color:#7CCBFF}
+    .rank-ultra{border-color:rgba(124,255,178,.55); color:var(--good)}
   </style>
 </head>
 <body>
@@ -102,6 +108,21 @@
             <p id="quote" class="muted" style="margin:0 0 10px">読み込み中…</p>
             <button onclick="nextQuote()">更新</button>
           </div>
+
+          <!-- おみくじ（10種類：毒舌94% / ちょい良い5% / USアルティメット大吉1%） -->
+          <div class="mini">
+            <h2>おみくじ（古語ふう）</h2>
+            <p class="muted" style="margin:0 0 10px">押せば今日の運勢が出づ。<span class="muted">（一日一回、結果固定）</span></p>
+
+            <button onclick="drawOmikuji()">おみくじを引く</button>
+            <button onclick="resetOmikuji()" style="margin-left:8px">リセット</button>
+
+            <div id="omikujiBox" style="margin-top:12px;display:none">
+              <div class="pill rank" id="omikujiRank"></div>
+              <p class="muted" id="omikujiMsg" style="margin:10px 0 0"></p>
+              <p class="muted" id="omikujiTips" style="margin:6px 0 0"></p>
+            </div>
+          </div>
         </div>
 
         <div class="mini">
@@ -109,8 +130,8 @@
           <p class="muted">ここはリンク集にすると便利。必要なら後でページを増やせる。</p>
 
           <ul class="muted" style="padding-left:18px;margin:0">
-            <li><a href="#" onclick="alert('まだ工事中です');return false;">黒歴史フォルダ（閲覧注意）</a></li>
-            <li><a href="#" onclick="alert('準備中：診断メーカー風ページ');return false;">診断：あなたは何属性？</a></li>
+            <li><a href="#" onclick="alert('まだ工事中なり');return false;">黒歴史フォルダ（閲覧注意）</a></li>
+            <li><a href="#" onclick="alert('準備中：診断メーカー風ページ');return false;">診断：そなたは何属性？</a></li>
             <li><a href="#" onclick="alert('準備中：ホラー風ページ');return false;">深夜閲覧推奨ページ</a></li>
           </ul>
 
@@ -118,7 +139,7 @@
 
           <p class="muted">
             連絡先を置くなら：<br>
-            <span class="ok">※メールは公開しないのが安全</span><br>
+            <span class="ok">※メールは公開せぬが安全</span><br>
             必要ならSNSリンクだけ貼る。
           </p>
         </div>
@@ -131,6 +152,7 @@
   </div>
 
   <script>
+    // 今日の一言
     const quotes = [
       "今日の目標：『1mmでも前進』",
       "最強の魔法：締切の48時間前着手",
@@ -145,6 +167,113 @@
       document.getElementById("quote").textContent = quotes[i];
     }
     nextQuote();
+
+    // おみくじ（1日1回固定）
+    function todayKey(){
+      const d = new Date();
+      return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();
+    }
+
+    function drawOmikuji(){
+      const pool = [
+        // 毒舌 8種類：合計 94%
+        { rank:"凶", cls:"rank-toxic", w:12,
+          msg:"いとよろしくなし。手を出すほど泥沼なり。",
+          tips:"戒め：急ぐな。まず一息つけ。／開運：水を飲みて寝よ。" },
+
+        { rank:"大凶", cls:"rank-toxic", w:12,
+          msg:"おほかた終はる。されど今日のうちに修正すれば命はある。",
+          tips:"戒め：大事な操作は二度三度確かむべし。／開運：バックアップ。" },
+
+        { rank:"末凶", cls:"rank-toxic", w:12,
+          msg:"末に崩るる兆し。最初の一手を誤るべからず。",
+          tips:"戒め：着手は小さく。／開運：TODOを一つに絞れ。" },
+
+        { rank:"凶相", cls:"rank-toxic", w:12,
+          msg:"顔に書かれたり、『まだ準備せず』とな。",
+          tips:"戒め：装備（資料・道具）を整へよ。／開運：机を片づけよ。" },
+
+        { rank:"災凶", cls:"rank-toxic", w:12,
+          msg:"災ひは外より来たるにあらず。己が油断より起こる。",
+          tips:"戒め：見落とし一箇所が致命なり。／開運：チェックリスト。" },
+
+        { rank:"虚凶", cls:"rank-toxic", w:12,
+          msg:"中身は空、やる気も空。だが動けば生まるる。",
+          tips:"戒め：気分を待つな。／開運：五分だけ始めよ。" },
+
+        { rank:"笑止凶", cls:"rank-toxic", w:11,
+          msg:"をかしきほどに運なし。笑ふしかなし。されど笑へ。",
+          tips:"戒め：自滅ムーブを慎め。／開運：散歩して戻れ。" },
+
+        { rank:"無慈悲凶", cls:"rank-toxic", w:11,
+          msg:"情け容赦なし。今日の世界は君を甘やかさぬ。",
+          tips:"戒め：一点突破せよ。／開運：通知を切れ。" },
+
+        // ちょっといい：5%
+        { rank:"ちと佳し", cls:"rank-good", w:5,
+          msg:"よろし。大勝ちはせずとも、堅実に利あり。",
+          tips:"勧め：小さき成功を積め。／開運：早寝早起き、まこと大事。" },
+
+        // 1%：ウルトラースーパーアルティメット大吉
+        { rank:"ウルトラースーパーアルティメット大吉", cls:"rank-ultra", w:1,
+          msg:"いみじくよし。天も地も味方せり。今引けば通る。",
+          tips:"勧め：やりたきこと、今日のうちに放て。／開運：勢ひのまま提出せよ。" },
+      ];
+
+      // まず「今日の結果」があればそれを返す（1日固定）
+      const raw = localStorage.getItem("omikuji_today");
+      if(raw){
+        try{
+          const obj = JSON.parse(raw);
+          if(obj.date === todayKey()){
+            showOmikuji(obj.picked);
+            return;
+          }
+        }catch(e){}
+      }
+
+      // 重み付き抽選
+      const total = pool.reduce((s,x)=>s+x.w,0);
+      let r = Math.random()*total;
+      let picked = pool[0];
+      for(const item of pool){
+        r -= item.w;
+        if(r <= 0){ picked = item; break; }
+      }
+
+      showOmikuji(picked);
+      localStorage.setItem("omikuji_today", JSON.stringify({date: todayKey(), picked}));
+    }
+
+    function showOmikuji(picked){
+      const box = document.getElementById("omikujiBox");
+      const rankEl = document.getElementById("omikujiRank");
+      const msgEl = document.getElementById("omikujiMsg");
+      const tipsEl = document.getElementById("omikujiTips");
+
+      rankEl.className = "pill rank " + picked.cls;
+      rankEl.textContent = "結果： " + picked.rank;
+      msgEl.textContent = picked.msg;
+      tipsEl.textContent = picked.tips;
+
+      box.style.display = "block";
+    }
+
+    function resetOmikuji(){
+      localStorage.removeItem("omikuji_today");
+      document.getElementById("omikujiBox").style.display = "none";
+    }
+
+    // ページ読み込み時に「今日の結果」を復元
+    (function restoreOmikuji(){
+      const raw = localStorage.getItem("omikuji_today");
+      if(!raw) return;
+      try{
+        const obj = JSON.parse(raw);
+        if(obj.date !== todayKey()) return;
+        showOmikuji(obj.picked);
+      }catch(e){}
+    })();
   </script>
 </body>
 </html>
