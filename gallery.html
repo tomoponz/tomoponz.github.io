@@ -4,49 +4,24 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>tomoponz｜ネタ置き場</title>
-  <meta name="description" content="好きな曲・プレイリスト・おもしろ動画などを置くページ">
+  <meta name="description" content="小ネタ・遊び・実験コンテンツ置き場" />
+
   <link rel="stylesheet" href="style.css">
   <script defer src="app.js"></script>
-  <style>
-    .video{
-      position:relative;
-      width:100%;
-      aspect-ratio:16/9;
-      border-radius:18px;
-      overflow:hidden;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.04);
-      box-shadow: 0 18px 60px rgba(0,0,0,.25);
-    }
-    .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-    .miniBtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-    .tagline{margin:0 0 10px}
-    .sectionHead{
-      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
-      margin-bottom:10px;
-    }
-    .label{
-      display:inline-flex; gap:8px; align-items:center;
-      padding:6px 10px;
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(255,255,255,.04);
-      border-radius:999px;
-      color:rgba(234,241,255,.78);
-      font-size:13px;
-    }
-    .pin{width:9px;height:9px;border-radius:50%;background:rgba(124,203,255,.75);box-shadow:0 0 20px rgba(124,203,255,.25)}
-  </style>
 </head>
-<body>
-  <header class="nav">
-    <div class="brand">
-      <div class="logo"></div>
-      <div>
-        <b>tomoponz</b><br><small>ネタ置き場</small>
-      </div>
-    </div>
 
-    <nav class="navlinks">
+<body>
+  <!-- 統一メニュー -->
+  <header class="nav">
+    <a class="brand" href="index.html" aria-label="tomoponz ホーム">
+      <span class="logo" aria-hidden="true"></span>
+      <span class="brandText">
+        <span class="brandName">tomoponz</span>
+        <span class="brandSub" id="brandSub"></span>
+      </span>
+    </a>
+
+    <nav class="navlinks" aria-label="メニュー">
       <a class="chip" href="index.html">プロフィール</a>
       <a class="chip" href="omikuji.html">おみくじ</a>
       <a class="chip" href="shindan.html">診断</a>
@@ -61,109 +36,108 @@
   <main class="wrap">
     <section class="hero">
       <h1 class="h1">ネタ置き場</h1>
-      <p class="sub">友達に見せる用：音楽・動画・黒歴史・作品、なんでも積め。</p>
-      <div class="note">
-        画像を置くなら <code>assets/</code> フォルダを作ってアップ → <code>&lt;img src="assets/xxx.png"&gt;</code>。
+      <p class="sub">雑に置いて、あとで育てる。遊び場。</p>
+
+      <div class="badges">
+        <span class="badge"><span class="dot"></span>小ネタ</span>
+        <span class="badge">実験</span>
+        <span class="badge">友達に投げる用</span>
       </div>
+
+      <div class="note" id="quote">（ここに一言が出る）</div>
     </section>
 
-    <section class="grid2">
-      <!-- Now Playing -->
-      <div class="card">
-        <div class="sectionHead">
-          <h2 style="margin:0">🎧 Now Playing</h2>
-          <span class="label"><span class="pin"></span> 今これ聴いてる</span>
-        </div>
-        <p class="muted tagline">いま聴いてる曲（そのまま再生できる）。</p>
-
-        <div class="video" aria-label="YouTube player">
-          <iframe
-            src="https://www.youtube.com/embed/WUlMjK_VKhA"
-            title="Now Playing"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowfullscreen>
-          </iframe>
-        </div>
-
-        <div class="miniBtns">
-          <a class="btn primary" href="https://youtu.be/WUlMjK_VKhA" target="_blank" rel="noopener">YouTubeで開く</a>
-          <a class="btn" href="links.html">リンク集へ</a>
-        </div>
-
-        <hr class="sep">
-        <div class="note">
-          曲を変えるときは、埋め込みURLの <code>WUlMjK_VKhA</code> の部分だけ置換すればOK。
-        </div>
-      </div>
-
-      <!-- Favorite Playlist -->
-      <div class="card">
-        <div class="sectionHead">
-          <h2 style="margin:0">📼 Playlist：好きな曲</h2>
-          <span class="label"><span class="pin"></span> 押し付け再生枠</span>
-        </div>
-        <p class="muted tagline">友達に“これ聴け”って言う用。全部ここ。</p>
-
-        <div class="video" aria-label="YouTube playlist">
-          <iframe
-            src="https://www.youtube.com/embed/videoseries?list=PL89MD5rmOuuJbpCYMMW8hB3rBRtNmq7lF"
-            title="Favorite Playlist"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowfullscreen>
-          </iframe>
-        </div>
-
-        <div class="miniBtns">
-          <a class="btn primary" href="https://youtube.com/playlist?list=PL89MD5rmOuuJbpCYMMW8hB3rBRtNmq7lF" target="_blank" rel="noopener">プレイリストを開く</a>
-          <a class="btn" href="index.html">トップへ</a>
-        </div>
-      </div>
-
-      <!-- Funny Playlist -->
-      <div class="card">
-        <div class="sectionHead">
-          <h2 style="margin:0">🤣 Playlist：おもしろ動画</h2>
-          <span class="label"><span class="pin"></span> 深夜に強い</span>
-        </div>
-        <p class="muted tagline">笑わせたいときの切り札。ここから無限に溶ける。</p>
-
-        <div class="video" aria-label="YouTube funny playlist">
-          <iframe
-            src="https://www.youtube.com/embed/videoseries?list=PL89MD5rmOuuLwN9bGlCi5WtHCI3DPwNeU"
-            title="Funny Playlist"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowfullscreen>
-          </iframe>
-        </div>
-
-        <div class="miniBtns">
-          <a class="btn primary" href="https://youtube.com/playlist?list=PL89MD5rmOuuLwN9bGlCi5WtHCI3DPwNeU" target="_blank" rel="noopener">プレイリストを開く</a>
-          <a class="btn" href="links.html">リンク集へ</a>
-        </div>
-      </div>
-
-      <!-- Door entry -->
-      <div class="card">
-        <h2>🚪 Secret Door</h2>
-        <p class="muted">ドアを押すと、世界のどこかへワープ（無料）。</p>
-        <div class="btnrow">
-          <a class="btn primary" href="door.html">ドアを開く</a>
-          <a class="btn" href="warp.html">ワープ先（直）</a>
-        </div>
-      </div>
-
-      <!-- Games entry -->
+    <!-- おすすめ -->
+    <section class="grid2" style="margin-top:12px">
       <div class="card">
         <h2>🎮 ミニゲーム</h2>
         <p class="muted">サイト内で遊べる：マインスイーパー / 2048</p>
+
         <div class="btnrow">
-          <a class="btn primary" href="games.html">ゲームページへ</a>
-          <a class="btn" href="shindan.html">診断へ</a>
+          <a class="btn primary" href="minigames.html">ミニゲームへ</a>
+          <a class="btn" href="games.html">ゲーム一覧</a>
         </div>
+
         <hr class="sep">
-        <div class="note">友達に渡すなら <code>.../games.html</code> を直接投げると強い。</div>
+        <div class="note">友達に渡すなら <code>.../minigames.html</code> を直で投げる。</div>
+      </div>
+
+      <div class="card">
+        <h2>🚪 ドア（ワープ）</h2>
+        <p class="muted">押すだけで世界のどこかへワープ。地図と説明が出る。</p>
+
+        <div class="btnrow">
+          <a class="btn primary" href="door.html">ドアへ</a>
+          <a class="btn" href="warp.html">ワープ先（直）</a>
+        </div>
+
+        <hr class="sep">
+        <div class="note">演出強めにしたいならここを増築する。</div>
       </div>
     </section>
+
+    <!-- その他 -->
+    <section class="grid2" style="margin-top:12px">
+      <div class="card">
+        <h2>🧠 診断 & 🎲 おみくじ</h2>
+        <p class="muted">雑にやって、結果をコピペして遊ぶ。</p>
+
+        <div class="btnrow">
+          <a class="btn primary" href="shindan.html">診断する</a>
+          <a class="btn" href="omikuji.html">おみくじ引く</a>
+        </div>
+
+        <hr class="sep">
+        <ul class="list">
+          <li>診断：10問 → 5能力 → 50結果</li>
+          <li>おみくじ：毒舌8種＋ちょい良い＋1%最強</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>🔗 リンク集</h2>
+        <p class="muted">外部リンクやSNS、参考資料とか。</p>
+
+        <div class="btnrow">
+          <a class="btn primary" href="links.html">リンクへ</a>
+          <a class="btn" href="index.html">プロフィールへ</a>
+        </div>
+
+        <hr class="sep">
+        <div class="note">「とりあえずここ見て」で済む導線にする。</div>
+      </div>
+    </section>
+
+    <!-- 八百科事典など -->
+    <section class="grid2" style="margin-top:12px">
+      <div class="card">
+        <h2>📚 八百科事典</h2>
+        <p class="muted">謎の辞典枠（増やせる）。</p>
+
+        <div class="btnrow">
+          <a class="btn primary" href="hachi.html">八百科事典へ</a>
+          <a class="btn" href="gallery.html">このページ</a>
+        </div>
+
+        <hr class="sep">
+        <div class="note">「言葉」「作品」「用語」系の小ネタ置き場に最適。</div>
+      </div>
+
+      <div class="card">
+        <h2>🧩 追加予定（メモ）</h2>
+        <ul class="list">
+          <li>ランキング／スコア共有（ローカルでも可）</li>
+          <li>音ゲーっぽい何か（WebAudio）</li>
+          <li>短いテキストADV（選択肢）</li>
+          <li>画像ジェネレーター（テンプレ合成）</li>
+        </ul>
+
+        <hr class="sep">
+        <div class="note">「思いついた瞬間に雑に追加→あとで整える」で勝つ。</div>
+      </div>
+    </section>
+
+    <div class="footer">© tomoponz / Gallery</div>
   </main>
 </body>
 </html>
