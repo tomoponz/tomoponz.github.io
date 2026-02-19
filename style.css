@@ -37,18 +37,34 @@ a:hover{opacity:.92}
 .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 .spread{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
 
+/* ===== Unified Top Nav (統一版) ===== */
 .nav{
-  position:sticky; top:0; z-index:30;
+  position:sticky;
+  top:0;
+  z-index:50;
   backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   background:linear-gradient(180deg, rgba(7,10,18,.72), rgba(7,10,18,.40));
   border-bottom:1px solid rgba(255,255,255,.10);
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding: 14px 18px;
 }
+
 .brand{
-  display:flex; gap:10px; align-items:center;
-  padding:14px 18px;
+  display:flex;
+  gap:12px;
+  align-items:center;
+  text-decoration:none;
+  color:inherit;
+  min-width: 200px;
 }
+
 .logo{
-  width:34px;height:34px;border-radius:12px;
+  width:40px;height:40px;border-radius:14px;
   background:
     radial-gradient(12px 12px at 30% 30%, rgba(124,255,178,.75), transparent 60%),
     radial-gradient(14px 14px at 65% 65%, rgba(124,203,255,.75), transparent 60%),
@@ -56,24 +72,52 @@ a:hover{opacity:.92}
   border:1px solid rgba(255,255,255,.14);
   box-shadow:0 10px 30px rgba(0,0,0,.35);
 }
-.brand b{letter-spacing:.02em}
-.brand small{color:var(--mut)}
+
+.brandText{display:flex;flex-direction:column;line-height:1.05}
+.brandName{font-weight:800;letter-spacing:.02em}
+.brandSub{color:var(--mut);font-size:12px;margin-top:3px}
 
 .navlinks{
-  display:flex; gap:10px; flex-wrap:wrap;
-  padding:0 18px 14px 18px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
 }
+
 .chip{
   padding:8px 12px;
   border-radius:999px;
   border:1px solid rgba(255,255,255,.14);
   background:rgba(255,255,255,.05);
-  color:var(--mut);
+  color:rgba(234,241,255,.86);
   font-size:13px;
   transition:.18s ease;
+  user-select:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
 }
-.chip:hover{background:rgba(255,255,255,.08); color:var(--tx)}
-.chip.active{border-color:rgba(124,203,255,.35); color:var(--tx); box-shadow:0 0 0 3px rgba(124,203,255,.10)}
+.chip:hover{background:rgba(255,255,255,.08); color:var(--tx); transform: translateY(-1px)}
+.chip.active{
+  border-color:rgba(124,203,255,.45);
+  color:var(--tx);
+  box-shadow:0 0 0 3px rgba(124,203,255,.12);
+  background:rgba(124,203,255,.08);
+}
+
+/* モバイル：横スクロールで崩れない */
+@media (max-width:780px){
+  .nav{flex-direction:column;align-items:flex-start}
+  .navlinks{
+    width:100%;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    padding-bottom:6px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .navlinks::-webkit-scrollbar{height:6px}
+  .navlinks::-webkit-scrollbar-thumb{background: rgba(255,255,255,.12); border-radius:999px}
+}
 
 .hero{
   margin-top:14px;
