@@ -1,5 +1,15 @@
-// portal.js（無料MVP：Wikipedia(ja) + OSM）
+// portal.js（堅牢版：Wikipedia(ja) + OSM）
 // 演出：効果音／暗転／粒子／ワープログ
+// Wikipedia取得が失敗しても「止まらず」必ず表示する（多段フォールバック）
+//
+// 取得順：
+// 1) REST summary（ja.wikipedia.org/api/rest_v1）
+// 2) MediaWiki API（action=query extracts/pageimages redirects）
+// 3) 404/曖昧タイトルなら検索して「近い記事」に補正
+// 4) direct fetch が落ちたら allorigins プロキシで再試行
+// 5) それでも無理なら「説明は取れなかった」＋Wikipedia検索リンクを出す
+//
+// ※ door.html でも places.js を読み込むこと（window.PLACES が必要）
 
 // ===== Places =====
 function pickRandomPlace(){
@@ -15,23 +25,278 @@ function getCurrentPlaceIndex(){
   return Number.isFinite(i) ? i : null;
 }
 
-// ===== Wikipedia summary (JA) =====
-const WIKI_SUMMARY_BASE = "https://ja.wikipedia.org/api/rest_v1/page/summary/";
-const WIKI_PAGE_BASE = "https://ja.wikipedia.org/wiki/";
+// ===== Wikipedia (JA) config =====
+const WIKI_HOST = "https://ja.wikipedia.org";
+const WIKI_REST_SUMMARY = `${WIKI_HOST}/api/rest_v1/page/summary/`;
+const WIKI_PAGE_BASE = `${WIKI_HOST}/wiki/`;
+const WIKI_API = `${WIKI_HOST}/w/api.php`;
+
+// 無料プロキシ（CORS/回線/仕様変更の逃げ道）
+const PROXY_RAW = "https://api.allorigins.win/raw?url=";
+
+// ===== utils =====
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
 
 function toWikiSlug(title){
-  // RESTはスペースを _ にしておくと安定しやすい
+  // RESTはスペース→_ が安定しがち
   return encodeURIComponent(String(title).replaceAll(" ", "_"));
 }
-
-async function fetchWikiSummary(title){
-  const url = WIKI_SUMMARY_BASE + toWikiSlug(title);
-  const res = await fetch(url, { headers: { "Accept":"application/json" } });
-  if(!res.ok) throw new Error("wiki fetch failed");
-  return await res.json();
+function wikiPageUrl(title){
+  return WIKI_PAGE_BASE + toWikiSlug(title);
 }
-function wikiLinkFromSummary(summary){
-  return summary?.content_urls?.desktop?.page || null;
+function wikiSearchUrl(q){
+  return `${WIKI_HOST}/w/index.php?search=${encodeURIComponent(String(q))}`;
+}
+
+async function fetchTextDirect(url){
+  const res = await fetch(url, { cache: "no-store" });
+  return res;
+}
+async function fetchTextViaProxy(url){
+  const proxied = PROXY_RAW + encodeURIComponent(url);
+  const res = await fetch(proxied, { cache: "no-store" });
+  return res;
+}
+
+async function fetchJsonWithRetry(url, { tryProxy=false, retries=2 } = {}){
+  let lastErr = null;
+
+  for(let attempt=0; attempt<=retries; attempt++){
+    try{
+      const res = tryProxy ? await fetchTextViaProxy(url) : await fetchTextDirect(url);
+
+      // 429/5xx は少し待って再試行
+      if([429, 500, 502, 503, 504].includes(res.status)){
+        lastErr = new Error(`HTTP ${res.status}`);
+        const wait = 250 * Math.pow(2, attempt);
+        await sleep(wait);
+        continue;
+      }
+
+      if(!res.ok){
+        // 404等はここで返す（呼び出し側で分岐）
+        const e = new Error(`HTTP ${res.status}`);
+        e.httpStatus = res.status;
+        throw e;
+      }
+
+      const txt = await res.text();
+      return JSON.parse(txt);
+    }catch(e){
+      lastErr = e;
+      // ネットワークエラー等：少し待って再試行
+      const wait = 200 * Math.pow(2, attempt);
+      await sleep(wait);
+    }
+  }
+
+  throw lastErr || new Error("fetch failed");
+}
+
+function apiUrl(params){
+  const u = new URL(WIKI_API);
+  Object.entries(params).forEach(([k,v]) => u.searchParams.set(k, String(v)));
+  u.searchParams.set("origin", "*");     // CORS許可
+  u.searchParams.set("format", "json");
+  u.searchParams.set("formatversion", "2");
+  return u.toString();
+}
+
+async function mwApi(params, { proxy=false } = {}){
+  const url = apiUrl(params);
+  return await fetchJsonWithRetry(url, { tryProxy: proxy, retries: 2 });
+}
+
+async function restSummary(title, { proxy=false } = {}){
+  const url = WIKI_REST_SUMMARY + toWikiSlug(title);
+  return await fetchJsonWithRetry(url, { tryProxy: proxy, retries: 2 });
+}
+
+// ===== Wiki fallback strategy =====
+async function searchBestTitle(query, { proxy=false } = {}){
+  // タイトルが曖昧/存在しない時に、検索上位を採用
+  const js = await mwApi({
+    action: "query",
+    list: "search",
+    srsearch: query,
+    srlimit: 1,
+    srprop: ""
+  }, { proxy });
+
+  const t = js?.query?.search?.[0]?.title;
+  return t || null;
+}
+
+function pickFromMwQuery(js){
+  const page = js?.query?.pages?.[0];
+  if(!page) return null;
+  if(page.missing) return { missing:true };
+  return {
+    title: page.title,
+    extract: page.extract || "",
+    thumbnail: page?.thumbnail?.source || null
+  };
+}
+
+async function fetchViaMediaWiki(title){
+  // extracts + pageimages で「説明文＋画像」を取る（RESTより堅牢）
+  const js = await mwApi({
+    action: "query",
+    prop: "extracts|pageimages|info",
+    titles: title,
+    redirects: 1,
+    explaintext: 1,
+    exintro: 1,
+    piprop: "thumbnail",
+    pithumbsize: 800,
+    inprop: "url"
+  }, { proxy:false });
+
+  const picked = pickFromMwQuery(js);
+  if(picked && !picked.missing){
+    const pageUrl = js?.query?.pages?.[0]?.fullurl || wikiPageUrl(picked.title);
+    return {
+      title: picked.title,
+      extract: picked.extract,
+      thumbnail: picked.thumbnail,
+      pageUrl
+    };
+  }
+  return { missing:true };
+}
+
+async function fetchViaMediaWikiProxy(title){
+  const js = await mwApi({
+    action: "query",
+    prop: "extracts|pageimages|info",
+    titles: title,
+    redirects: 1,
+    explaintext: 1,
+    exintro: 1,
+    piprop: "thumbnail",
+    pithumbsize: 800,
+    inprop: "url"
+  }, { proxy:true });
+
+  const picked = pickFromMwQuery(js);
+  if(picked && !picked.missing){
+    const pageUrl = js?.query?.pages?.[0]?.fullurl || wikiPageUrl(picked.title);
+    return {
+      title: picked.title,
+      extract: picked.extract,
+      thumbnail: picked.thumbnail,
+      pageUrl
+    };
+  }
+  return { missing:true };
+}
+
+async function getWikiDataSmart(inputTitle, logFn){
+  const original = String(inputTitle || "").trim() || "日本";
+  const log = (s)=>{ try{ logFn && logFn(s); }catch{} };
+
+  // 0) 入力タイトルのWikipediaリンクは常に作っておく
+  let fallbackLink = wikiPageUrl(original);
+
+  // 1) REST summary（direct）
+  try{
+    log("Wikipedia REST (direct)...");
+    const sum = await restSummary(original, { proxy:false });
+
+    const title = sum?.title || original;
+    const extract = sum?.extract || "";
+    const pageUrl = sum?.content_urls?.desktop?.page || wikiPageUrl(title);
+    const thumbnail = sum?.thumbnail?.source || null;
+
+    if(extract){
+      log("REST OK");
+      return { title, extract, thumbnail, pageUrl };
+    }
+
+    // extractが空でも次に回す
+    log("REST empty -> fallback");
+    fallbackLink = pageUrl;
+  }catch(e){
+    log(`REST fail: ${e.message}`);
+  }
+
+  // 2) MediaWiki API（direct）
+  try{
+    log("MediaWiki API (direct)...");
+    const mw = await fetchViaMediaWiki(original);
+    if(!mw.missing && mw.extract){
+      log("MW API OK");
+      return mw;
+    }
+    log("MW missing/empty -> search");
+    fallbackLink = wikiPageUrl(original);
+  }catch(e){
+    log(`MW API fail: ${e.message}`);
+  }
+
+  // 3) 検索で「近い記事」に補正（direct）
+  try{
+    log("Search best title (direct)...");
+    const best = await searchBestTitle(original, { proxy:false });
+    if(best){
+      log(`Search -> ${best}`);
+      // 補正タイトルで再取得（MW direct）
+      try{
+        const mw2 = await fetchViaMediaWiki(best);
+        if(!mw2.missing && mw2.extract){
+          log("MW API (best) OK");
+          return mw2;
+        }
+      }catch(e2){
+        log(`MW(best) fail: ${e2.message}`);
+      }
+
+      // REST proxyも試す（best）
+      try{
+        log("REST (best via proxy)...");
+        const sum2 = await restSummary(best, { proxy:true });
+        const title2 = sum2?.title || best;
+        const extract2 = sum2?.extract || "";
+        const pageUrl2 = sum2?.content_urls?.desktop?.page || wikiPageUrl(title2);
+        const thumbnail2 = sum2?.thumbnail?.source || null;
+        if(extract2){
+          log("REST(best proxy) OK");
+          return { title: title2, extract: extract2, thumbnail: thumbnail2, pageUrl: pageUrl2 };
+        }
+      }catch(e3){
+        log(`REST(best proxy) fail: ${e3.message}`);
+      }
+
+      fallbackLink = wikiPageUrl(best);
+    }else{
+      log("Search result: none");
+      fallbackLink = wikiSearchUrl(original);
+    }
+  }catch(e){
+    log(`Search fail: ${e.message}`);
+    fallbackLink = wikiSearchUrl(original);
+  }
+
+  // 4) MediaWiki API（proxy）
+  try{
+    log("MediaWiki API (proxy)...");
+    const mwP = await fetchViaMediaWikiProxy(original);
+    if(!mwP.missing && mwP.extract){
+      log("MW API (proxy) OK");
+      return mwP;
+    }
+  }catch(e){
+    log(`MW API (proxy) fail: ${e.message}`);
+  }
+
+  // 5) 最終：必ず返す（失敗しても画面は埋める）
+  log("FINAL fallback");
+  return {
+    title: original,
+    extract: "Wikipediaの説明取得に失敗（回線/CORS/仕様/存在しない記事など）。でもワープ自体は成功。",
+    thumbnail: null,
+    pageUrl: fallbackLink || wikiSearchUrl(original)
+  };
 }
 
 // ===== OSM embed =====
@@ -278,8 +543,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const doorWrap = document.getElementById("doorWrap");
   const fxCanvas = document.getElementById("fxCanvas");
 
-  if(doorBtn && doorWrap){
-    doorBtn.addEventListener("click", () => {
+  if(doorWrap){
+    const clickTarget = doorBtn || doorWrap; // ボタンが無ければドア全体クリック
+    clickTarget.addEventListener("click", () => {
       const { index } = pickRandomPlace();
       setCurrentPlaceIndex(index);
 
@@ -320,43 +586,33 @@ async function renderWarp(){
   const mapBox  = document.getElementById("mapBox");
   const mapA    = document.getElementById("mapLink");
   const wikiA   = document.getElementById("wikiLink");
+  const c       = document.getElementById("warpConsole");
 
-  if(titleEl) titleEl.textContent = p.wikiTitle;
+  if(titleEl) titleEl.textContent = p.wikiTitle || "Loading...";
   if(descEl) descEl.textContent = "読み込み中…";
   if(mapBox) mapBox.innerHTML = osmEmbed(p.lat, p.lng);
   if(mapA) mapA.href = mapsLink(p.lat, p.lng);
 
-  const c = document.getElementById("warpConsole");
   if(c) c.textContent = "warp init…\nOSM embed OK\nWikipedia(ja) fetch…";
 
-  try{
-    const sum = await fetchWikiSummary(p.wikiTitle);
-    const t = sum.title || p.wikiTitle;
-    const ex = sum.extract || "（説明が取れなかった。だが場所は本物だ。）";
+  const data = await getWikiDataSmart(p.wikiTitle, (s)=>logConsole(s));
 
-    if(titleEl) titleEl.textContent = t;
-    if(descEl) descEl.textContent = ex;
+  if(titleEl) titleEl.textContent = data.title || (p.wikiTitle || "");
+  if(descEl) descEl.textContent = data.extract || "（説明が取れなかった。だが場所は本物だ。）";
 
-    const w = wikiLinkFromSummary(sum);
-    if(wikiA) wikiA.href = w || (WIKI_PAGE_BASE + toWikiSlug(p.wikiTitle));
+  if(wikiA) wikiA.href = data.pageUrl || wikiSearchUrl(p.wikiTitle);
 
-    const img = sum?.thumbnail?.source;
-    if(imgBox){
-      if(img) imgBox.innerHTML = `<img src="${img}" alt="${escapeHtml(t)}">`;
-      else imgBox.innerHTML = `<div class="imgPh">画像なし（でもワープは成功）。</div>`;
+  if(imgBox){
+    if(data.thumbnail){
+      imgBox.innerHTML = `<img src="${data.thumbnail}" alt="${escapeHtml(data.title || p.wikiTitle)}">`;
+    }else{
+      imgBox.innerHTML = `<div class="imgPh">画像なし（でもワープは成功）。</div>`;
     }
-
-    addLog({ ts: Date.now(), title: t, lat: p.lat, lng: p.lng, mode:"free" });
-    renderLog();
-    logConsole("Wikipedia OK\nLOG saved\nDONE");
-  }catch(e){
-    if(descEl) descEl.textContent = "Wikipedia取得に失敗。回線か仕様変更。もう一回ワープ。";
-    if(wikiA) wikiA.href = WIKI_PAGE_BASE + toWikiSlug(p.wikiTitle);
-    if(imgBox) imgBox.innerHTML = `<div class="imgPh">画像読み込み失敗。</div>`;
-    addLog({ ts: Date.now(), title: p.wikiTitle, lat: p.lat, lng: p.lng, mode:"free" });
-    renderLog();
-    logConsole("Wikipedia FAIL\nLOG saved\nDONE");
   }
+
+  addLog({ ts: Date.now(), title: data.title || p.wikiTitle, lat: p.lat, lng: p.lng, mode:"free" });
+  renderLog();
+  logConsole("DONE");
 
   setTimeout(() => fadeOut(), 80);
 }
