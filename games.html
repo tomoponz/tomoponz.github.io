@@ -3,21 +3,25 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>tomoponz｜リンク</title>
-  <meta name="description" content="SNSや外部リンク（公開したいものだけ）">
+  <title>tomoponz｜ゲーム</title>
+  <meta name="description" content="ミニゲーム置き場">
+
   <link rel="stylesheet" href="style.css">
   <script defer src="app.js"></script>
 </head>
-<body>
-  <header class="nav">
-    <div class="brand">
-      <div class="logo"></div>
-      <div>
-        <b>tomoponz</b><br><small>リンクの間</small>
-      </div>
-    </div>
 
-    <nav class="navlinks">
+<body>
+  <!-- 統一メニュー -->
+  <header class="nav">
+    <a class="brand" href="index.html" aria-label="tomoponz ホーム">
+      <span class="logo" aria-hidden="true"></span>
+      <span class="brandText">
+        <span class="brandName">tomoponz</span>
+        <span class="brandSub" id="brandSub"></span>
+      </span>
+    </a>
+
+    <nav class="navlinks" aria-label="メニュー">
       <a class="chip" href="index.html">プロフィール</a>
       <a class="chip" href="omikuji.html">おみくじ</a>
       <a class="chip" href="shindan.html">診断</a>
@@ -31,35 +35,35 @@
 
   <main class="wrap">
     <section class="hero">
-      <h1 class="h1">リンク</h1>
-      <p class="sub">公開したいものだけ貼る。メールは晒さないのが安全。</p>
+      <h1 class="h1">ゲーム</h1>
+      <p class="sub">小さな遊びを置く場所。増やしていく。</p>
+      <div class="badges">
+        <span class="badge"><span class="dot"></span>ミニゲーム置き場</span>
+        <span class="badge">実験場</span>
+      </div>
     </section>
 
     <section class="grid2">
       <div class="card">
-        <h2>X（Twitter）</h2>
-        <p class="muted">プロフ：ここから飛べる。</p>
-        <div class="btnrow">
-          <a class="btn primary" href="https://x.com/FiKprHknWifJ5Sb" target="_blank" rel="noopener">Xプロフィールを開く</a>
-        </div>
+        <h2>ミニゲーム一覧</h2>
+        <ul class="list">
+          <li><a class="btn" href="door.html">ドア（ワープ演出）</a></li>
+          <li><a class="btn" href="omikuji.html">おみくじ</a></li>
+          <li><a class="btn" href="shindan.html">診断</a></li>
+        </ul>
         <hr class="sep">
-        <div class="note">
-          固定ポストに「自己紹介＋このサイトURL」を置くと、友達導線が最短になる。
-        </div>
+        <p class="muted">ここに今後、Canvas/Audio/WebGL系を足していけば“楽しいサイト”になる。</p>
       </div>
 
       <div class="card">
-        <h2>YouTube</h2>
-        <p class="muted">いま聴いてる曲＆プレイリスト。</p>
-        <div class="btnrow">
-          <a class="btn primary" href="https://youtu.be/WUlMjK_VKhA" target="_blank" rel="noopener">Now Playing（YouTube）</a>
-          <a class="btn" href="https://youtube.com/playlist?list=PL89MD5rmOuuJbpCYMMW8hB3rBRtNmq7lF" target="_blank" rel="noopener">プレイリストを開く</a>
-          <a class="btn" href="gallery.html">埋め込みページへ</a>
-        </div>
+        <h2>Console</h2>
+        <div class="note" id="quote">（ここに一言が出る）</div>
         <hr class="sep">
-        <p class="muted">※埋め込み再生は <code>gallery.html</code> が担当。</p>
+        <p class="muted">※ portal.js を別ページ（warp/door）で使ってるなら、そのままでOK。</p>
       </div>
     </section>
+
+    <div class="footer">© tomoponz</div>
   </main>
 </body>
 </html>
