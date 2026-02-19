@@ -3,109 +3,126 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>tomoponz｜ミニゲーム</title>
-  <meta name="description" content="マインスイーパー＆2048">
+  <title>tomoponz｜ドア</title>
+  <meta name="description" content="ドアを開けると世界のどこかへワープ（無料）">
+
   <link rel="stylesheet" href="style.css">
   <script defer src="app.js"></script>
+  <script defer src="places.js"></script>
+  <script defer src="portal.js"></script>
+
   <style>
-    /* === Games UI (site theme compatible) === */
-    .tabs{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
-    .tabs .btn{user-select:none}
-    .tabs .btn.active{border-color:rgba(124,203,255,.35); box-shadow:0 0 0 3px rgba(124,203,255,.10)}
-    .gameArea{margin-top:12px}
+    #fade{
+      position:fixed; inset:0;
+      background:#000;
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .45s ease;
+      z-index:9999;
+    }
+    .fadeIn{ opacity:1 !important; }
 
-    .hud{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-top:10px}
-    .hudLeft{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-    .hudRight{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-    .meter{display:flex; gap:10px; flex-wrap:wrap}
-    .meter .pill{display:inline-flex; align-items:center; gap:8px}
-    .tiny{font-size:12px;color:rgba(234,241,255,.70)}
-
-    /* === Minesweeper === */
-    .msWrap{display:grid; gap:12px}
-    .msGrid{
-      --cols:9;
+    .doorStage{
       display:grid;
-      grid-template-columns:repeat(var(--cols), 1fr);
-      gap:6px;
-      padding:12px;
-      border-radius:18px;
+      place-items:center;
+      min-height: 420px;
+      border-radius: 22px;
       border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.03);
-      box-shadow:0 18px 60px rgba(0,0,0,.25);
-      touch-action:manipulation;
+      background: rgba(255,255,255,.03);
+      box-shadow: 0 18px 70px rgba(0,0,0,.28);
+      position: relative;
+      overflow:hidden;
     }
-    .cell{
-      aspect-ratio:1/1;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.16);
-      background:rgba(255,255,255,.04);
-      color:#EAF1FF;
-      font-weight:700;
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      user-select:none;
-      -webkit-tap-highlight-color: transparent;
+    #fxCanvas{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      pointer-events:none;
     }
-    .cell:hover{background:rgba(255,255,255,.07)}
-    .cell.revealed{
-      background:rgba(255,255,255,.02);
-      border-color:rgba(255,255,255,.10);
-      cursor:default;
-    }
-    .cell.flag{border-color:rgba(255,210,124,.35); box-shadow:0 0 0 3px rgba(255,210,124,.08)}
-    .cell.mine{border-color:rgba(255,124,124,.35); box-shadow:0 0 0 3px rgba(255,124,124,.08)}
 
-    /* === 2048 === */
-    .g2048Wrap{display:grid; gap:12px}
-    .board{
-      width:min(460px, 100%);
-      margin:0 auto;
-      padding:12px;
-      border-radius:18px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.03);
-      box-shadow:0 18px 60px rgba(0,0,0,.25);
-    }
-    .grid2048{
+    .doorWrap{
+      width:min(520px, 100%);
       display:grid;
-      grid-template-columns:repeat(4, 1fr);
-      gap:10px;
+      place-items:center;
+      padding: 26px 18px;
+      gap: 14px;
+      position: relative;
+      z-index: 2;
     }
-    .tile{
-      aspect-ratio:1/1;
-      border-radius:16px;
+    .bigDoor{
+      width:min(320px, 90%);
+      aspect-ratio: 3/4;
+      border-radius: 26px;
       border:1px solid rgba(255,255,255,.14);
-      background:rgba(255,255,255,.04);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-weight:800;
-      font-size:22px;
-      user-select:none;
+      background:
+        radial-gradient(140px 140px at 30% 25%, rgba(124,203,255,.22), transparent 60%),
+        radial-gradient(180px 180px at 70% 70%, rgba(124,255,178,.16), transparent 62%),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      box-shadow: 0 24px 80px rgba(0,0,0,.35);
+      display:grid;
+      place-items:center;
+      position: relative;
+      overflow:hidden;
     }
-    .tile.v0{color:transparent}
-    .tile.v2{box-shadow:0 0 0 3px rgba(124,203,255,.08)}
-    .tile.v4{box-shadow:0 0 0 3px rgba(182,156,255,.08)}
-    .tile.v8{box-shadow:0 0 0 3px rgba(124,255,178,.08)}
-    .tile.v16{box-shadow:0 0 0 3px rgba(255,210,124,.10)}
-    .tile.v32{box-shadow:0 0 0 3px rgba(255,124,124,.10)}
-    .tile.v64{box-shadow:0 0 0 3px rgba(255,124,124,.14)}
-    .tile.v128,.tile.v256,.tile.v512,.tile.v1024,.tile.v2048{box-shadow:0 0 0 3px rgba(124,255,178,.14)}
+    .bigDoor:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(420px 260px at 50% 120%, rgba(182,156,255,.20), transparent 60%);
+      opacity:.9;
+      pointer-events:none;
+    }
+    .knob{
+      position:absolute;
+      right: 18%;
+      top: 52%;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: rgba(255,210,124,.85);
+      box-shadow: 0 0 0 3px rgba(255,210,124,.18), 0 0 30px rgba(255,210,124,.18);
+      border:1px solid rgba(255,255,255,.22);
+    }
+
+    .doorBtn{
+      width: min(360px, 100%);
+      font-weight: 800;
+      letter-spacing: .04em;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(124,255,178,.32);
+      box-shadow: 0 0 0 3px rgba(124,255,178,.10);
+      background: rgba(255,255,255,.05);
+    }
+
+    /* opening anim（CSSだけ） */
+    .doorWrap.opening .bigDoor{
+      animation: doorPulse .55s ease forwards;
+    }
+    @keyframes doorPulse{
+      0%{ transform: scale(1); filter: brightness(1); }
+      45%{ transform: scale(1.03); filter: brightness(1.18); }
+      100%{ transform: scale(1.00); filter: brightness(1); }
+    }
+
+    .fxRow{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center}
+    .fxPill{display:inline-flex; gap:8px; align-items:center}
   </style>
 </head>
-<body>
-  <header class="nav">
-    <div class="brand">
-      <div class="logo"></div>
-      <div>
-        <b>tomoponz</b><br><small>ミニゲーム</small>
-      </div>
-    </div>
 
-    <nav class="navlinks">
+<body>
+  <div id="fade" aria-hidden="true"></div>
+
+  <!-- 統一メニュー -->
+  <header class="nav">
+    <a class="brand" href="index.html" aria-label="tomoponz ホーム">
+      <span class="logo" aria-hidden="true"></span>
+      <span class="brandText">
+        <span class="brandName">tomoponz</span>
+        <span class="brandSub" id="brandSub"></span>
+      </span>
+    </a>
+
+    <nav class="navlinks" aria-label="メニュー">
       <a class="chip" href="index.html">プロフィール</a>
       <a class="chip" href="omikuji.html">おみくじ</a>
       <a class="chip" href="shindan.html">診断</a>
@@ -119,107 +136,60 @@
 
   <main class="wrap">
     <section class="hero">
-      <h1 class="h1">ミニゲーム</h1>
-      <p class="sub">マインスイーパーと2048。友達に投げて時間を溶かせ。</p>
-      <div class="note">スマホでも遊べる。マインスイーパーは「旗モード」で操作しやすくしてある。</div>
-
-      <div class="tabs">
-        <button class="btn active" id="tab-ms" onclick="showTab('ms')">マインスイーパー</button>
-        <button class="btn" id="tab-2048" onclick="showTab('2048')">2048</button>
-        <a class="btn" href="gallery.html">ネタ置き場へ戻る</a>
-      </div>
+      <h1 class="h1">ドア</h1>
+      <p class="sub">押すだけで世界のどこかへワープ（無料）。</p>
+      <div class="note">効果音と粒子はON/OFFできる。スマホでも動く。</div>
     </section>
 
-    <!-- Minesweeper -->
-    <section class="gameArea" id="pane-ms">
-      <div class="grid2">
-        <div class="card">
-          <h2>マインスイーパー</h2>
-          <p class="muted">左クリック：開く / 右クリック：旗（スマホは「旗モード」）</p>
+    <section class="grid2" style="margin-top:12px">
+      <div class="card">
+        <h2>入口</h2>
 
-          <div class="hud">
-            <div class="hudLeft">
-              <span class="pill">難易度：
-                <select id="msDiff" style="margin-left:8px;background:transparent;color:inherit;border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:6px 10px">
-                  <option value="easy">EASY 9×9 / 10</option>
-                  <option value="mid">MID 12×12 / 24</option>
-                  <option value="hard">HARD 16×16 / 40</option>
-                </select>
-              </span>
-              <button onclick="msNew()">新しく開始</button>
-              <button id="msFlagBtn" onclick="msToggleFlagMode()">旗モード：OFF</button>
+        <div class="doorStage" id="doorStage">
+          <canvas id="fxCanvas"></canvas>
+
+          <!-- portal.js が掴む要素 -->
+          <div class="doorWrap" id="doorWrap">
+            <div class="bigDoor" aria-hidden="true">
+              <div class="knob" aria-hidden="true"></div>
+              <div class="muted" style="position:relative; z-index:2; text-align:center">
+                <b>UNKNOWN DOOR</b><br><small>press to warp</small>
+              </div>
             </div>
 
-            <div class="hudRight meter">
-              <span class="pill">💣 残り：<b id="msMinesLeft">10</b></span>
-              <span class="pill">⏱ <b id="msTime">0</b>s</span>
-              <span class="pill">状態：<b id="msState">進行中</b></span>
-            </div>
-          </div>
+            <button class="doorBtn" id="doorBtn">ドアを開く（ワープ）</button>
 
-          <div class="msWrap" style="margin-top:12px">
-            <div class="msGrid" id="msGrid" style="--cols:9"></div>
-            <div class="note tiny">コツ：数字は周囲8マスの地雷数。0は連鎖で開く。</div>
+            <div class="fxRow">
+              <span class="pill fxPill">🔊 Sound：<b id="fxSoundState">ON</b></span>
+              <button onclick="toggleFxSound()">切替</button>
+
+              <span class="pill fxPill">✨ Particles：<b id="fxParticlesState">ON</b></span>
+              <button onclick="toggleFxParticles()">切替</button>
+            </div>
           </div>
         </div>
 
-        <div class="card">
-          <h2>友達用説明（雑に）</h2>
-          <ul class="list">
-            <li>まず「新しく開始」押せ。</li>
-            <li>数字＝周りの地雷数。</li>
-            <li>地雷踏んだら負け。勝ったら自慢。</li>
-          </ul>
-          <hr class="sep">
-          <div class="note">スマホは「旗モードON」にして、タップで旗→もう一度で戻す。</div>
+        <div class="note" style="margin-top:12px">
+          仕組み：ワープ先は <code>places.js</code> のリストからランダム。地図はOSM、説明はWikipedia。
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>遊び方（友達用）</h2>
+        <ul class="list">
+          <li>「ドアを開く」押せ。</li>
+          <li>ワープ先ページで「もう一回ワープ」連打で世界旅行。</li>
+          <li>ログが残る（ローカル）。消したければログ消去。</li>
+        </ul>
+        <hr class="sep">
+        <div class="btnrow">
+          <a class="btn primary" href="warp.html">ワープ先（直）</a>
+          <a class="btn" href="gallery.html">ネタ置き場へ</a>
         </div>
       </div>
     </section>
 
-    <!-- 2048 -->
-    <section class="gameArea" id="pane-2048" style="display:none">
-      <div class="grid2">
-        <div class="card">
-          <h2>2048</h2>
-          <p class="muted">PC：矢印キー / スマホ：スワイプ</p>
-
-          <div class="hud">
-            <div class="hudLeft">
-              <button onclick="gNew()">リスタート</button>
-            </div>
-            <div class="hudRight meter">
-              <span class="pill">Score：<b id="gScore">0</b></span>
-              <span class="pill">Best：<b id="gBest">0</b></span>
-              <span class="pill">状態：<b id="gState">進行中</b></span>
-            </div>
-          </div>
-
-          <div class="g2048Wrap" style="margin-top:12px">
-            <div class="board" id="gBoard">
-              <div class="grid2048" id="gGrid"></div>
-            </div>
-            <div class="note tiny">同じ数字をぶつけて倍にする。2048作れたら勝ち（でも続けても良い）。</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>友達に言う一言</h2>
-          <p class="muted">「このサイト、音楽と地雷と数字しかない。最高。」</p>
-          <hr class="sep">
-          <div class="note">2048は“角”に最大数を固定するのが基本戦術。</div>
-        </div>
-      </div>
-    </section>
-
-    <div class="footer">© tomoponz / Mini Games</div>
+    <div class="footer">© tomoponz / Door</div>
   </main>
-
-  <!-- ↓↓↓ 以下はあなたの元のゲームJS（変更なし）↓↓↓ -->
-  <script>
-    /* ここから下は、あなたが貼ってた games.html の script 部分をそのまま維持しています。
-       ※長いので省略せず全部入れてOKですが、あなたの現状コードがすでに動いているなら
-       「nav を統一したいだけ」なので、この script 部分は今あるものをそのまま残してもOKです。
-       ここでは“丸ごとコピペ”を優先し、あなたの既存ロジックを貼る前提にしています。 */
-  </script>
 </body>
 </html>
