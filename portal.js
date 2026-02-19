@@ -1,14 +1,14 @@
 // portal.js（特殊演出・堅牢版：Wikipedia(ja) + OSM）
 // - Wikipedia取得は多段フォールバックで「止まらない」
 // - タイトル補正（検索）/ プロキシ(allorigins) / リトライ
-// - コナミコマンド（↑↑↓↓←→←→BA）で「隠しワープ」発動（kuro:true優先）
-//
-// ★重要修正：Konamiは keydown のみで判定（keyup二重カウントを廃止）
-// ★押しっぱなし/IME/入力欄フォーカスを無視して誤爆しにくく
+// - コナミコマンド（↑↑↓↓←→←→BA）で「黒歴史ページ(kuro.html)」へ即ワープ
+// - kuro:true の場所は「Wikipediaを呼ばずに」ローカル文章で表示できる（kuroText / kuroTitle）
 
 console.log("[portal.js] loaded");
 
-// ===== Places =====
+// =====================
+// Places
+// =====================
 function pickRandomPlace(){
   const places = window.PLACES || [];
   if(!places.length) throw new Error("PLACES is empty");
@@ -22,18 +22,31 @@ function getCurrentPlaceIndex(){
   return Number.isFinite(i) ? i : null;
 }
 
-// ===== Wikipedia (JA) config =====
+// =====================
+// Wikipedia (JA) config
+// =====================
 const WIKI_HOST = "https://ja.wikipedia.org";
 const WIKI_REST_SUMMARY = `${WIKI_HOST}/api/rest_v1/page/summary/`;
 const WIKI_PAGE_BASE = `${WIKI_HOST}/wiki/`;
 const WIKI_API = `${WIKI_HOST}/w/api.php`;
 const PROXY_RAW = "https://api.allorigins.win/raw?url=";
 
-// ===== utils =====
+// =====================
+// Utils
+// =====================
 function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
 function toWikiSlug(title){ return encodeURIComponent(String(title).replaceAll(" ", "_")); }
 function wikiPageUrl(title){ return WIKI_PAGE_BASE + toWikiSlug(title); }
 function wikiSearchUrl(q){ return `${WIKI_HOST}/w/index.php?search=${encodeURIComponent(String(q))}`; }
+
+function escapeHtml(s){
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
 
 async function fetchTextDirect(url){ return await fetch(url, { cache:"no-store" }); }
 async function fetchTextViaProxy(url){
@@ -125,7 +138,9 @@ async function fetchViaMediaWiki(title, { proxy=false } = {}){
   return pickFromMwQuery(js);
 }
 
-// ===== smart wiki =====
+// =====================
+// Smart wiki (stopless)
+// =====================
 async function getWikiDataSmart(inputTitle, logFn){
   const original = String(inputTitle || "").trim() || "日本";
   const log = (s)=>{ try{ logFn && logFn(s); }catch{} };
@@ -217,7 +232,9 @@ async function getWikiDataSmart(inputTitle, logFn){
   };
 }
 
-// ===== FX =====
+// =====================
+// FX
+// =====================
 const FX_KEY = "warp_fx_v1";
 function loadFx(){
   try{
@@ -253,6 +270,7 @@ function renderFxStates(){
 function fadeIn(){ document.getElementById("fade")?.classList.add("fadeIn"); }
 function fadeOut(){ document.getElementById("fade")?.classList.remove("fadeIn"); }
 
+// Sound
 let _audioCtx = null;
 function getAudioCtx(){
   if(_audioCtx) return _audioCtx;
@@ -262,6 +280,22 @@ function getAudioCtx(){
   return _audioCtx;
 }
 
+function playDoorSound(){
+  const fx = loadFx(); if(!fx.sound) return;
+  const ctx = getAudioCtx(); if(!ctx) return;
+  const now = ctx.currentTime;
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = "triangle";
+  o.frequency.setValueAtTime(180, now);
+  g.gain.setValueAtTime(0.12, now);
+  g.gain.linearRampToValueAtTime(0, now + 0.2);
+  o.connect(g).connect(ctx.destination);
+  o.start(now);
+  o.stop(now + 0.2);
+}
+
+// Chaos effect (uses .glitch-mode from your style.css)
 function triggerChaoticEffect() {
   const fx = loadFx();
   document.body.classList.add("glitch-mode");
@@ -282,26 +316,6 @@ function triggerChaoticEffect() {
     osc.start(now);
     osc.stop(now + 3.5);
   }
-}
-
-// ===== OSM =====
-function osmEmbed(lat, lng){
-  const d = 0.08;
-  return `<iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${lng-d}%2C${lat-d}%2C${lng+d}%2C${lat+d}&layer=mapnik&marker=${lat}%2C${lng}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
-}
-// google.com/maps?q=... が安定
-function mapsLink(lat,lng){ return `https://www.google.com/maps?q=${lat},${lng}`; }
-
-// ===== Door sound / particles =====
-function playDoorSound(){
-  const fx = loadFx(); if(!fx.sound) return;
-  const ctx = getAudioCtx(); if(!ctx) return;
-  const now = ctx.currentTime;
-  const o = ctx.createOscillator();
-  const g = ctx.createGain();
-  o.type = "triangle"; o.frequency.setValueAtTime(180, now);
-  g.gain.setValueAtTime(0.12, now); g.gain.linearRampToValueAtTime(0, now + 0.2);
-  o.connect(g).connect(ctx.destination); o.start(now); o.stop(now + 0.2);
 }
 
 function burstParticles(canvas){
@@ -333,29 +347,76 @@ function burstParticles(canvas){
   step();
 }
 
-// ===== Log =====
+// =====================
+// OSM
+// =====================
+function osmEmbed(lat, lng){
+  const d = 0.08;
+  return `<iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${lng-d}%2C${lat-d}%2C${lng+d}%2C${lat+d}&layer=mapnik&marker=${lat}%2C${lng}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
+}
+// google.com/maps?q=... が安定
+function mapsLink(lat,lng){ return `https://www.google.com/maps?q=${lat},${lng}`; }
+
+// =====================
+// Warp Log
+// =====================
 const LOG_KEY = "warp_log_v1";
 function loadLog(){ try{ return JSON.parse(localStorage.getItem(LOG_KEY) || "[]"); }catch{ return []; } }
+function saveLog(list){ localStorage.setItem(LOG_KEY, JSON.stringify(list.slice(0,40))); }
 function addLog(entry){
   const list = loadLog();
   list.unshift(entry);
-  localStorage.setItem(LOG_KEY, JSON.stringify(list.slice(0,40)));
+  saveLog(list);
+}
+function formatTs(ts){
+  const d = new Date(ts);
+  const hh = String(d.getHours()).padStart(2,"0");
+  const mm = String(d.getMinutes()).padStart(2,"0");
+  return `${hh}:${mm}`;
 }
 function renderLog(){
   const list = loadLog();
-  const el = document.getElementById("warpLogList");
-  if(el) el.innerHTML = list.slice(0,10).map(it => `<li>${escapeHtml(it.title)} (${it.lat?.toFixed?.(2) ?? "--"})</li>`).join("");
-}
-function escapeHtml(s){
-  return String(s)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
 
-// ===== Hidden(Kuro) mode =====
+  const shortEl = document.getElementById("warpLogShort");
+  if(shortEl){
+    shortEl.innerHTML = "";
+    const items = list.slice(0,6);
+    if(!items.length){
+      shortEl.innerHTML = `<li class="muted">まだワープしてない</li>`;
+    }else{
+      for(const it of items){
+        const li = document.createElement("li");
+        li.innerHTML = `<b>${formatTs(it.ts)}</b> ${escapeHtml(it.title)}`;
+        shortEl.appendChild(li);
+      }
+    }
+  }
+
+  const fullEl = document.getElementById("warpLogList");
+  if(fullEl){
+    fullEl.innerHTML = "";
+    const items = list.slice(0,18);
+    if(!items.length){
+      fullEl.innerHTML = `<li class="muted">ログなし</li>`;
+    }else{
+      for(const it of items){
+        const li = document.createElement("li");
+        const lat = Number.isFinite(it.lat) ? it.lat.toFixed(3) : "--";
+        const lng = Number.isFinite(it.lng) ? it.lng.toFixed(3) : "--";
+        li.innerHTML = `<b>${formatTs(it.ts)}</b> ${escapeHtml(it.title)} <span class="muted">(${lat}, ${lng})</span>`;
+        fullEl.appendChild(li);
+      }
+    }
+  }
+}
+window.clearWarpLog = function(){
+  localStorage.removeItem(LOG_KEY);
+  renderLog();
+};
+
+// =====================
+// Hidden(Kuro) mode
+// =====================
 const KURO_KEY = "warp_kuro";
 function setKuroMode(on){ on ? sessionStorage.setItem(KURO_KEY,"1") : sessionStorage.removeItem(KURO_KEY); }
 function consumeKuroMode(){
@@ -375,7 +436,9 @@ function pickIndexPreferKuro(){
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
-// ===== Konami command =====
+// =====================
+// Konami command
+// =====================
 // ↑↑↓↓←→←→BA
 const KONAMI_CODES = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","KeyB","KeyA"];
 let _kpos = 0;
@@ -388,7 +451,6 @@ function isTypingTarget(el){
 }
 
 function konamiFeed(code, key){
-  // 時間が空いたらリセット（だらだら入力対策）
   const now = Date.now();
   if(_lastKeyTs && now - _lastKeyTs > 2000) _kpos = 0;
   _lastKeyTs = now;
@@ -398,7 +460,6 @@ function konamiFeed(code, key){
 
   const ok =
     got === expect ||
-    // B/A フォールバック（環境で code が取れない場合）
     ((expect === "KeyB") && (String(key).toLowerCase() === "b")) ||
     ((expect === "KeyA") && (String(key).toLowerCase() === "a"));
 
@@ -409,7 +470,6 @@ function konamiFeed(code, key){
       onKonami();
     }
   }else{
-    // 先頭一致だけ許す（↑が来たら最初から）
     _kpos = (got === KONAMI_CODES[0]) ? 1 : 0;
   }
 }
@@ -418,20 +478,20 @@ function onKonami(){
   console.log("[portal.js] KONAMI DETECTED");
   setKuroMode(true);
 
-  // 可能なら今ここで行き先も決める（places.jsが先に読まれていればOK）
   const idx = pickIndexPreferKuro();
   if(idx != null) setCurrentPlaceIndex(idx);
 
-  const isWarpPage = !!document.getElementById("placeTitle"); // warp.html判定（要素で判定）
-  if(isWarpPage){
+  const isWarpLike = !!document.getElementById("placeTitle"); // warp.html / kuro.html 判定
+
+  if(isWarpLike){
     const c = document.getElementById("warpConsole");
-    if(c) c.textContent += "\nKONAMI DETECTED -> hidden warp...\n";
+    if(c) c.textContent += "\nKONAMI DETECTED -> KURO MODE\n";
     fadeIn();
     setTimeout(() => location.reload(), 260);
     return;
   }
 
-  // door側：ドア演出付きでwarpへ
+  // door側：演出付きで kuro.html へ
   const fxCanvas = document.getElementById("fxCanvas");
   if(fxCanvas) burstParticles(fxCanvas);
   playDoorSound();
@@ -440,49 +500,37 @@ function onKonami(){
   if(doorWrap) doorWrap.classList.add("opening");
 
   setTimeout(() => fadeIn(), 140);
-  setTimeout(() => { location.href = "warp.html"; }, 520);
+  setTimeout(() => { location.href = "kuro.html"; }, 520);
 }
 
 function installKonami(){
   if(window.__konamiInstalled) return;
   window.__konamiInstalled = true;
 
-  // ★ここが修正点：keydown だけで拾う（keyupを消して二重カウントを防ぐ）
   window.addEventListener("keydown", (e) => {
-    if(e.repeat) return;                 // 押しっぱなし対策
-    if(e.isComposing) return;            // IME変換中は無視（B/A誤爆防止）
-    if(isTypingTarget(document.activeElement)) return; // 入力欄フォーカス中は無視
+    if(e.repeat) return;
+    if(e.isComposing) return;
+    if(isTypingTarget(document.activeElement)) return;
+
+    // 途中入力中は矢印スクロールを止めると安定
+    const interested =
+      ["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","KeyA","KeyB"].includes(e.code);
+    if(interested) e.preventDefault();
 
     konamiFeed(e.code, e.key);
   }, true);
 }
 
-// ===== Init =====
-document.addEventListener("DOMContentLoaded", () => {
-  renderFxStates();
-  renderLog();
-  installKonami();
+// =====================
+// Page logic
+// =====================
+function logConsole(line){
+  const el = document.getElementById("warpConsole");
+  if(!el) return;
+  el.textContent += `\n${line}`;
+}
 
-  const doorWrap = document.getElementById("doorWrap");
-  if(doorWrap){
-    doorWrap.addEventListener("click", () => {
-      const { index } = pickRandomPlace();
-      setCurrentPlaceIndex(index);
-
-      const fxCanvas = document.getElementById("fxCanvas");
-      if(fxCanvas) burstParticles(fxCanvas);
-      playDoorSound();
-
-      doorWrap.classList.add("opening");
-      setTimeout(() => fadeIn(), 180);
-      setTimeout(() => { location.href = "warp.html"; }, 560);
-    });
-  }
-
-  if(document.getElementById("placeTitle")) renderWarp();
-});
-
-async function renderWarp(){
+async function renderWarpLikePage(){
   const places = window.PLACES || [];
   if(!places.length) throw new Error("PLACES is empty");
 
@@ -490,9 +538,7 @@ async function renderWarp(){
   let kuroJustActivated = false;
   if(sessionStorage.getItem(KURO_KEY) === "1"){
     const forced = pickIndexPreferKuro();
-    if(forced != null){
-      setCurrentPlaceIndex(forced);
-    }
+    if(forced != null) setCurrentPlaceIndex(forced);
     kuroJustActivated = consumeKuroMode();
   }
 
@@ -508,13 +554,14 @@ async function renderWarp(){
   const wikiA   = document.getElementById("wikiLink");
   const c       = document.getElementById("warpConsole");
 
-  // 隠し演出：kuro:true / コナミ直後 / 特定ミーム
-  if(kuroJustActivated || p.kuro === true || p.wikiTitle === "野獣邸"){
+  // 演出：kuro:true / コナミ直後 / 特定ミーム
+  const isChaos = kuroJustActivated || p.kuro === true || p.wikiTitle === "野獣邸";
+  if(isChaos){
     triggerChaoticEffect();
     if(c) c.innerHTML = "<span style='color:red'>WARNING: CHAOTIC SPACE</span>";
   }
 
-  // map
+  // Map
   const hasLatLng = Number.isFinite(p.lat) && Number.isFinite(p.lng);
   if(mapBox){
     mapBox.innerHTML = hasLatLng ? osmEmbed(p.lat, p.lng) : `<div class="imgPh">地図は非表示（座標なし）</div>`;
@@ -525,7 +572,40 @@ async function renderWarp(){
     mapA.style.opacity = hasLatLng ? "1" : "0.5";
   }
 
-  // wiki fetch
+  // ---- KURO PLACE: Wikipediaを呼ばずにローカル文を出す ----
+  const hasKuroText = typeof p.kuroText === "string" && p.kuroText.trim().length > 0;
+  if(p.kuro === true && hasKuroText){
+    const kuroTitle = (p.kuroTitle || p.wikiTitle || "黒歴史");
+    const kuroText = p.kuroText;
+
+    if(titleEl) titleEl.textContent = kuroTitle;
+    if(descEl) descEl.innerHTML = escapeHtml(kuroText).replaceAll("\n","<br>");
+
+    if(wikiA){
+      // 黒歴史リンク（任意）：kuroLink があればそれ、なければ無効
+      const link = p.kuroLink || "#";
+      wikiA.href = link;
+      wikiA.style.pointerEvents = (link === "#") ? "none" : "auto";
+      wikiA.style.opacity = (link === "#") ? "0.5" : "1";
+    }
+
+    if(imgBox){
+      // kuroImg があれば表示（任意）
+      if(typeof p.kuroImg === "string" && p.kuroImg.trim()){
+        imgBox.innerHTML = `<img src="${p.kuroImg}" alt="${escapeHtml(kuroTitle)}">`;
+      }else{
+        imgBox.innerHTML = `<div class="imgPh">画像なし（黒歴史）</div>`;
+      }
+    }
+
+    addLog({ ts: Date.now(), title: kuroTitle, lat: p.lat ?? NaN, lng: p.lng ?? NaN, mode:"kuro" });
+    renderLog();
+    setTimeout(() => fadeOut(), 80);
+    return;
+  }
+  // ---------------------------------------------------------
+
+  // Wikipedia fetch
   if(c) c.textContent = "warp init...\nWikipedia fetch...";
   const data = await getWikiDataSmart(p.wikiTitle, (s)=>{ if(c) c.textContent += "\n" + s; });
 
@@ -540,13 +620,78 @@ async function renderWarp(){
       : `<div class="imgPh">画像なし</div>`;
   }
 
-  addLog({ ts: Date.now(), title: data.title, lat: p.lat ?? NaN, lng: p.lng ?? NaN });
+  addLog({ ts: Date.now(), title: data.title, lat: p.lat ?? NaN, lng: p.lng ?? NaN, mode:"free" });
   renderLog();
+  logConsole("DONE");
   setTimeout(() => fadeOut(), 80);
 }
 
+// =====================
+// Global actions
+// =====================
 window.warpAgain = function(){
   setCurrentPlaceIndex(pickRandomPlace().index);
   fadeIn();
   setTimeout(() => location.reload(), 260);
 };
+
+// kuro.html 用：黒歴史を引き直す（kuro:true優先）
+window.kuroAgain = function(){
+  setKuroMode(true);
+  const idx = pickIndexPreferKuro();
+  if(idx != null) setCurrentPlaceIndex(idx);
+  fadeIn();
+  setTimeout(() => location.reload(), 260);
+};
+
+// =====================
+// Init
+// =====================
+document.addEventListener("DOMContentLoaded", () => {
+  renderFxStates();
+  renderLog();
+  installKonami();
+
+  // Door page
+  const doorBtn  = document.getElementById("doorBtn");
+  const doorWrap = document.getElementById("doorWrap");
+  const fxCanvas = document.getElementById("fxCanvas");
+
+  const clickable = doorBtn || doorWrap;
+  if(clickable){
+    clickable.addEventListener("click", (e) => {
+      // ボタンがある場合は二重発火しやすいので、wrapに付けてる時は止める
+      // （doorBtnに付いた場合は不要だが、無害）
+      e.stopPropagation();
+
+      const isKuroPending = sessionStorage.getItem(KURO_KEY) === "1";
+
+      // 通常：ランダム、黒歴史待機：kuro:true優先
+      let idx = null;
+      if(isKuroPending){
+        idx = pickIndexPreferKuro();
+        consumeKuroMode(); // doorクリックで使ったら消す
+      }else{
+        idx = pickRandomPlace().index;
+      }
+      if(idx != null) setCurrentPlaceIndex(idx);
+
+      if(fxCanvas) burstParticles(fxCanvas);
+      playDoorSound();
+
+      if(doorWrap) doorWrap.classList.add("opening");
+
+      setTimeout(() => fadeIn(), 180);
+      setTimeout(() => { location.href = isKuroPending ? "kuro.html" : "warp.html"; }, 560);
+    }, true);
+  }
+
+  // Warp / Kuro page
+  if(document.getElementById("placeTitle")){
+    renderWarpLikePage().catch(err => {
+      console.error(err);
+      const el = document.getElementById("placeDesc");
+      if(el) el.textContent = "致命的エラー：PLACESが空、またはJS読み込み順が壊れている。";
+    });
+  }
+});
