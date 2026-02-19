@@ -119,81 +119,78 @@
        今日の一言：名言ローテ
        - BASE_QUOTES + USER_QUOTES を合流
        ========================= -->
-  <script>
-    // 形式（ベース）：{ text: "名言", by: "人物名" }
-    // ※ Napoleon Hill を出したくないなら BASE_QUOTES から消せば二度と出ない
-    const BASE_QUOTES = [
-      { text: "Stay hungry, stay foolish.", by: "Steve Jobs" },
-      { text: "完璧を目指すより、完成を急げ。", by: "Reid Hoffman（意訳）" },
-      { text: "勝つまでやめなければ、負けではない。", by: "tomoponz（仮）" }
-    ];
+ <!-- ★共通名言データ（meigenと共通） -->
+<script src="quotes_base.js?v=20260220"></script>
 
-    // user_quotes.js 側は、こういう形式でもOK：
-    // window.USER_QUOTES = [
-    //   { text: "迷ったら、動く。", author: "tomoponz" },
-    //   { text: "寝不足の日は、勝ち筋だけ拾う。", author: "tomoponz" },
-    // ];
-    function normalizeUserQuote(q){
-      if(!q || !q.text) return null;
-      const by = q.by || q.author || q.character || "tomoponz";
-      return { text: String(q.text), by: String(by) };
-    }
+<!-- ★ユーザー追加名言（空でもOK。残すならファイルも残す） -->
+<script src="user_quotes.js?v=20260220"></script>
 
-    const USER_QUOTES = Array.isArray(window.USER_QUOTES)
-      ? window.USER_QUOTES.map(normalizeUserQuote).filter(Boolean)
-      : [];
+<script>
+  // BASE: {text, work, character, tags}
+  const BASE = Array.isArray(window.BASE_QUOTES) ? window.BASE_QUOTES : [];
 
-    const QUOTES = [...BASE_QUOTES, ...USER_QUOTES];
+  // USER: user_quotes.js 用（形式ゆるめ対応）
+  function normalizeUserQuote(q){
+    if(!q || !q.text) return null;
+    return {
+      text: String(q.text),
+      work: String(q.work || "User"),
+      character: String(q.character || q.author || "tomoponz"),
+      tags: Array.isArray(q.tags) ? q.tags : []
+    };
+  }
+  const USER = Array.isArray(window.USER_QUOTES)
+    ? window.USER_QUOTES.map(normalizeUserQuote).filter(Boolean)
+    : [];
 
-    function pickQuote() {
-      if (!QUOTES.length) return { text: "（名言がまだありません）", by: "" };
-      const idx = Math.floor(Math.random() * QUOTES.length);
-      return QUOTES[idx];
-    }
+  const QUOTES = [...BASE, ...USER];
 
-    function showQuote(q) {
-      const qt = document.getElementById("quoteText");
-      const qb = document.getElementById("quoteBy");
-      if (!qt || !qb) return;
-      qt.textContent = "“" + q.text + "”";
-      qb.textContent = q.by ? "— " + q.by : "";
-    }
+  function pickQuote() {
+    if (QUOTES.length === 0) return { text:"(名言データが空)", work:"", character:"", tags:[] };
+    return QUOTES[Math.floor(Math.random() * QUOTES.length)];
+  }
 
-    function loadQuote() {
-      showQuote(pickQuote());
-    }
+  function showQuote(q) {
+    const qt = document.getElementById("quoteText");
+    const qb = document.getElementById("quoteBy");
+    if (!qt || !qb) return;
 
-    // コピー（HTTPSじゃない時のフォールバック付き）
-    async function copyCurrentQuote(){
+    qt.textContent = "“" + q.text + "”";
+    const meta = [];
+    if (q.character) meta.push(q.character);
+    if (q.work) meta.push(`（${q.work}）`);
+    qb.textContent = meta.length ? "— " + meta.join("") : "";
+  }
+
+  function loadQuote() { showQuote(pickQuote()); }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadQuote();
+
+    document.getElementById("nextQuoteBtn")?.addEventListener("click", loadQuote);
+
+    document.getElementById("copyQuoteBtn")?.addEventListener("click", async () => {
       const text = document.getElementById("quoteText")?.textContent || "";
       const by = document.getElementById("quoteBy")?.textContent || "";
       const payload = (text + "\n" + by).trim();
 
-      try{
+      try {
         await navigator.clipboard.writeText(payload);
         alert("コピーしました");
-      }catch(e){
+      } catch {
+        // フォールバック
         const ta = document.createElement("textarea");
         ta.value = payload;
         ta.style.position = "fixed";
         ta.style.left = "-9999px";
-        ta.style.top = "0";
         document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
-        try { document.execCommand("copy"); alert("コピーしました"); }
-        catch { alert("コピーに失敗（ブラウザ設定の可能性）"); }
+        ta.focus(); ta.select();
+        try { document.execCommand("copy"); alert("コピーしました"); } catch { alert("コピー失敗"); }
         document.body.removeChild(ta);
       }
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      loadQuote();
-      document.getElementById("nextQuoteBtn")?.addEventListener("click", loadQuote);
-      document.getElementById("copyQuoteBtn")?.addEventListener("click", copyCurrentQuote);
     });
-  </script>
-
+  });
+</script>
   <!-- =========================
        キリ番（CounterAPI）
        index.html のみで完結
