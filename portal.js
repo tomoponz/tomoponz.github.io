@@ -1,4 +1,4 @@
-// portal.js（無料MVP：Wikipedia + OSM）
+// portal.js（無料MVP：Wikipedia(ja) + OSM）
 // 演出：効果音／暗転／粒子／ワープログ
 
 // ===== Places =====
@@ -15,9 +15,17 @@ function getCurrentPlaceIndex(){
   return Number.isFinite(i) ? i : null;
 }
 
-// ===== Wikipedia summary =====
+// ===== Wikipedia summary (JA) =====
+const WIKI_SUMMARY_BASE = "https://ja.wikipedia.org/api/rest_v1/page/summary/";
+const WIKI_PAGE_BASE = "https://ja.wikipedia.org/wiki/";
+
+function toWikiSlug(title){
+  // RESTはスペースを _ にしておくと安定しやすい
+  return encodeURIComponent(String(title).replaceAll(" ", "_"));
+}
+
 async function fetchWikiSummary(title){
-  const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
+  const url = WIKI_SUMMARY_BASE + toWikiSlug(title);
   const res = await fetch(url, { headers: { "Accept":"application/json" } });
   if(!res.ok) throw new Error("wiki fetch failed");
   return await res.json();
@@ -319,7 +327,7 @@ async function renderWarp(){
   if(mapA) mapA.href = mapsLink(p.lat, p.lng);
 
   const c = document.getElementById("warpConsole");
-  if(c) c.textContent = "warp init…\nOSM embed OK\nWikipedia fetch…";
+  if(c) c.textContent = "warp init…\nOSM embed OK\nWikipedia(ja) fetch…";
 
   try{
     const sum = await fetchWikiSummary(p.wikiTitle);
@@ -330,7 +338,7 @@ async function renderWarp(){
     if(descEl) descEl.textContent = ex;
 
     const w = wikiLinkFromSummary(sum);
-    if(wikiA) wikiA.href = w || `https://en.wikipedia.org/wiki/${encodeURIComponent(p.wikiTitle)}`;
+    if(wikiA) wikiA.href = w || (WIKI_PAGE_BASE + toWikiSlug(p.wikiTitle));
 
     const img = sum?.thumbnail?.source;
     if(imgBox){
@@ -342,8 +350,8 @@ async function renderWarp(){
     renderLog();
     logConsole("Wikipedia OK\nLOG saved\nDONE");
   }catch(e){
-    if(descEl) descEl.textContent = "Wikipedia取得に失敗。回線かCORSの気分。もう一回ワープ。";
-    if(wikiA) wikiA.href = `https://en.wikipedia.org/wiki/${encodeURIComponent(p.wikiTitle)}`;
+    if(descEl) descEl.textContent = "Wikipedia取得に失敗。回線か仕様変更。もう一回ワープ。";
+    if(wikiA) wikiA.href = WIKI_PAGE_BASE + toWikiSlug(p.wikiTitle);
     if(imgBox) imgBox.innerHTML = `<div class="imgPh">画像読み込み失敗。</div>`;
     addLog({ ts: Date.now(), title: p.wikiTitle, lat: p.lat, lng: p.lng, mode:"free" });
     renderLog();
