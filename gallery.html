@@ -8,6 +8,39 @@
 
   <link rel="stylesheet" href="style.css">
   <script defer src="app.js"></script>
+
+  <style>
+    /* gallery専用：ちょい足し（既存テーマに合わせる） */
+    .tagPills{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .tagPills .pill{cursor:default}
+    details{
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.03);
+      border-radius:16px;
+      padding:10px 12px;
+    }
+    details + details{ margin-top:10px; }
+    summary{
+      cursor:pointer;
+      font-weight:800;
+      color:rgba(234,241,255,.92);
+      list-style:none;
+      outline:none;
+    }
+    summary::-webkit-details-marker{display:none}
+    .summaryRow{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .count{font-size:12px;color:rgba(234,241,255,.70)}
+    .cols{
+      columns: 2;
+      column-gap: 18px;
+      margin-top:10px;
+    }
+    @media (max-width:780px){
+      .cols{ columns:1; }
+    }
+    .cols ul{ margin:0; padding-left:18px; break-inside:avoid; }
+    .cols li{ break-inside:avoid; }
+  </style>
 </head>
 
 <body>
@@ -73,6 +106,225 @@
 
         <hr class="sep">
         <div class="note">演出強めにしたいならここを増築する。</div>
+      </div>
+    </section>
+
+    <!-- 履修アニメ（追加） -->
+    <section class="grid2" style="margin-top:12px">
+      <div class="card" style="grid-column:1/-1">
+        <h2>📺 履修アニメ（確定）</h2>
+        <p class="muted">
+          友達に見せる用の「だいたい分かる」リスト。<br>
+          <b>注意：このページの時点で “ある程度物語がわかる程度” の内容は通ってます（軽いネタバレ耐性前提）。</b>
+        </p>
+
+        <div class="tagPills">
+          <span class="pill">確定：94作品（自己申告）</span>
+          <span class="pill">最大勢力：異世界・転生／ゲームライク</span>
+          <span class="pill">方向性：バトル多め</span>
+        </div>
+
+        <hr class="sep">
+
+        <details open>
+          <summary>
+            <div class="summaryRow">
+              <span>途中／少し見た（確定）</span>
+              <span class="count">4</span>
+            </div>
+          </summary>
+          <div class="cols">
+            <ul class="list">
+              <li>バキシリーズ：結構見た（ただし読破/完走には至ってない）</li>
+              <li>テラフォーマーズ：少し見た</li>
+              <li>終末のワルキューレ：少し見た</li>
+              <li>（※途中枠は増えやすい）</li>
+            </ul>
+          </div>
+        </details>
+
+        <details>
+          <summary>
+            <div class="summaryRow">
+              <span>少年・バトル／アクション寄り</span>
+              <span class="count">15</span>
+            </div>
+          </summary>
+          <div class="cols">
+            <ul class="list">
+              <li>ワンパンマン</li>
+              <li>僕のヒーローアカデミア</li>
+              <li>呪術廻戦</li>
+              <li>ONE PIECE</li>
+              <li>進撃の巨人</li>
+              <li>鬼滅の刃</li>
+              <li>ジョジョの奇妙な冒険</li>
+              <li>HUNTER×HUNTER</li>
+              <li>怪獣8号</li>
+              <li>チェンソーマン</li>
+              <li>SAKAMOTO DAYS</li>
+              <li>東京リベンジャーズ</li>
+              <li>トリコ</li>
+              <li>どろろ</li>
+              <li>ゴールデンカムイ</li>
+            </ul>
+          </div>
+        </details>
+
+        <details>
+          <summary>
+            <div class="summaryRow">
+              <span>ダーク／サスペンス／ホラー</span>
+              <span class="count">12</span>
+            </div>
+          </summary>
+          <div class="cols">
+            <ul class="list">
+              <li>ひぐらしのなく頃に</li>
+              <li>GANTZ</li>
+              <li>賭博黙示録カイジ</li>
+              <li>DEATH NOTE</li>
+              <li>約束のネバーランド</li>
+              <li>寄生獣</li>
+              <li>彼岸島</li>
+              <li>食糧人類</li>
+              <li>PSYCHO-PASS</li>
+              <li>アイアムアヒーロー</li>
+              <li>アンダーニンジャ</li>
+              <li>オッドタクシー</li>
+            </ul>
+          </div>
+        </details>
+
+        <details>
+          <summary>
+            <div class="summaryRow">
+              <span>ギャグ／コメディ</span>
+              <span class="count">6</span>
+            </div>
+          </summary>
+          <div class="cols">
+            <ul class="list">
+              <li>銀魂</li>
+              <li>斉木楠雄のΨ難</li>
+              <li>おそ松さん</li>
+              <li>ぐらんぶる</li>
+              <li>ポプテピピック</li>
+              <li>妖怪ウォッチ</li>
+            </ul>
+          </div>
+        </details>
+
+        <details>
+          <summary>
+            <div class="summaryRow">
+              <span>SF・作家性／映画・名作寄り</span>
+              <span class="count">4</span>
+            </div>
+          </summary>
+          <div class="cols">
+            <ul class="list">
+              <li>新世紀エヴァンゲリオン</li>
+              <li>サムライチャンプルー</li>
+              <li>ルパン三世</li>
+              <li>パプリカ</li>
+            </ul>
+          </div>
+        </details>
+
+        <details>
+          <summary>
+            <div class="summaryRow">
+              <span>スポーツ</span>
+              <span class="count">2</span>
+            </div>
+          </summary>
+          <div class="cols">
+            <ul class="list">
+              <li>ハイキュー!!</li>
+              <li>弱虫ペダル</li>
+            </ul>
+          </div>
+        </details>
+
+        <details>
+          <summary>
+            <div class="summaryRow">
+              <span>異世界・転生／ゲームライク（最大勢力）</span>
+              <span class="count">※多い</span>
+            </div>
+          </summary>
+
+          <div class="note" style="margin-top:10px">
+            ※ここは「見た/履修」枠に、コミック読了系も混ざってる（表記あり）。
+          </div>
+
+          <div class="cols">
+            <ul class="list">
+              <li>転生したらスライムだった件</li>
+              <li>Re:ゼロから始める異世界生活</li>
+              <li>盾の勇者の成り上がり</li>
+              <li>オーバーロード</li>
+              <li>無職転生</li>
+              <li>この素晴らしい世界に祝福を！</li>
+              <li>ソードアート・オンライン</li>
+              <li>陰の実力者になりたくて！</li>
+              <li>月が導く異世界道中</li>
+              <li>シャングリラ・フロンティア</li>
+              <li>ノーゲーム・ノーライフ</li>
+              <li>慎重勇者</li>
+              <li>転生したら剣でした</li>
+              <li>史上最強の大魔王、村人Aに転生する</li>
+              <li>魔王学院の不適合者</li>
+              <li>転生賢者の異世界ライフ</li>
+              <li>異世界はスマートフォンとともに。</li>
+              <li>異世界魔王と召喚少女の奴隷魔術</li>
+              <li>異世界チート魔術師</li>
+              <li>精霊幻想記</li>
+              <li>聖者無双</li>
+              <li>骸骨騎士様、只今異世界へお出掛け中</li>
+              <li>異世界召喚は二度目です</li>
+              <li>Lv2からチートだった元勇者候補のまったり異世界ライフ</li>
+              <li>回復術士のやり直し</li>
+              <li>失格紋の最強賢者</li>
+              <li>外れスキル《木の実マスター》〜スキルの実（食べたら死ぬ）を無限に食べられるようになった件について〜</li>
+              <li>レベル1だけどユニークスキルで最強です</li>
+              <li>実は俺、最強でした？</li>
+              <li>ひとりぼっちの異世界攻略</li>
+              <li>GATE 自衛隊 彼の地にて、斯く戦えり</li>
+              <li>魔王様、リトライ！</li>
+              <li>異世界かるてっと</li>
+              <li>悪役令嬢転生おじさん</li>
+              <li>俺だけレベルアップな件</li>
+              <li>Dr.STONE</li>
+              <li>葬送のフリーレン</li>
+              <li>王様ランキング</li>
+
+              <li>雑用付与術師が自分の最強に気付くまで（コミック）</li>
+              <li>ヘルモード 〜やり込み好きのゲーマーは廃設定の異世界で無双する〜</li>
+              <li>はじまりの召喚士</li>
+              <li>ハズレ枠の【状態異常スキル】で最強になった俺がすべてを蹂躙するまで</li>
+              <li>貴族転生</li>
+              <li>賢者の孫</li>
+              <li>暗殺者である俺のステータスが勇者よりも明らかに強いのだが</li>
+              <li>異世界転移したのでチートを生かして魔法剣士やることにする</li>
+              <li>成長チートでなんでもできるようになったが、無職だけは辞められないようです</li>
+              <li>ありふれた職業で世界最強</li>
+              <li>デスマーチからはじまる異世界狂想曲</li>
+              <li>勇者召喚に巻き込まれたけど、異世界は平和でした</li>
+              <li>災悪のアヴァロン〜ゲーム最弱の悪役デブに転移したけど、俺だけ‘やせれば強くてニューゲーム’な世界だったので、最速レベルアップ＆破滅フラグ回避で影の英雄を目指します〜</li>
+              <li>追放された転生重騎士はゲーム知識で無双する</li>
+              <li>勇者パーティを追い出された器用貧乏 〜パーティ事情で付与術士をやっていた剣士、万能へと至る〜</li>
+              <li>異世界でチート能力を手にした俺は、現実世界をも無双する 〜レベルアップは人生を変えた〜</li>
+            </ul>
+          </div>
+        </details>
+
+        <hr class="sep">
+        <div class="note">
+          追記したくなったら：このカードの中に <code>&lt;li&gt;</code> を追加するだけでOK。<br>
+          「途中枠」「見た枠」も <code>&lt;details&gt;</code> で畳んでるから、長くなっても壊れにくい。
+        </div>
       </div>
     </section>
 
