@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>tomoponz｜診断</title>
+  <meta name="description" content="古語っぽい診断メーカー風">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="nav">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <b>tomoponz</b><br><small>診断の間</small>
+      </div>
+    </div>
+    <nav class="navlinks">
+      <a class="chip" href="index.html">プロフィール</a>
+      <a class="chip" href="omikuji.html">おみくじ</a>
+      <a class="chip" href="shindan.html">診断</a>
+      <a class="chip" href="gallery.html">ネタ置き場</a>
+      <a class="chip" href="links.html">リンク</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1 class="h1">診断：そなたは何者ぞ</h1>
+      <p class="sub">五つ答へよ。結果、出でむ。</p>
+    </section>
+
+    <section class="grid2">
+      <div class="card">
+        <h2>質問</h2>
+
+        <div class="muted">Q1. 締切が来たり。そなた如何に。</div>
+        <label class="muted"><input type="radio" name="q1" value="5"> 先に終はらせる</label><br>
+        <label class="muted"><input type="radio" name="q1" value="4"> 計画を立つ</label><br>
+        <label class="muted"><input type="radio" name="q1" value="3"> とりあへず見る</label><br>
+        <label class="muted"><input type="radio" name="q1" value="2"> 先送りする</label><br>
+        <label class="muted"><input type="radio" name="q1" value="1"> 忘れる</label>
+
+        <hr class="sep">
+
+        <div class="muted">Q2. バグ出でたり。そなた如何に。</div>
+        <label class="muted"><input type="radio" name="q2" value="5"> ログ見て潰す</label><br>
+        <label class="muted"><input type="radio" name="q2" value="4"> 原因を絞る</label><br>
+        <label class="muted"><input type="radio" name="q2" value="3"> とりあへず再起動</label><br>
+        <label class="muted"><input type="radio" name="q2" value="2"> 祈る</label><br>
+        <label class="muted"><input type="radio" name="q2" value="1"> 見なかったことにする</label>
+
+        <hr class="sep">
+
+        <div class="muted">Q3. 深夜、目冴ゆ。そなた如何に。</div>
+        <label class="muted"><input type="radio" name="q3" value="5"> 寝る（賢）</label><br>
+        <label class="muted"><input type="radio" name="q3" value="4"> 風呂入って寝る</label><br>
+        <label class="muted"><input type="radio" name="q3" value="3"> スマホ見る</label><br>
+        <label class="muted"><input type="radio" name="q3" value="2"> つい作業する</label><br>
+        <label class="muted"><input type="radio" name="q3" value="1"> 朝まで行く</label>
+
+        <hr class="sep">
+
+        <div class="muted">Q4. 友より誘ひ来たり。そなた如何に。</div>
+        <label class="muted"><input type="radio" name="q4" value="5"> 行く（人間）</label><br>
+        <label class="muted"><input type="radio" name="q4" value="4"> 用事終はらせて行く</label><br>
+        <label class="muted"><input type="radio" name="q4" value="3"> 迷ふ</label><br>
+        <label class="muted"><input type="radio" name="q4" value="2"> 断る</label><br>
+        <label class="muted"><input type="radio" name="q4" value="1"> 消える</label>
+
+        <hr class="sep">
+
+        <div class="muted">Q5. やる気出でず。そなた如何に。</div>
+        <label class="muted"><input type="radio" name="q5" value="5"> 5分だけ始める</label><br>
+        <label class="muted"><input type="radio" name="q5" value="4"> 机を片づける</label><br>
+        <label class="muted"><input type="radio" name="q5" value="3"> 音楽かける</label><br>
+        <label class="muted"><input type="radio" name="q5" value="2"> 明日から…</label><br>
+        <label class="muted"><input type="radio" name="q5" value="1"> 未来の自分に投げる</label>
+
+        <div class="btnrow">
+          <button onclick="runShindan()">診断する</button>
+          <a class="btn" href="index.html">戻る</a>
+        </div>
+      </div>
+
+      <div id="shindanOut"></div>
+    </section>
+  </main>
+</body>
+</html>
