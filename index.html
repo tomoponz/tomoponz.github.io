@@ -105,7 +105,10 @@
       </div>
     </section>
 
-    <div class="footer">© tomoponz</div>
+    <!-- フッター（ここに常にカウンター表示枠を置く） -->
+    <div class="footer">
+      © tomoponz | <span id="access-count">Access: ...</span>
+    </div>
   </main>
 
   <!-- =========================
@@ -135,7 +138,6 @@
     }
 
     function loadQuote() {
-      // 1日固定にしたいなら localStorage を日付キーにする等で可能
       showQuote(pickQuote());
     }
 
@@ -159,63 +161,60 @@
 
   <!-- =========================
        キリ番（CounterAPI）
-       ※置く場所はここ（</body>直前）推奨
+       index.html のみで完結
        ========================= -->
   <script>
-    // CounterAPIの設定（Workspace名とカウンター名）
     const WORKSPACE = "tomoponzs-workspace";
     const COUNTER = "first-counter";
 
     async function updateCounter() {
       try {
-        // 1) カウントを1増やす
-        const response = await fetch(`https://api.counterapi.dev/v1/${WORKSPACE}/${COUNTER}/up`);
-        const data = await response.json();
+        // 1) 開いたらカウント +1
+        const res = await fetch(`https://api.counterapi.dev/v1/${WORKSPACE}/${COUNTER}/up`);
+        const data = await res.json();
         const count = parseInt(data.count, 10);
 
-        // 2) フッターに表示（.footerがあるページのみ）
-        const footer = document.querySelector('.footer');
-        if (footer) {
-          footer.innerHTML += ` | <span id="access-count">Access: ${count}</span>`;
-        }
+        // 2) 常に表示（追記じゃなく上書き）
+        const accessEl = document.getElementById("access-count");
+        if (accessEl) accessEl.textContent = `Access: ${count}`;
 
-        // 3) キリ番リスト（好きに追加OK）
+        // 3) キリ番リスト
         const luckyNumbers = [7, 10, 22, 50, 77, 100, 123, 777, 1000];
 
-        // 4) 判定と演出
-        if (luckyNumbers.includes(count)) {
-          triggerKiribanEvent(count);
-        }
-      } catch (error) {
+        // 4) 発動
+        if (luckyNumbers.includes(count)) triggerKiribanEvent(count);
+
+      } catch (e) {
         console.log("カウンターの取得に失敗しました。秘密基地はオフラインのようです。");
+        const accessEl = document.getElementById("access-count");
+        if (accessEl) accessEl.textContent = "Access: (offline)";
       }
     }
 
     function triggerKiribanEvent(num) {
-      // A) メッセージ
-      alert(`【🎊 祝・キリ番達成 🎊】\nおめでとうございます！あなたは ${num} 番目の訪問者です！\nこの画面をスクリーンショットして店主に報告してください。`);
+      alert(
+        `【🎊 祝・キリ番達成 🎊】\n` +
+        `おめでとうございます！あなたは ${num} 番目の訪問者です！\n` +
+        `この画面をスクリーンショットして店主に報告してください。`
+      );
 
-      // B) 背景を黄金モード
       document.body.style.transition = "all 2s ease";
       document.body.style.background = "linear-gradient(45deg, #ffd700, #ff8c00)";
       document.body.style.color = "#000";
 
-      // C) ステータスバー（.bar i）があるページだけ虹MAX
-      const bars = document.querySelectorAll('.bar i');
+      const bars = document.querySelectorAll(".bar i");
       bars.forEach(bar => {
         bar.style.background = "linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet)";
         bar.style.width = "100%";
       });
 
-      // D) コンソール秘密メッセ
       console.log(
         "%c秘密のメッセージ: あなたは選ばれし者です。コードの裏側を覗くとは、なかなかの手練れですね。",
         "color: gold; font-size: 20px; font-weight: bold;"
       );
     }
 
-    window.addEventListener('load', updateCounter);
+    window.addEventListener("load", updateCounter);
   </script>
-  <script src="counter.js"></script>
 </body>
 </html>
