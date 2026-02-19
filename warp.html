@@ -76,7 +76,9 @@
       <p class="sub" id="placeDesc">ワープ中…</p>
 
       <div class="btnrow">
-        <button onclick="warpAgain()">もう一回ワープ</button>
+        <!-- portal.js が見るID -->
+        <button id="warpAgain">もう一回ワープ</button>
+
         <a class="btn" id="mapLink" href="#" target="_blank" rel="noopener">地図で開く</a>
         <a class="btn" id="wikiLink" href="#" target="_blank" rel="noopener">Wikipedia</a>
       </div>
@@ -86,12 +88,15 @@
       <div class="card">
         <h2>景色（Wikipedia）</h2>
         <div class="media imgBox" id="imgBox">
-          <div class="imgPh">画像を読み込み中…</div>
+          <!-- portal.js が見るID -->
+          <div class="imgPh" id="imgPh">画像を読み込み中…</div>
+          <img id="placeImg" alt="" loading="lazy" style="display:none;">
         </div>
       </div>
 
       <div class="card">
         <h2>地図（OSM）</h2>
+        <!-- portal.js は #mapBox に iframe を突っ込む -->
         <div class="media mapBox" id="mapBox"></div>
         <div class="note">鍵なし。埋め込みだけ。</div>
       </div>
@@ -103,7 +108,8 @@
 
       <div class="card">
         <h2>Warp Log（最近）</h2>
-        <ul class="list" id="warpLogList"></ul>
+        <!-- portal.js が見るID -->
+        <ul class="list" id="warpLogShort"></ul>
         <div class="btnrow">
           <button onclick="clearWarpLog()">ログ消去</button>
           <a class="btn" href="door.html">ドアへ戻る</a>
