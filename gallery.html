@@ -4,11 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>tomoponz｜ネタ置き場</title>
-  <meta name="description" content="好きな曲・ネタ・リンクなどを置くページ">
+  <meta name="description" content="好きな曲・プレイリスト・おもしろ動画などを置くページ">
   <link rel="stylesheet" href="style.css">
   <script defer src="app.js"></script>
   <style>
-    /* YouTube埋め込みを“ちゃんとそれっぽく” */
+    /* YouTube埋め込みを“それっぽく” */
     .video{
       position:relative;
       width:100%;
@@ -21,6 +21,22 @@
     }
     .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
     .miniBtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .tagline{margin:0 0 10px}
+    .stack{display:grid;gap:10px}
+    .sectionHead{
+      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .label{
+      display:inline-flex; gap:8px; align-items:center;
+      padding:6px 10px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.04);
+      border-radius:999px;
+      color:rgba(234,241,255,.78);
+      font-size:13px;
+    }
+    .pin{width:9px;height:9px;border-radius:50%;background:rgba(124,203,255,.75);box-shadow:0 0 20px rgba(124,203,255,.25)}
   </style>
 </head>
 <body>
@@ -43,61 +59,106 @@
   <main class="wrap">
     <section class="hero">
       <h1 class="h1">ネタ置き場</h1>
-      <p class="sub">ここに「好きな曲」「黒歴史」「作品」など、好きなだけ積める。</p>
-      <div class="note">画像を置くなら <code>assets/</code> フォルダを作ってアップ → <code>&lt;img src="assets/xxx.png"&gt;</code>。</div>
+      <p class="sub">友達に見せる用：音楽・動画・黒歴史・作品、なんでも積め。</p>
+      <div class="note">
+        画像を置くなら <code>assets/</code> フォルダを作ってアップ → <code>&lt;img src="assets/xxx.png"&gt;</code>。
+      </div>
     </section>
 
     <section class="grid2">
+      <!-- Now Playing -->
       <div class="card">
-        <h2>🎧 好きな曲（プレイヤー）</h2>
-        <p class="muted">友達に“押し付け再生”できるコーナー。</p>
+        <div class="sectionHead">
+          <h2 style="margin:0">🎧 Now Playing</h2>
+          <span class="label"><span class="pin"></span> 今これ聴いてる</span>
+        </div>
+        <p class="muted tagline">いま聴いてる曲（そのまま再生できる）。</p>
 
         <div class="video" aria-label="YouTube player">
           <iframe
-            src="https://www.youtube.com/embed/7MaF-bWeLGw"
-            title="YouTube video player"
+            src="https://www.youtube.com/embed/WUlMjK_VKhA"
+            title="Now Playing"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowfullscreen>
           </iframe>
         </div>
 
         <div class="miniBtns">
-          <a class="btn" href="https://www.youtube.com/watch?v=7MaF-bWeLGw" target="_blank" rel="noopener">YouTubeで開く</a>
+          <a class="btn primary" href="https://youtu.be/WUlMjK_VKhA" target="_blank" rel="noopener">YouTubeで開く</a>
           <a class="btn" href="links.html">リンク集へ</a>
         </div>
 
         <hr class="sep">
-        <h2>🎵 好きな曲メモ（追加用）</h2>
-        <ul class="list">
-          <li>RADWIMPS - おしゃかしゃま</li>
-          <li>（ここに増やしていく）</li>
-        </ul>
-
-        <div class="note" style="margin-top:12px">
-          ※「プレイリストを埋め込みたい」場合は、YouTubeのプレイリストURLにある <code>list=XXXX</code> が必要。
+        <div class="note">
+          曲を変えるときは、埋め込みURLの <code>WUlMjK_VKhA</code> の部分だけ置換すればOK。
         </div>
       </div>
 
+      <!-- Favorite Playlist -->
+      <div class="card">
+        <div class="sectionHead">
+          <h2 style="margin:0">📼 Playlist：好きな曲</h2>
+          <span class="label"><span class="pin"></span> 押し付け再生枠</span>
+        </div>
+        <p class="muted tagline">友達に“これ聴け”って言う用。全部ここ。</p>
+
+        <div class="video" aria-label="YouTube playlist">
+          <iframe
+            src="https://www.youtube.com/embed/videoseries?list=PL89MD5rmOuuJbpCYMMW8hB3rBRtNmq7lF"
+            title="Favorite Playlist"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen>
+          </iframe>
+        </div>
+
+        <div class="miniBtns">
+          <a class="btn primary" href="https://youtube.com/playlist?list=PL89MD5rmOuuJbpCYMMW8hB3rBRtNmq7lF" target="_blank" rel="noopener">プレイリストを開く</a>
+          <a class="btn" href="index.html">トップへ</a>
+        </div>
+
+        <hr class="sep">
+        <ul class="list">
+          <li>このページURL（<code>.../gallery.html</code>）を友達に投げればOK。</li>
+          <li>プレイリストは気が向いたら更新すれば勝手に反映される。</li>
+        </ul>
+      </div>
+
+      <!-- Funny Playlist -->
+      <div class="card">
+        <div class="sectionHead">
+          <h2 style="margin:0">🤣 Playlist：おもしろ動画</h2>
+          <span class="label"><span class="pin"></span> 深夜に強い</span>
+        </div>
+        <p class="muted tagline">笑わせたいときの切り札。ここから無限に溶ける。</p>
+
+        <div class="video" aria-label="YouTube funny playlist">
+          <iframe
+            src="https://www.youtube.com/embed/videoseries?list=PL89MD5rmOuuLwN9bGlCi5WtHCI3DPwNeU"
+            title="Funny Playlist"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen>
+          </iframe>
+        </div>
+
+        <div class="miniBtns">
+          <a class="btn primary" href="https://youtube.com/playlist?list=PL89MD5rmOuuLwN9bGlCi5WtHCI3DPwNeU" target="_blank" rel="noopener">プレイリストを開く</a>
+          <a class="btn" href="links.html">リンク集へ</a>
+        </div>
+
+        <hr class="sep">
+        <div class="note">
+          友達に見せるなら「まずこれを再生して放置」が最強。
+        </div>
+      </div>
+
+      <!-- Extra -->
       <div class="card">
         <h2>🧪 小ネタ</h2>
-        <p class="muted">・USアルティメット大吉を引いた者、今日だけ神。</p>
-        <p class="muted">・凶が多い？ それが味。</p>
+        <div class="stack">
+          <div class="note">USアルティメット大吉を引いた者、今日だけ神。</div>
+          <div class="note">凶が多い？ それが味。</div>
+        </div>
         <hr class="sep">
-        <h2>📌 友達に言いたいこと</h2>
-        <p class="muted">「やる気がなくても、着手だけはできる。」</p>
-      </div>
-
-      <div class="card">
-        <h2>🧩 作品リンク（仮）</h2>
-        <ul class="list">
-          <li><a href="#" onclick="alert('ここに作品リンクを貼る');return false;">作品1（仮）</a></li>
-          <li><a href="#" onclick="alert('ここに作品リンクを貼る');return false;">作品2（仮）</a></li>
-        </ul>
-        <hr class="sep">
-        <p class="muted">リンクは <code>links.html</code> に集約してもOK。</p>
-      </div>
-
-      <div class="card">
         <h2>🖼️ 画像スロット（後で差し替え）</h2>
         <p class="muted">ここに画像を貼るとギャラリー化できる。今はプレースホルダー。</p>
         <div class="kpi">
