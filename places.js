@@ -1,6 +1,5 @@
 // places.js
 // portal.js が window.PLACES を読む（wikiTitle / lat / lng）
-// 注意：個人宅・特定個人の住所推定に繋がる場所は入れてない（安全のため）。
 // ここは「公共スポット／観光地／ネットでネタにされがちな有名場所」100選（日本語Wikipedia想定）。
 
 window.PLACES = [
