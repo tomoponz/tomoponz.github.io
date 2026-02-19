@@ -15,6 +15,35 @@ function weightedPick(pool){
 }
 function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
 
+// ========== NAV (統一) ==========
+function setActiveNav(){
+  const file = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+  const labelMap = {
+    "index.html": "プロフィール",
+    "omikuji.html": "おみくじ",
+    "shindan.html": "診断",
+    "gallery.html": "ネタ置き場",
+    "links.html": "リンク",
+    "games.html": "ゲーム",
+    "door.html": "ドア",
+    "warp.html": "ドア",
+    "hachi.html": "八百科事典",
+    "404.html": "迷ひ道"
+  };
+
+  const sub = document.getElementById("brandSub");
+  if(sub) sub.textContent = labelMap[file] || "";
+
+  document.querySelectorAll(".navlinks a.chip").forEach(a=>{
+    a.classList.remove("active");
+    const href = (a.getAttribute("href") || "").toLowerCase();
+    const isActive =
+      href === file ||
+      (file === "warp.html" && href === "door.html");
+    if(isActive) a.classList.add("active");
+  });
+}
+
 // ========== quote ==========
 const QUOTES = [
   "今日の目標：『1mmでも前進』",
@@ -125,7 +154,6 @@ function restoreOmikuji(){
 }
 
 // ========== shindan (10 questions -> 50 outcomes) ==========
-// 5 traits x 2 questions = 10 questions
 const TRAITS = [
   { key:"focus",  name:"集中力" },
   { key:"curio",  name:"好奇心" },
@@ -134,7 +162,6 @@ const TRAITS = [
   { key:"guts",   name:"胆力" },
 ];
 
-// pair -> archetype (10 combos)  (top2 traits sorted by priority rules)
 const ARCHETYPES = {
   "focus+curio":  { name:"研究室型ストライカー", core:"学ぶ×仕上げる。理解と完成の両方を取りに行く。", strong:["吸収が速い","詰めが効く"], weak:["完璧主義になりがち","やりすぎて疲れる"], quest:["最初の30分で設計→残りで実装","締切48時間前に8割完成"] },
   "focus+chaos":  { name:"締切前ブースター", core:"普段は静か、でも火が付くと加速が異常。", strong:["短時間で爆発力","切り替えが速い"], weak:["ムラが出る","序盤が弱い"], quest:["朝イチに“着手だけ”を固定","タスクを3分割して第一段だけ終える"] },
@@ -150,32 +177,25 @@ const ARCHETYPES = {
   "social+guts":  { name:"前線リーダー", core:"人前でも押し切る。声と胆力で道を作る。", strong:["度胸","巻き込み力"], weak:["強引に見えることがある","疲労が溜まる"], quest:["相手の合意を1回取る","頼む前に自分の条件を言語化"] },
 };
 
-// Tier: total 10..50 -> 5 levels
 function calcTier(total){
-  // 10-50
   if(total >= 43) return 5;      // S
   if(total >= 35) return 4;      // A
   if(total >= 27) return 3;      // B
   if(total >= 19) return 2;      // C
   return 1;                      // D
 }
-function tierLabel(t){
-  return ["D","C","B","A","S"][t-1];
-}
+function tierLabel(t){ return ["D","C","B","A","S"][t-1]; }
 function tierFlavor(t){
-  // tier-based message variation
   const map = {
-    1:{ vibe:"低燃費モード",   detail:"やる気より環境が大事。仕組みで勝て。", tip:"最初の一歩を“5分”に固定。" },
-    2:{ vibe:"安定し始め",     detail:"悪くない。伸びる余地が明確。",         tip:"毎日1つだけ完了を作る。" },
-    3:{ vibe:"標準以上",       detail:"普通に強い。運用で化ける。",           tip:"週1で振り返って改善。" },
-    4:{ vibe:"上振れ常連",     detail:"結果が出る側。調子に乗っても勝てる。", tip:"背負いすぎない仕組み化。" },
-    5:{ vibe:"最終形態",       detail:"強い。勝ち筋を理解して回してる。",     tip:"攻めるなら“発信/作品”に寄せろ。" },
+    1:{ vibe:"低燃費モード", detail:"やる気より環境が大事。仕組みで勝て。", tip:"最初の一歩を“5分”に固定。" },
+    2:{ vibe:"安定し始め", detail:"悪くない。伸びる余地が明確。", tip:"毎日1つだけ完了を作る。" },
+    3:{ vibe:"標準以上", detail:"普通に強い。運用で化ける。", tip:"週1で振り返って改善。" },
+    4:{ vibe:"上振れ常連", detail:"結果が出る側。調子に乗っても勝てる。", tip:"背負いすぎない仕組み化。" },
+    5:{ vibe:"最終形態", detail:"強い。勝ち筋を理解して回してる。", tip:"攻めるなら“発信/作品”に寄せろ。" },
   };
   return map[t];
 }
-
 function getTop2Traits(traitScore){
-  // tie-break priority to keep deterministic
   const order = ["focus","curio","social","guts","chaos"];
   const arr = Object.entries(traitScore).map(([k,v])=>({k,v}));
   arr.sort((a,b)=>{
@@ -184,7 +204,6 @@ function getTop2Traits(traitScore){
   });
   return [arr[0].k, arr[1].k];
 }
-
 function pairKey(a,b){
   const sorted = [a,b].sort();
   return sorted.join("+");
@@ -194,7 +213,6 @@ function runShindan(){
   const out = $("shindanOut");
   if(!out) return;
 
-  // collect 10 answers
   const answers = [];
   for(let i=1;i<=10;i++){
     const checked = document.querySelector(`input[name="q${i}"]:checked`);
@@ -205,7 +223,6 @@ function runShindan(){
     answers.push(checked);
   }
 
-  // trait sums
   const traitScore = { focus:0, curio:0, chaos:0, social:0, guts:0 };
   let total = 0;
   answers.forEach(inp=>{
@@ -224,16 +241,13 @@ function runShindan(){
   const label = tierLabel(tier);
   const flav = tierFlavor(tier);
 
-  // pretty trait bars (2..10 each trait)
-  function traitBar(v){ // 2..10
+  function traitBar(v){
     const pct = clamp(Math.round((v/10)*100), 0, 100);
     return `<div class="bar"><i style="width:${pct}%"></i></div>`;
   }
 
   const traitNames = Object.fromEntries(TRAITS.map(x=>[x.key,x.name]));
   const topPairText = `${traitNames[t1]} × ${traitNames[t2]}`;
-
-  // 50 outcomes = 10 archetypes * 5 tiers
   const resultId = `${key.toUpperCase()}-${label}`;
 
   const shareText =
@@ -261,21 +275,15 @@ function runShindan(){
       <div class="grid2">
         <div class="card">
           <h2>長所</h2>
-          <ul class="list">
-            ${arche.strong.map(x=>`<li>${x}</li>`).join("")}
-          </ul>
+          <ul class="list">${arche.strong.map(x=>`<li>${x}</li>`).join("")}</ul>
           <hr class="sep">
           <h2>弱点</h2>
-          <ul class="list">
-            ${arche.weak.map(x=>`<li>${x}</li>`).join("")}
-          </ul>
+          <ul class="list">${arche.weak.map(x=>`<li>${x}</li>`).join("")}</ul>
         </div>
 
         <div class="card">
           <h2>今日の運用（おすすめクエスト）</h2>
-          <ul class="list">
-            ${arche.quest.map(x=>`<li>${x}</li>`).join("")}
-          </ul>
+          <ul class="list">${arche.quest.map(x=>`<li>${x}</li>`).join("")}</ul>
           <hr class="sep">
           <h2>ランク補正：${label}</h2>
           <p class="muted"><b>${flav.detail}</b></p>
@@ -299,14 +307,12 @@ function runShindan(){
     </div>
   `;
 
-  // expose helpers
   window.copyResult = async function(){
     const text = $("shareBox")?.value || "";
     try{
       await navigator.clipboard.writeText(text);
       alert("コピーした。友達に貼れ。");
     }catch(e){
-      // fallback
       prompt("コピーして使って:", text);
     }
   };
@@ -317,13 +323,7 @@ function runShindan(){
 
 // ========== init ==========
 document.addEventListener("DOMContentLoaded", ()=>{
+  setActiveNav();
   setRandomQuote();
   restoreOmikuji();
-
-  // active nav
-  const path = location.pathname.split("/").pop() || "index.html";
-  document.querySelectorAll(".chip").forEach(a=>{
-    const href = a.getAttribute("href");
-    if(href === path) a.classList.add("active");
-  });
 });
