@@ -11,6 +11,7 @@
   <script defer src="hachi.js"></script>
 
   <style>
+    /* 学術資料風（紙・余白・セリフ） */
     .paper {
       border: 1px solid rgba(255,255,255,.10);
       background:
@@ -49,7 +50,11 @@
     .metaRow a{ color: rgba(190,230,255,.92); text-decoration: none; }
     .metaRow a:hover{ text-decoration: underline; }
 
-    .articleTitle{ margin: 0; font-size: 28px; letter-spacing: .04em; }
+    .articleTitle{
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: .04em;
+    }
     .tag{
       display:inline-block;
       padding: 4px 10px;
@@ -86,7 +91,9 @@
     }
     #articleContent .mw-editsection,
     #articleContent .reference,
-    #articleContent .mw-references-wrap{ opacity: .85; }
+    #articleContent .mw-references-wrap{
+      opacity: .85;
+    }
 
     .console{
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
@@ -104,15 +111,17 @@
 </head>
 
 <body>
+  <!-- 統一メニュー -->
   <header class="nav">
-    <div class="brand">
-      <div class="logo"></div>
-      <div>
-        <b>tomoponz</b><br><small>八百科事典</small>
-      </div>
-    </div>
+    <a class="brand" href="index.html" aria-label="tomoponz ホーム">
+      <span class="logo" aria-hidden="true"></span>
+      <span class="brandText">
+        <span class="brandName">tomoponz</span>
+        <span class="brandSub" id="brandSub"></span>
+      </span>
+    </a>
 
-    <nav class="navlinks">
+    <nav class="navlinks" aria-label="メニュー">
       <a class="chip" href="index.html">プロフィール</a>
       <a class="chip" href="omikuji.html">おみくじ</a>
       <a class="chip" href="shindan.html">診断</a>
@@ -145,7 +154,7 @@
       <div class="metaRow">
         <span>読込先：</span>
         <a href="https://ja.uncyclopedia.info/wiki/%E3%83%A1%E3%82%A4%E3%83%B3%E3%83%9A%E3%83%BC%E3%82%B8" target="_blank" rel="noopener">ja.uncyclopedia.info</a>
-        <span>｜内部リンクは“このページ内”で辿れる</span>
+        <span>｜内部リンクは“このページ内”で辿れる（失敗時はiframeで表示）</span>
       </div>
     </section>
 
@@ -161,7 +170,8 @@
         <h2>Console</h2>
         <div class="console" id="console">init…</div>
         <div class="note" style="margin-top:10px">
-          もし読み込みが失敗する場合：ネットワーク / CORS / 相手側仕様変更の可能性。最悪「本家で開く」で逃げられる。
+          “Failed to fetch” が出る場合：CORS/回線/相手仕様変更。<br>
+          この版は <b>自動でプロキシ→それでも無理ならiframe</b> に逃がす。
         </div>
       </div>
     </section>
