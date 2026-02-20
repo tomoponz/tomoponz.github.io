@@ -7,11 +7,63 @@
 </head>
 <body>
   <div class="flicker-light"></div>
+
   <div class="text-container">
     <p>誰もいない。</p>
     <p>ずっと前から、誰もいない。</p>
     <p class="small">足音が聞こえるのは、気のせいです。</p>
   </div>
+
   <a href="../index.html" class="exit-sign">EXIT ➔</a>
+
+  <img id="radio-btn" src="../img/あなたの画像ファイル名.png" alt="Play Music">
+
+  <audio id="bgm-buzz" src="../assets/sfx/backrooms-buzzing-sound-effect.mp3" loop></audio>
+  <audio id="bgm-daisy" src="../assets/sfx/daisy-bell.mp3"></audio>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const buzz = document.getElementById("bgm-buzz");
+      const daisy = document.getElementById("bgm-daisy");
+      const radioBtn = document.getElementById("radio-btn");
+
+      // 音量調整（ビープ音は環境音として小さめに、曲はしっかり聞こえるように）
+      buzz.volume = 0.3; 
+      daisy.volume = 0.8;
+
+      let isStarted = false;
+
+      // ブラウザの仕様で「ユーザーが画面を一度クリック（タップ）しないと音が鳴らない」制限があるため、
+      // 画面のどこかを最初に触った瞬間に再生を開始する仕掛け
+      const startAudio = () => {
+        if (isStarted) return;
+        isStarted = true;
+        buzz.play().catch(e => console.log("Buzz再生エラー:", e));
+        daisy.play().catch(e => console.log("Daisy再生エラー:", e));
+      };
+
+      // 画面のどこかをクリックしたら初回再生
+      document.body.addEventListener("click", startAudio, { once: true });
+      document.body.addEventListener("touchstart", startAudio, { once: true }); // スマホ対応
+
+      // 自動再生に挑戦（ホラー画面からの遷移ならそのまま鳴る可能性があります）
+      buzz.play().then(() => {
+        daisy.play();
+        isStarted = true;
+      }).catch(() => {
+        // 自動再生がブロックされた場合は、ユーザーの初回クリックを待つ
+        console.log("自動再生ブロック: 画面クリックで再生開始します");
+      });
+
+      // 右下の画像をタップした時の処理（Daisy Bellをもう一度流す）
+      radioBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); // bodyのクリック判定と被らないようにする
+        
+        // すでに再生中なら最初から巻き戻す
+        daisy.currentTime = 0; 
+        daisy.play();
+      });
+    });
+  </script>
 </body>
 </html>
