@@ -65,13 +65,13 @@
     });
   }
 
-  // ========== quote（今日の一言：author撤去） ==========
-  // 偉人名言は不要なら空でOK（アニメ名言は window.USER_QUOTES 側に置く想定）
-  const GREAT_QUOTES = []; // ←ここに入れない（偉人要素を撤去）
-
+  // ========== quote（今日の一言：偉人(author)撤去） ==========
+  // 使うのは「ベース（quotes_base.js）」＋「追加（user_quotes.js）」のみ
+  // ※偉人名言枠は廃止
   function getQuotePool() {
+    const base = (typeof window !== "undefined" && Array.isArray(window.BASE_QUOTES)) ? window.BASE_QUOTES : [];
     const user = (typeof window !== "undefined" && Array.isArray(window.USER_QUOTES)) ? window.USER_QUOTES : [];
-    return [...GREAT_QUOTES, ...user];
+    return [...base, ...user];
   }
 
   function hashString(s) {
@@ -430,7 +430,7 @@
     };
 
     searchBtn.addEventListener("click", executeSearch);
-    searchInput.addEventListener("keypress", (e)=>{
+    searchInput.addEventListener("keydown", (e)=>{
       if(e.key === "Enter") executeSearch();
     });
   }
