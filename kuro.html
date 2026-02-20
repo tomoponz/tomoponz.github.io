@@ -3,71 +3,210 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>黒歴史ゲート | tomoponz</title>
-  <meta name="description" content="tomoponz の黒歴史ゲート" />
-  <link rel="stylesheet" href="style.css" />
-  <link rel="icon" href="assets/favicon.png" />
+  <title>tomoponz｜黒歴史</title>
+  <meta name="description" content="封印庫（黒歴史）" />
+
+  <link rel="stylesheet" href="style.css">
+  <script defer src="app.js"></script>
+  <script defer src="kuro.js"></script>
+
+  <style>
+    /* このページだけの微調整 */
+    .kuroBadge{
+      display:inline-block; padding:4px 10px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,80,80,.08);
+      color: rgba(255,210,210,.92);
+      font-size: 12px;
+    }
+    .tools{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+      margin-top: 12px;
+    }
+    .tools input, .tools select{
+      padding:10px 12px; border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      color: rgba(234,241,255,.92);
+      outline:none;
+    }
+    .tools input{ flex:1; min-width:240px; }
+    .tagRow{ display:flex; flex-wrap:wrap; gap:8px; margin-top: 12px; }
+    .tagBtn{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
+      color: rgba(234,241,255,.85);
+      font-size: 12px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .tagBtn.on{
+      border-color: rgba(255,80,80,.35);
+      background: rgba(255,80,80,.10);
+      color: rgba(255,220,220,.95);
+    }
+
+    .gridKuro{ display:grid; grid-template-columns: 1fr; gap: 12px; }
+    @media(min-width: 920px){
+      .gridKuro{ grid-template-columns: 1.1fr .9fr; gap: 14px; }
+    }
+
+    .kuroCard{ padding: 16px; }
+    .kuroHead{
+      display:flex; gap:10px; align-items:baseline; flex-wrap:wrap;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .kuroTitle{ margin:0; font-size: 18px; letter-spacing:.03em; }
+    .kuroMeta{ opacity:.75; font-size: 12px; }
+    .miniTags{ display:flex; gap:6px; flex-wrap:wrap; margin-top: 6px; }
+    .miniTag{
+      display:inline-block; padding:3px 8px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+      font-size: 12px; opacity:.85;
+    }
+
+    .kuroSummary{ margin: 10px 0 0; opacity:.9; line-height: 1.75; }
+    .kuroBody{
+      margin-top: 12px;
+      border-top: 1px solid rgba(255,255,255,.10);
+      padding-top: 12px;
+      line-height: 1.85;
+    }
+
+    /* 封印（ぼかし） */
+    .sealed .sealBlur{
+      filter: blur(9px);
+      opacity: .75;
+      user-select:none;
+      pointer-events:none;
+    }
+    .sealBar{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,80,80,.18);
+      background: rgba(255,80,80,.06);
+    }
+    .sealNote{ opacity:.85; font-size: 12px; line-height: 1.6; }
+    .countBox{
+      font-size: 12px;
+      opacity: .8;
+      margin-top: 10px;
+    }
+
+    .sideCard{ padding: 16px; }
+    .sideCard h2{ margin: 0 0 10px; }
+    .small{ font-size: 12px; opacity: .8; line-height: 1.7; }
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      font-size: 12px;
+      background: rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding: 10px 12px;
+      white-space: pre-wrap;
+    }
+  </style>
 </head>
-<body data-page="kuro">
-  <header class="top">
-    <div class="container top-inner">
-      <a class="brand" href="index.html">tomoponz</a>
-      <nav class="nav">
-        <a href="about.html" data-nav="about">About</a>
-        <a href="works.html" data-nav="works">Works</a>
-        <a href="games.html" data-nav="games">Games</a>
-        <a href="contact.html" data-nav="contact">Contact</a>
-        <a href="warp.html" data-nav="warp">Warp</a>
-      </nav>
-    </div>
+
+<body>
+  <!-- 統一メニュー（必要ならここに黒歴史リンクを入れる） -->
+  <header class="nav">
+    <a class="brand" href="index.html" aria-label="tomoponz ホーム">
+      <span class="logo" aria-hidden="true"></span>
+      <span class="brandText">
+        <span class="brandName">tomoponz</span>
+        <span class="brandSub" id="brandSub"></span>
+      </span>
+    </a>
+
+    <nav class="navlinks" aria-label="メニュー">
+      <a class="chip" href="index.html">プロフィール</a>
+      <a class="chip" href="omikuji.html">おみくじ</a>
+      <a class="chip" href="shindan.html">診断</a>
+      <a class="chip" href="gallery.html">ネタ置き場</a>
+      <a class="chip" href="links.html">リンク</a>
+      <a class="chip" href="games.html">ゲーム</a>
+      <a class="chip" href="door.html">ドア</a>
+      <a class="chip" href="hachi.html">八百科事典</a>
+      <a class="chip" href="kuro.html">黒歴史</a>
+
+      <div class="nav-search">
+        <input type="search" id="searchInput" placeholder="検索キーワードを入力してください" autocomplete="off">
+        <button id="searchBtn">検索</button>
+      </div>
+    </nav>
   </header>
 
-  <main class="container">
-    <section class="card">
-      <div class="row" style="align-items:flex-start; gap:18px; flex-wrap:wrap;">
-        <div style="flex: 1 1 320px; min-width: 280px;">
-          <h2 id="placeTitle">黒歴史</h2>
-          <p class="mut" id="placeDesc">ここは黒歴史ゲート。戻るなら今。</p>
-
-          <div class="actions" style="margin-top:14px;">
-            <a id="wikiLink" class="btn" href="#" target="_blank" rel="noopener">詳細を見る</a>
-            <a id="mapLink" class="btn ghost" href="#" target="_blank" rel="noopener">地図</a>
-          </div>
-
-          <p class="mut" style="margin-top:12px;">
-            小説家になろうユーザーページ：
-            <a class="link" href="https://mypage.syosetu.com/2779764/" target="_blank" rel="noopener">mypage.syosetu.com/2779764</a>
-          </p>
-
-          <div class="console" id="warpConsole" aria-live="polite"></div>
-        </div>
-
-        <div style="flex: 1 1 360px; min-width: 280px;">
-          <div class="imgbox" id="imgBox" aria-label="image">
-            <div class="imgph" id="imgPh">Image</div>
-            <img id="placeImg" alt="" loading="lazy" />
-          </div>
-          <div class="mapbox" id="mapBox" style="margin-top:12px;"></div>
-        </div>
+  <main class="wrap">
+    <section class="hero">
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:baseline">
+        <h1 class="h1" style="margin:0">黒歴史</h1>
+        <span class="kuroBadge">封印庫</span>
       </div>
+      <p class="sub" style="max-width: 70ch">
+        ここは供養・保管用。<b>追加が楽</b>で、<b>検索・タグで掘れる</b>構造にしてある。
+      </p>
+
+      <div class="tools">
+        <input id="kuroQuery" type="text" placeholder="検索（例：没案 / 文章 / コード / 2019）">
+        <select id="kuroSort">
+          <option value="new">新しい順</option>
+          <option value="old">古い順</option>
+          <option value="title">タイトル順</option>
+        </select>
+        <button id="kuroClear">リセット</button>
+        <button id="kuroToggleSeal" class="btn">封印を解く</button>
+      </div>
+
+      <div class="tagRow" id="kuroTags"></div>
+      <div class="countBox" id="kuroCount">loading…</div>
     </section>
 
-    <section class="card" style="margin-top:16px;">
-      <h3>ワープの使い方</h3>
-      <ul class="list">
-        <li>ページを開くと黒歴史候補がランダム表示されます。</li>
-        <li>「詳細を見る」でリンク先へ。</li>
-        <li>戻るときはブラウザバック。</li>
-      </ul>
+    <section class="gridKuro">
+      <div class="card kuroCard sealed" id="kuroListWrap">
+        <div class="sealBar" id="sealBar">
+          <div class="sealNote">
+            <b>封印中</b>：本文はぼかし表示。<br>
+            「封印を解く」を押すと、表示が解除される（ブラウザに保存）。
+          </div>
+        </div>
+
+        <div id="kuroList" class="sealBlur">loading…</div>
+      </div>
+
+      <aside class="card sideCard">
+        <h2>使い方</h2>
+        <div class="small">
+          - 追加は <code>kuro.js</code> の <b>KURO_ENTRIES</b> に1件足すだけ。<br>
+          - タグは自動収集。検索は「タイトル/要約/本文」から部分一致。<br>
+          - 封印解除状態は <code>localStorage</code> に保存。
+        </div>
+
+        <h2 style="margin-top:14px">追記テンプレ</h2>
+        <div class="mono">
+{ id:"k2026-001",
+  title:"ここにタイトル",
+  date:"2026-02-20",
+  tags:["文章","没案"],
+  level:2,
+  summary:"一行要約（検索に効く）",
+  body:`&lt;p&gt;本文（HTML可）&lt;/p&gt;`,
+  link:"" }
+        </div>
+
+        <div class="small" style="margin-top:12px">
+          ※ <b>level</b> は 1〜3 くらいで危険度（任意）。表示に反映される。
+        </div>
+      </aside>
     </section>
+
+    <div class="footer">© tomoponz / Kurorekishi Vault</div>
   </main>
-
-  <footer class="footer">
-    <div class="container">© tomoponz</div>
-  </footer>
-
-  <script src="places.js"></script>
-  <script src="portal.js"></script>
-  <script src="app.js"></script>
 </body>
 </html>
