@@ -358,7 +358,7 @@
       });
     }
 
- // 4. 絶対に押してはいけないボタンの処理（絶望ホラー演出版）
+// 4. 絶対に押してはいけないボタンの処理（絶望ホラー演出版・指定パス）
     const dangerBtn = document.getElementById("dangerBtn");
     if (dangerBtn) {
       dangerBtn.addEventListener("click", () => {
@@ -412,7 +412,8 @@
 
         // 呪われた音を鳴らす関数（ピッチが徐々に狂う）
         const playDistortedSound = () => {
-          const se = new Audio("assets/sfx/umahii.mp3"); // または error.mp3
+          // ★ 指定された assets/sfx/ フォルダのパスに変更 ★
+          const se = new Audio("assets/sfx/windows error sound.mp3"); 
           se.volume = 0.6;
           // エラーが増えるほど音が低く、遅く、不気味になる
           se.playbackRate = Math.max(0.2, 1.0 - (errorCount * 0.02) + (Math.random() * 0.2 - 0.1));
