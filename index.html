@@ -29,25 +29,43 @@
     .grid3{ display:grid; gap:14px; grid-template-columns: repeat(3, minmax(0,1fr)); }
     @media (max-width: 900px){ .grid3{ grid-template-columns: 1fr; } }
 
-    /* 検索ボックスのスタイル */
-    .search-container {
-      margin: 0 auto 24px;
-      max-width: 320px;
-      display: flex;
-      gap: 8px;
+    /* ▼ ナビゲーションバーに配置する検索ボックスのスタイル ▼ */
+    .nav-search {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 8px;
+      flex-shrink: 0; /* スマホで潰れないようにする */
     }
-    .search-input {
-      flex: 1;
-      padding: 10px 16px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(0,0,0,0.18);
+    .nav-search input {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(0,0,0,0.2);
       color: #fff;
-      font-size: 14px;
+      font-size: 13px;
+      width: 120px;
+      transition: width 0.3s ease, background 0.3s ease;
     }
-    .search-input:focus {
+    .nav-search input:focus {
       outline: none;
-      border-color: rgba(255,255,255,0.3);
+      border-color: rgba(255,255,255,0.4);
+      width: 160px; /* フォーカス時に少し伸びる */
+      background: rgba(0,0,0,0.4);
+    }
+    .nav-search button {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: 0.2s;
+    }
+    .nav-search button:hover {
+      background: rgba(255,255,255,0.2);
     }
   </style>
 </head>
@@ -70,7 +88,12 @@
       <a class="chip" href="games.html">ゲーム</a>
       <a class="chip" href="door.html">ドア</a>
       <a class="chip" href="hachi.html">八百科事典</a>
-    </nav>
+      
+      <div class="nav-search">
+        <input type="text" id="searchInput" placeholder="サイト内検索..." autocomplete="off">
+        <button id="searchBtn">検索</button>
+      </div>
+      </nav>
   </header>
 
   <main class="wrap">
@@ -79,10 +102,6 @@
       ⚠️ 押すな
     </button>
     <div id="voidClick" style="position: absolute; bottom: 0; left: 0; width: 20px; height: 20px; cursor: default; z-index: 9999;"></div>
-    <div class="search-container">
-      <input type="text" id="searchInput" class="search-input" placeholder="サイト内検索..." autocomplete="off">
-      <button id="searchBtn" class="btnlike">検索</button>
-    </div>
     <section class="hero">
       <h1 class="h1" style="margin:0">tomoponz</h1>
       <p class="sub">秘密基地 / ネタ置き場 / ミニゲーム / いろいろ</p>
