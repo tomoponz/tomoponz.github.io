@@ -233,34 +233,29 @@
 
     window.addEventListener("load", updateCounter);
   </script>
-    
-    // 絶対に押してはいけないボタンの処理 
     <script>
+    // 絶対に押してはいけないボタンの処理
     const dangerBtn = document.getElementById("dangerBtn");
     if (dangerBtn) {
       dangerBtn.addEventListener("click", () => {
-        // しつこい確認ダイアログ
         if (!confirm("警告：絶対に押すなと言いましたよね？本当に実行しますか？")) return;
         if (!confirm("後悔しますよ。本当にいいんですね？")) return;
         if (!confirm("最終警告です。この先、何が起きても一切の責任を負いません。")) return;
         
-        // 3回「OK」を押した猛者への罰（カオス演出を発動）
         document.body.classList.add("glitch-mode");
         
-        // 1.5秒間画面を荒ぶらせた後、黒歴史へ強制送還
         setTimeout(() => {
-          alert("もう戻れません。");
-          location.href = "kuro.html";
+          alert("……そうですか。"); // メッセージを不気味に変更
+          location.href = "horror.html"; // 行き先を horror.html に変更
         }, 1500);
       });
       
-      // おまけ：ホバー時に少し震える（CSSを追加で当てなくてもJSだけで簡易アニメ）
       dangerBtn.addEventListener("mouseenter", () => {
         dangerBtn.style.transform = "translate(2px, -2px)";
         setTimeout(() => dangerBtn.style.transform = "translate(-2px, 2px)", 50);
         setTimeout(() => dangerBtn.style.transform = "translate(0, 0)", 100);
       });
-    } 
+    }
     </script>
     
 </body>
