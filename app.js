@@ -425,12 +425,12 @@
           domain = "tomoponz.github.io";
         }
         const url = `https://www.google.com/search?q=site:${domain}+${encodeURIComponent(query)}`;
-        window.open(url, "_blank");
+        window.open(url, "_blank", "noopener,noreferrer");
       }
     };
 
     searchBtn.addEventListener("click", executeSearch);
-    searchInput.addEventListener("keypress", (e)=>{
+    searchInput.addEventListener("keydown", (e)=>{
       if(e.key === "Enter") executeSearch();
     });
   }
