@@ -318,6 +318,13 @@
           return;
         }
 
+        // ★黒歴史ワードは検索対象外（ヒットさせない＆Google検索にも投げない）
+        const blocked = /黒歴史|kuro/i;
+        if (blocked.test(query)) {
+          alert("そのキーワードは検索対象外。");
+          return;
+        }
+
         // 【簡易ナビゲーション】
         const lowerQuery = query.toLowerCase();
         let foundUrl = null;
@@ -346,7 +353,7 @@
       };
 
       searchBtn.addEventListener("click", executeSearch);
-      searchInput.addEventListener("keypress", (e) => {
+      searchInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") executeSearch();
       });
     }
