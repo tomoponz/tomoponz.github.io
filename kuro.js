@@ -15,12 +15,13 @@ const KURO_ENTRIES = [
     body: `
       <figure style="margin:0">
         <img
-          src="img/kuro/ginsan.jpg"
+          <img
+          src="img/kuro/ginsan.JPG"
           alt="銀さんコスプレ写真"
           style="max-width:100%;height:auto;border-radius:14px;border:1px solid rgba(255,255,255,.12)"
-          onerror="this.onerror=null; this.src='img/kuro/ginsan.JPG';"
+          onerror="this.onerror=null; this.src='img/kuro/ginsan.jpg';"
           loading="lazy"
-        >
+          >
         <figcaption class="note" style="margin-top:8px">
           銀魂の銀さんのコスプレです。3000円＋実家の木刀でなりきりました。
         </figcaption>
