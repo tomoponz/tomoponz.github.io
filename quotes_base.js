@@ -3,13 +3,13 @@
 
 window.BASE_QUOTES = [
 { text:`バキバキ童貞です。`, work:`YouTube`, character:`ぐんぴぃ（バキ童）`, tags:[`自虐`,`ネットミーム`] },
-      { text:`童貞を殺す服じゃなくて、童貞が殺しに行く服だろ。`, work:`YouTube`, character:`ぐんぴぃ（バキ童）`, tags:[`自虐`,`正論`] },
+      { text:`誠に遺憾です`, work:`YouTube`, character:`ぐんぴぃ（バキ童）`, tags:[`怒り`,`悲哀`] },
       { text:`ウィィィィィッス！どうもー、syamuでーす。`, work:`YouTube`, character:`syamu_game`, tags:[`挨拶`,`伝説`] },
-      { text:`参加者、誰一人来ませんでした……。`, work:`YouTube`, character:`syamu_game`, tags:[`悲哀`,`オフ会`] },
+      { text:`参加者は、誰一人…いませんでした…（ガチャ）`, work:`YouTube`, character:`syamu_game`, tags:[`悲哀`,`オフ会`] },
       { text:`それってあなたの感想ですよね？`, work:`2ちゃんねる/配信`, character:`ひろゆき`, tags:[`論破`,`煽り`] },
       { text:`なんだろう、嘘つくのやめてもらっていいですか？`, work:`2ちゃんねる/配信`, character:`ひろゆき`, tags:[`論破`,`煽り`] },
-      { text:`野菜食べてますか？`, work:`SNS/実業家`, character:`堀江貴文`, tags:[`煽り`,`健康`] },
-      { text:`手取り20万？お前が悪い。`, work:`SNS/実業家`, character:`堀江貴文`, tags:[`毒舌`,`シビア`] },
+      { text:`野菜食べてますか？`, work:`SNS/実業家`, character:`堀江貴文リスナー`, tags:[`煽り`,`健康`] },
+      { text:`手取り14万？お前が終わってんだよ。`, work:`SNS/実業家`, character:`堀江貴文`, tags:[`毒舌`,`シビア`] },
       { text:`ひき肉です！`, work:`YouTube`, character:`ちょんまげ小僧`, tags:[`挨拶`,`流行`] },
 
       { text:`今のままではいけないと思います。だからこそ、日本は今のままではいけないと思っている。`, work:`政治`, character:`小泉進次郎`, tags:[`構文`,`迷言`] },
