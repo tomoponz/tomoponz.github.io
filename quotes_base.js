@@ -1,5 +1,6 @@
 // quotes_base.js
-// meigen.html の BASE_QUOTES をここへ移動（共通データ）
+// 共通名言データ（index.html / meigen.html で共通利用）
+
 window.BASE_QUOTES = [
 { text:`バキバキ童貞です。`, work:`YouTube`, character:`ぐんぴぃ（バキ童）`, tags:[`自虐`,`ネットミーム`] },
       { text:`童貞を殺す服じゃなくて、童貞が殺しに行く服だろ。`, work:`YouTube`, character:`ぐんぴぃ（バキ童）`, tags:[`自虐`,`正論`] },
@@ -123,6 +124,4 @@ window.BASE_QUOTES = [
 
       { text:`「真の男女平等主義者な俺は、女の子相手でもドロップキックをくらわせられる男」`, work:`この素晴らしい世界に祝福を！`, character:`カズマ`, tags:[`迷言`,`倫理崩壊`] },
       { text:`「エクスプロージョン！！」`, work:`この素晴らしい世界に祝福を！`, character:`めぐみん`, tags:[`必殺`,`決め台詞`] },
-
-    ];
 ];
