@@ -28,6 +28,27 @@
     }
     .grid3{ display:grid; gap:14px; grid-template-columns: repeat(3, minmax(0,1fr)); }
     @media (max-width: 900px){ .grid3{ grid-template-columns: 1fr; } }
+
+    /* 偽装検索ボックスのスタイル */
+    .fake-search-container {
+      margin: 0 auto 24px;
+      max-width: 320px;
+      display: flex;
+      gap: 8px;
+    }
+    .fake-search-input {
+      flex: 1;
+      padding: 10px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.18);
+      color: #fff;
+      font-size: 14px;
+    }
+    .fake-search-input:focus {
+      outline: none;
+      border-color: rgba(255,255,255,0.3);
+    }
   </style>
 </head>
 
@@ -57,7 +78,10 @@
     <button id="dangerBtn" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: rgba(255,0,0,0.1); border: 2px solid #ff4444; color: #ff8888; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 0 15px rgba(255,0,0,0.3); letter-spacing: 0.1em; transition: 0.2s; opacity: 0.6;">
       ⚠️ 押すな
     </button>
-    <div id="voidClick" style="position: absolute; bottom: 0; left: 0; width: 20px; height: 20px; cursor: default; z-index: 9999;"></div>
+    <div class="fake-search-container">
+      <input type="text" id="fakeSearchInput" class="fake-search-input" placeholder="サイト内検索..." autocomplete="off">
+      <button id="fakeSearchBtn" class="btnlike">検索</button>
+    </div>
     <section class="hero">
       <h1 class="h1" style="margin:0">tomoponz</h1>
       <p class="sub">秘密基地 / ネタ置き場 / ミニゲーム / いろいろ</p>
@@ -114,7 +138,6 @@
   </main>
 
   <script src="app.js?v=20260220"></script>
-
   <script src="quotes_base.js?v=20260220"></script>
   <script src="user_quotes.js?v=20260220"></script>
 
@@ -175,7 +198,6 @@
       }
     }
 
-    // ✅ app.js より後に、最後に確実に反映
     window.addEventListener("load", () => {
       loadQuote();
       document.getElementById("nextQuoteBtn")?.addEventListener("click", loadQuote);
@@ -226,27 +248,38 @@
   </script>
 
   <script>
-    // F12 コンソールへの語りかけ
+    // 1. F12 コンソールへの語りかけ（パスコードのヒント）
     console.log("%c[SYSTEM] 端末からのアクセスを検知。監視プロトコルを開始します。", "color: #888; font-size: 11px;");
     console.log("%c[WARNING] 当サイトのソースコードを閲覧している方へ。これ以上の深入りは推奨しません。", "color: #ff0000; font-weight: bold; font-size: 14px;");
-    // ドラッグで反転させないと見えないパスコード
     console.log("%c 機密領域アクセスコード: 'kuro-n-tomo' ", "color: #000; background-color: #000; padding: 2px;");
 
-    // 隠しログインの処理
-    const voidClick = document.getElementById("voidClick");
-    if (voidClick) {
-      voidClick.addEventListener("click", () => {
-        const code = prompt("【管理システム】\nアクセス権限が必要です。パスコードを入力してください。");
-        if (code === "kuro-n-tomo") {
+    // 2. 偽装サイト内検索（裏サイトへの入り口）
+    const fakeSearchBtn = document.getElementById("fakeSearchBtn");
+    const fakeSearchInput = document.getElementById("fakeSearchInput");
+
+    if (fakeSearchBtn && fakeSearchInput) {
+      const executeSearch = () => {
+        const query = fakeSearchInput.value.trim();
+        if (query === "kuro-n-tomo") {
+          // 正解のパスコードを入力した時だけ発動
           alert("認証完了。裏付けされた記録を開示します。");
-          location.href = "deep.html"; // ← 次は deep.html を作りましょう！
-        } else if (code) {
-          alert("エラー：記録にない個体です。監視レベルを引き上げます。");
+          location.href = "deep.html"; 
+        } else if (query !== "") {
+          // 普通の検索のフリをしてあしらう
+          alert(`「${query}」に一致する情報は見つかりませんでした。\n検索ワードを変えて再試行してください。`);
         }
+      };
+
+      // ボタンクリックで検索
+      fakeSearchBtn.addEventListener("click", executeSearch);
+      
+      // Enterキーでも検索できるようにする
+      fakeSearchInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") executeSearch();
       });
     }
 
-    // 絶対に押してはいけないボタンの処理
+    // 3. 絶対に押してはいけないボタンの処理
     const dangerBtn = document.getElementById("dangerBtn");
     if (dangerBtn) {
       dangerBtn.addEventListener("click", () => {
