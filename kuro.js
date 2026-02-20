@@ -4,7 +4,7 @@
 // 対応HTML: kuro.html（id: kuroQuery / kuroSort / kuroClear / kuroToggleSeal / kuroTags / kuroCount / kuroListWrap / sealBar / kuroList）
 
 const KURO_ENTRIES = [
-  // ★追加したい銀さんコスプレ（画像は img/kuro/ginsan.jpg 推奨）
+  // ★追加：銀さんコスプレ（画像は img/kuro/ginsan.JPG）
   {
     id: "k-gintama-001",
     title: "銀魂：銀さんのコスプレ（3000円＋実家の木刀）",
@@ -15,13 +15,12 @@ const KURO_ENTRIES = [
     body: `
       <figure style="margin:0">
         <img
-          <img
           src="img/kuro/ginsan.JPG"
           alt="銀さんコスプレ写真"
           style="max-width:100%;height:auto;border-radius:14px;border:1px solid rgba(255,255,255,.12)"
           onerror="this.onerror=null; this.src='img/kuro/ginsan.jpg';"
           loading="lazy"
-          >
+        >
         <figcaption class="note" style="margin-top:8px">
           銀魂の銀さんのコスプレです。3000円＋実家の木刀でなりきりました。
         </figcaption>
