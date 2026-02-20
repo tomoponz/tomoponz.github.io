@@ -351,7 +351,7 @@
       });
     }
 
-    // 4. 絶対に押してはいけないボタンの処理
+   // 4. 絶対に押してはいけないボタンの処理（カオス増殖演出版）
     const dangerBtn = document.getElementById("dangerBtn");
     if (dangerBtn) {
       dangerBtn.addEventListener("click", () => {
@@ -360,13 +360,91 @@
         if (!confirm("最終警告です。この先、何が起きても一切の責任を負いません。")) return;
         
         document.body.classList.add("glitch-mode");
-        
+
+        // --- ここからカオス演出 ---
+
+        // エラー音を鳴らす関数（※手持ちの音源パスに合わせてください）
+        // 連続再生できるよう毎回Audioインスタンスを作ります
+        const playErrorSound = () => {
+          // 例: assets/sfx/umahii.mp3 や assets/sfx/error.mp3 など
+          const se = new Audio("assets/sfx/umahii.mp3"); 
+          se.volume = 0.6;
+          se.play().catch(() => {}); // ブラウザの自動再生ブロック対策
+        };
+
+        // 偽のエラーウィンドウを生成する関数
+        const createFakeError = () => {
+          playErrorSound(); // 出現時に音を鳴らす
+
+          const div = document.createElement("div");
+          div.style.position = "fixed";
+          // 画面外にはみ出さないようにランダム配置
+          div.style.left = Math.random() * (window.innerWidth - 300) + "px";
+          div.style.top = Math.random() * (window.innerHeight - 150) + "px";
+          div.style.width = "280px";
+          div.style.backgroundColor = "#ece9d8"; // WindowsXP風の背景色
+          div.style.border = "2px solid #0055ea"; // 青枠
+          div.style.boxShadow = "3px 3px 10px rgba(0,0,0,0.5)";
+          div.style.color = "#000";
+          div.style.zIndex = Math.floor(Math.random() * 10000) + 10000;
+          div.style.fontFamily = "Tahoma, 'MS UI Gothic', sans-serif";
+
+          // メモリアドレスっぽいランダムな16進数
+          const errorCode = Math.floor(Math.random() * 16777215).toString(16).toUpperCase().padStart(6, '0');
+
+          div.innerHTML = `
+            <div style="background: linear-gradient(to right, #0058e6, #3a93ff); color: white; padding: 4px 8px; font-size: 13px; font-weight: bold; display: flex; justify-content: space-between; user-select: none;">
+              <span>System Error</span>
+              <span class="fake-close" style="background: #e04343; border-radius: 3px; padding: 0 5px; cursor: pointer;">×</span>
+            </div>
+            <div style="padding: 20px; text-align: center;">
+              <p style="margin: 0 0 15px; font-size: 13px;">Fatal Error: 0x${errorCode}<br>メモリが"read"になることはできませんでした。</p>
+              <button class="fake-ok" style="padding: 4px 20px; cursor: pointer;">OK</button>
+            </div>
+          `;
+          document.body.appendChild(div);
+
+          // ★「閉じる」「OK」を押したときの最悪な挙動（閉じずに増殖する）
+          const multiplyErrors = (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // イベントの伝播を止める
+            playErrorSound();
+            
+            // 1回押すと2〜3個新しいエラーが出る
+            createFakeError();
+            createFakeError();
+            if (Math.random() > 0.5) createFakeError();
+            
+            // ついでに背景をチカチカさせる
+            document.body.style.backgroundColor = Math.random() > 0.5 ? "blue" : "red";
+          };
+
+          div.querySelector(".fake-close").addEventListener("click", multiplyErrors);
+          div.querySelector(".fake-ok").addEventListener("click", multiplyErrors);
+        };
+
+        // 最初は自動的にボコボコと15個くらい出現させる
+        let count = 0;
+        const chaosInterval = setInterval(() => {
+          createFakeError();
+          count++;
+          if (count > 15) clearInterval(chaosInterval);
+        }, 150);
+
+        // タブを複数開く嫌がらせ（ポップアップブロックされることが多いですが一応）
         setTimeout(() => {
-          alert("……そうですか。");
+          window.open("horror.html", "_blank");
+          window.open("404.html", "_blank");
+        }, 1000);
+        
+        // 5秒間絶望させた後、最終的にホラー画面へ強制送還
+        setTimeout(() => {
+          alert("……システムに致命的なエラーが発生しました。");
           location.href = "horror.html"; 
-        }, 1500);
+        }, 5000);
       });
       
+      // ボタンが逃げる演出（既存のまま）
       dangerBtn.addEventListener("mouseenter", () => {
         dangerBtn.style.transform = "translate(2px, -2px)";
         setTimeout(() => dangerBtn.style.transform = "translate(-2px, 2px)", 50);
