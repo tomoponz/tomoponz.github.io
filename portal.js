@@ -193,24 +193,81 @@
   // Door: sound + particles
   // =====================
   function playClickSound() {
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return;
-      const ctx = new AudioContext();
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.type = "triangle";
-      o.frequency.value = 880;
-      g.gain.value = 0.03;
-      o.connect(g);
-      g.connect(ctx.destination);
-      o.start();
-      setTimeout(() => {
-        o.stop();
-        ctx.close();
-      }, 120);
-    } catch {}
-  }
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+
+    const ctx = new AudioContext();
+    const t0 = ctx.currentTime;
+
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0.0001, t0);
+    master.gain.exponentialRampToValueAtTime(0.08, t0 + 0.02);
+    master.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.55);
+    master.connect(ctx.destination);
+
+    // 1) クリック（短い）
+    const click = ctx.createOscillator();
+    const clickG = ctx.createGain();
+    click.type = "triangle";
+    click.frequency.setValueAtTime(880, t0);
+    clickG.gain.setValueAtTime(0.0001, t0);
+    clickG.gain.exponentialRampToValueAtTime(0.12, t0 + 0.01);
+    clickG.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.10);
+    click.connect(clickG);
+    clickG.connect(master);
+    click.start(t0);
+    click.stop(t0 + 0.12);
+
+    // 2) きしみ（下降するサウンド）
+    const creak = ctx.createOscillator();
+    const creakF = ctx.createBiquadFilter();
+    const creakG = ctx.createGain();
+    creak.type = "sawtooth";
+    creak.frequency.setValueAtTime(180, t0 + 0.04);
+    creak.frequency.exponentialRampToValueAtTime(70, t0 + 0.32);
+    creakF.type = "lowpass";
+    creakF.frequency.setValueAtTime(900, t0);
+    creakF.frequency.exponentialRampToValueAtTime(350, t0 + 0.35);
+    creakG.gain.setValueAtTime(0.0001, t0 + 0.04);
+    creakG.gain.exponentialRampToValueAtTime(0.22, t0 + 0.10);
+    creakG.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.40);
+    creak.connect(creakF);
+    creakF.connect(creakG);
+    creakG.connect(master);
+    creak.start(t0 + 0.04);
+    creak.stop(t0 + 0.42);
+
+    // 3) 吸い込み（ノイズ）
+    const dur = 0.45;
+    const noiseBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate);
+    const data = noiseBuf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.9;
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuf;
+
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.setValueAtTime(1200, t0 + 0.12);
+    bp.frequency.exponentialRampToValueAtTime(700, t0 + 0.50);
+    bp.Q.setValueAtTime(0.8, t0);
+
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.0001, t0 + 0.12);
+    ng.gain.exponentialRampToValueAtTime(0.22, t0 + 0.22);
+    ng.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.55);
+
+    noise.connect(bp);
+    bp.connect(ng);
+    ng.connect(master);
+
+    noise.start(t0 + 0.12);
+    noise.stop(t0 + 0.12 + dur);
+
+    setTimeout(() => ctx.close(), 700);
+  } catch {}
+}
 
   function burstParticles(canvas) {
     if (!canvas) return;
