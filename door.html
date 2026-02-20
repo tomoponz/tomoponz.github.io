@@ -14,14 +14,30 @@
   <script defer src="portal.js"></script>
 
   <style>
-    /* ドア演出（このページだけ） */
+    /* ==============================
+       Door page FX (more fancy ver.)
+       portal.js とは ID を合わせるだけで動く
+       ============================== */
+
+    /* 暗転レイヤ（少し雰囲気を付ける） */
     #fade{
       position:fixed; inset:0;
-      background:#000;
+      background:
+        radial-gradient(1200px 700px at 50% 40%, rgba(120,190,255,.08), rgba(0,0,0,.92) 60%, #000 100%),
+        linear-gradient(180deg, rgba(0,0,0,.78), #000);
       opacity:0;
       pointer-events:none;
       transition: opacity .45s ease;
       z-index:9999;
+    }
+    #fade::before{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.03), transparent 40%, rgba(255,255,255,.02)),
+        repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 1px, transparent 1px 3px);
+      mix-blend-mode: overlay;
+      opacity:.55;
     }
     .fadeIn{ opacity:1 !important; }
 
@@ -29,70 +45,336 @@
       position:relative;
       border-radius:18px;
       border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.03);
+      background:
+        radial-gradient(900px 420px at 50% 0%, rgba(180,160,255,.10), transparent 60%),
+        radial-gradient(700px 420px at 20% 30%, rgba(120,220,255,.08), transparent 65%),
+        rgba(255,255,255,.03);
       box-shadow: 0 18px 60px rgba(0,0,0,.25);
       padding:18px;
       overflow:hidden;
-      min-height: 260px;
+      min-height: 300px;
       display:grid;
       place-items:center;
+      isolation:isolate;
     }
+
+    /* 背景のゆらぎ（ドア周りの霧っぽさ） */
+    .doorWrap::before{
+      content:"";
+      position:absolute; inset:-40px;
+      background:
+        radial-gradient(220px 160px at 20% 20%, rgba(120,220,255,.12), transparent 60%),
+        radial-gradient(240px 180px at 80% 30%, rgba(200,140,255,.12), transparent 62%),
+        radial-gradient(260px 220px at 50% 85%, rgba(255,255,255,.06), transparent 65%);
+      filter: blur(10px);
+      opacity:.9;
+      animation: mistFloat 6.5s ease-in-out infinite;
+      z-index:0;
+      pointer-events:none;
+    }
+    @keyframes mistFloat{
+      0%,100%{ transform: translate3d(0,0,0) scale(1); }
+      50%{ transform: translate3d(10px,-8px,0) scale(1.03); }
+    }
+
     #fxCanvas{
       position:absolute; inset:0;
       width:100%; height:100%;
       pointer-events:none;
+      z-index:3;
     }
+
     .doorBtn{
-      width:min(420px, 100%);
+      width:min(520px, 100%);
       padding:18px 16px;
       border-radius:18px;
       border:1px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.04);
+      background: rgba(0,0,0,.12);
       color: rgba(234,241,255,.92);
       cursor:pointer;
       transition:.18s ease;
       display:grid;
-      gap:10px;
+      gap:12px;
       text-align:center;
       user-select:none;
+      z-index:2;
     }
-    .doorBtn:hover{ background:rgba(255,255,255,.08); transform: translateY(-1px); }
-    .doorFace{
-      margin:0 auto;
-      width: 160px;
-      height: 200px;
-      border-radius:18px;
-      border:1px solid rgba(255,255,255,.16);
-      background:
-        radial-gradient(240px 160px at 20% 10%, rgba(124,203,255,.16), transparent 55%),
-        radial-gradient(220px 160px at 90% 20%, rgba(182,156,255,.16), transparent 55%),
-        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    .doorBtn:hover{ background:rgba(255,255,255,.06); transform: translateY(-1px); }
+
+    /* ===== ドア本体（CSSで描画） ===== */
+    .doorStage{
+      margin: 0 auto;
+      width: 240px;
+      height: 250px;
       position:relative;
-      box-shadow: 0 20px 70px rgba(0,0,0,.35);
+      display:grid;
+      place-items:center;
+      perspective: 900px;
     }
-    .doorKnob{
+
+    /* 床の影 */
+    .doorStage::after{
+      content:"";
       position:absolute;
-      right:18px; top: 98px;
-      width: 18px; height: 18px;
-      border-radius:50%;
-      background: rgba(255,210,124,.85);
-      box-shadow: 0 0 0 3px rgba(255,210,124,.12);
+      left: 50%; bottom: 6px;
+      width: 210px; height: 28px;
+      transform: translateX(-50%);
+      background: radial-gradient(closest-side, rgba(0,0,0,.55), transparent 70%);
+      filter: blur(4px);
+      opacity:.55;
+      z-index:1;
     }
-    .doorText{ font-weight:800; letter-spacing:.04em; }
+
+    /* 枠 */
+    .doorFrame{
+      position:relative;
+      width: 190px;
+      height: 240px;
+      border-radius: 20px;
+      padding: 12px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.03)),
+        radial-gradient(280px 200px at 50% 10%, rgba(255,255,255,.08), transparent 55%);
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow:
+        0 24px 80px rgba(0,0,0,.42),
+        inset 0 0 0 1px rgba(0,0,0,.35);
+      z-index:2;
+    }
+    .doorFrame::before{
+      content:"";
+      position:absolute; inset: 10px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.28);
+      pointer-events:none;
+    }
+
+    /* ドアの向こう側（ポータル） */
+    .portalBack{
+      position:absolute;
+      left: 12px; top: 12px;
+      width: calc(100% - 24px);
+      height: calc(100% - 24px);
+      border-radius: 16px;
+      background:
+        radial-gradient(140px 160px at 50% 60%, rgba(160,230,255,.55), transparent 70%),
+        radial-gradient(220px 180px at 45% 45%, rgba(190,150,255,.45), transparent 75%),
+        radial-gradient(140px 120px at 65% 30%, rgba(255,255,255,.18), transparent 60%),
+        linear-gradient(180deg, rgba(0,0,0,.65), rgba(0,0,0,.90));
+      filter: blur(0.2px);
+      opacity: .55;
+      transform: translateZ(-2px);
+      overflow:hidden;
+      pointer-events:none;
+      z-index:2;
+    }
+    .portalBack::before{
+      content:"";
+      position:absolute; inset:-30px;
+      background:
+        conic-gradient(from 90deg, rgba(140,220,255,.0), rgba(140,220,255,.22), rgba(200,140,255,.18), rgba(255,255,255,.08), rgba(140,220,255,.0));
+      filter: blur(14px);
+      opacity: .85;
+      animation: portalSpin 3.2s linear infinite;
+    }
+    @keyframes portalSpin{ to{ transform: rotate(360deg); } }
+
+    /* ドア板（手前） */
+    .doorLeaf{
+      position:absolute;
+      left: 12px; top: 12px;
+      width: calc(100% - 24px);
+      height: calc(100% - 24px);
+      border-radius: 16px;
+      transform-style: preserve-3d;
+      transform: translateZ(2px);
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow:
+        0 18px 60px rgba(0,0,0,.45),
+        inset 0 0 0 1px rgba(0,0,0,.28);
+      /* 木っぽいテクスチャ（画像なしでそれっぽく） */
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.10), rgba(0,0,0,.10)),
+        repeating-linear-gradient(90deg,
+          rgba(140,110,70,.28) 0 6px,
+          rgba(120,90,55,.24) 6px 10px,
+          rgba(150,120,80,.20) 10px 14px),
+        radial-gradient(260px 220px at 30% 10%, rgba(255,255,255,.12), transparent 60%);
+    }
+
+    /* 反射（ツヤ） */
+    .doorLeaf::before{
+      content:"";
+      position:absolute; inset:0;
+      border-radius: 16px;
+      background:
+        linear-gradient(70deg, transparent 0 35%, rgba(255,255,255,.10) 45%, transparent 60%);
+      opacity: .65;
+      mix-blend-mode: overlay;
+      pointer-events:none;
+    }
+
+    /* パネルの凹凸 */
+    .doorLeaf::after{
+      content:"";
+      position:absolute;
+      left: 14px; right: 14px; top: 14px; bottom: 14px;
+      border-radius: 12px;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.18), transparent 35%, rgba(255,255,255,.06)),
+        linear-gradient(90deg, rgba(0,0,0,.22), transparent 25%, rgba(255,255,255,.08));
+      box-shadow:
+        inset 0 0 0 2px rgba(255,255,255,.06),
+        inset 0 0 0 12px rgba(0,0,0,.12);
+      pointer-events:none;
+      opacity:.9;
+    }
+
+    .doorHinges{
+      position:absolute;
+      left: 7px; top: 34px;
+      width: 10px; height: 160px;
+      display:grid;
+      align-content: space-between;
+      z-index:4;
+      pointer-events:none;
+    }
+    .doorHinges i{
+      width: 10px; height: 16px;
+      border-radius: 6px;
+      background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(0,0,0,.25));
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.25);
+      opacity:.85;
+    }
+
+    .doorHandle{
+      position:absolute;
+      right: 18px; top: 112px;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 35% 35%, rgba(255,255,255,.65), rgba(255,225,140,.55) 35%, rgba(120,70,20,.45) 72%, rgba(0,0,0,.25));
+      box-shadow:
+        0 8px 18px rgba(0,0,0,.35),
+        inset 0 0 0 3px rgba(255,230,160,.10);
+      z-index:5;
+    }
+    .doorHandle::after{
+      content:"";
+      position:absolute;
+      left: 50%; top: 50%;
+      width: 10px; height: 10px;
+      transform: translate(-50%,-50%);
+      border-radius: 50%;
+      background: rgba(0,0,0,.25);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.10);
+      opacity:.9;
+    }
+
+    .doorKeyhole{
+      position:absolute;
+      right: 24px; top: 146px;
+      width: 10px; height: 14px;
+      border-radius: 6px 6px 10px 10px;
+      background: rgba(0,0,0,.45);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+      z-index:5;
+      opacity:.8;
+    }
+    .doorKeyhole::before{
+      content:"";
+      position:absolute;
+      left: 50%; top: -6px;
+      width: 10px; height: 10px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: rgba(0,0,0,.45);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+    }
+
+    /* ドアの隙間からの光（開くと強くなる） */
+    .lightLeak{
+      position:absolute;
+      left: 14px; top: 14px;
+      width: 8px;
+      height: calc(100% - 28px);
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(160,230,255,.0), rgba(180,200,255,.45), rgba(180,200,255,.0));
+      filter: blur(6px);
+      opacity: 0;
+      transform: translateX(4px);
+      pointer-events:none;
+      z-index:4;
+    }
+
+    .doorText{ font-weight:900; letter-spacing:.05em; }
     .doorHint{ font-size:13px; color: rgba(234,241,255,.76); }
 
-    /* 開く演出 */
-    .opening .doorBtn{
-      transform: scale(0.98);
-      filter: brightness(1.08);
-    }
-    .opening .doorFace{
+    /* ===== 開く演出（portal.js が .opening を付ける） ===== */
+    .opening .doorBtn{ transform: scale(0.985); filter: brightness(1.06); }
+
+    /* 先にガタガタ → その後に開く */
+    .opening .doorLeaf{
       transform-origin: left center;
-      animation: doorOpen .55s ease forwards;
+      animation:
+        doorRattle .14s ease-in-out 0s 2,
+        doorOpen .42s cubic-bezier(.18,.88,.22,1) .28s forwards;
+    }
+    .opening .doorHandle{
+      animation: handleJiggle .18s ease-in-out 0s 2;
+    }
+    .opening .portalBack{
+      animation: portalBloom .56s ease forwards;
+    }
+    .opening .lightLeak{
+      opacity: 1;
+      animation: leakGrow .56s ease forwards;
+    }
+
+    @keyframes doorRattle{
+      0%{ transform: translateZ(2px) rotateY(0deg); }
+      25%{ transform: translateZ(2px) rotateY(-1.2deg) translateX(-1px); }
+      50%{ transform: translateZ(2px) rotateY(0.8deg) translateX(1px); }
+      75%{ transform: translateZ(2px) rotateY(-0.8deg) translateX(-1px); }
+      100%{ transform: translateZ(2px) rotateY(0deg); }
+    }
+    @keyframes handleJiggle{
+      0%{ transform: translateZ(0) rotate(0deg); }
+      35%{ transform: translateZ(0) rotate(8deg); }
+      70%{ transform: translateZ(0) rotate(-6deg); }
+      100%{ transform: translateZ(0) rotate(0deg); }
     }
     @keyframes doorOpen{
-      0%{ transform: perspective(800px) rotateY(0deg); }
-      100%{ transform: perspective(800px) rotateY(-55deg); }
+      0%{ transform: translateZ(2px) perspective(900px) rotateY(0deg); }
+      100%{ transform: translateZ(2px) perspective(900px) rotateY(-74deg) translateX(-10px); }
+    }
+    @keyframes portalBloom{
+      0%{ opacity:.55; filter: blur(.2px) saturate(1); }
+      35%{ opacity:.75; filter: blur(.2px) saturate(1.2); }
+      100%{ opacity:1; filter: blur(.1px) saturate(1.35); }
+    }
+    @keyframes leakGrow{
+      0%{ transform: translateX(4px) scaleY(.85); filter: blur(7px); }
+      100%{ transform: translateX(2px) scaleY(1.1); filter: blur(9px); }
+    }
+
+    /* クリック時に軽く“世界がズレる” */
+    .opening .doorFrame{
+      animation: framePunch .56s ease forwards;
+    }
+    @keyframes framePunch{
+      0%{ transform: translateZ(0); }
+      18%{ transform: translateY(1px) scale(1.004); }
+      45%{ transform: translateY(-1px) scale(1.01); }
+      100%{ transform: translateY(0) scale(1); }
+    }
+
+    /* スマホでボタンが大きすぎる時の調整 */
+    @media (max-width: 420px){
+      .doorStage{ width: 210px; height: 240px; }
+      .doorFrame{ width: 170px; height: 220px; }
     }
   </style>
 </head>
@@ -119,7 +401,7 @@
       <a class="chip" href="games.html">ゲーム</a>
       <a class="chip" href="door.html">ドア</a>
       <a class="chip" href="hachi.html">八百科事典</a>
-       <div class="nav-search">
+      <div class="nav-search">
         <input type="search" id="searchInput" placeholder="検索キーワードを入力してください" autocomplete="off">
         <button id="searchBtn">検索</button>
       </div>
@@ -129,7 +411,7 @@
   <main class="wrap">
     <section class="hero">
       <h1 class="h1">ドア</h1>
-      <p class="sub">押せばワープ。無料。鍵なし。</p>
+      <p class="sub">押せばワープ。無料。鍵なし。…たぶん安全。</p>
 
       <div class="btnrow">
         <button onclick="toggleFxSound()">効果音：<b id="fxSoundState">ON</b></button>
@@ -145,14 +427,29 @@
     <section class="grid2" style="margin-top:12px">
       <div class="card">
         <h2>🚪 Door</h2>
+
         <div class="doorWrap" id="doorWrap">
           <canvas id="fxCanvas"></canvas>
 
           <!-- portal.js がこのボタンに click を付ける -->
           <button class="doorBtn" id="doorBtn">
-            <div class="doorFace" aria-hidden="true"><span class="doorKnob"></span></div>
+            <div class="doorStage" aria-hidden="true">
+              <div class="doorFrame">
+                <div class="portalBack"></div>
+                <div class="lightLeak"></div>
+
+                <div class="doorLeaf">
+                  <div class="doorHinges">
+                    <i></i><i></i><i></i>
+                  </div>
+                  <div class="doorHandle"></div>
+                  <div class="doorKeyhole"></div>
+                </div>
+              </div>
+            </div>
+
             <div class="doorText">ドアを開く</div>
-            <div class="doorHint">クリック/タップ → 暗転 → warp.html へ</div>
+            <div class="doorHint">クリック/タップ → ちょい演出 → 暗転 → warp.html</div>
           </button>
         </div>
 
