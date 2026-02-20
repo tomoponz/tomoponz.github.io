@@ -1,4 +1,4 @@
-// kuro.js（$の衝突回避版：IIFEでスコープ隔離）
+// kuro.js（$衝突回避：byId を使う）
 (() => {
   "use strict";
 
@@ -66,17 +66,15 @@
     }
   ];
 
-  // ===== utilities（全部この中に閉じるので衝突しない）=====
-  const $ = (id) => document.getElementById(id);
+  // ===== utilities =====
+  const byId = (id) => document.getElementById(id);
 
   function norm(s) {
     return (s || "").trim().replace(/\s+/g, " ");
   }
-
   function uniq(arr) {
     return Array.from(new Set(arr));
   }
-
   function escapeHtml(s) {
     return String(s ?? "")
       .replaceAll("&", "&amp;")
@@ -85,24 +83,20 @@
       .replaceAll("\"", "&quot;")
       .replaceAll("'", "&#39;");
   }
-
   function escapeAttr(s) {
     return escapeHtml(s).replaceAll("`", "&#96;");
   }
-
   function toText(html) {
     const div = document.createElement("div");
     div.innerHTML = html || "";
     return (div.textContent || "").toLowerCase();
   }
-
   function stripScripts(html) {
     const div = document.createElement("div");
     div.innerHTML = html || "";
     div.querySelectorAll("script").forEach(n => n.remove());
     return div.innerHTML;
   }
-
   function levelLabel(level) {
     const lv = Number(level || 1);
     if (lv >= 3) return "危険度:III";
@@ -116,15 +110,13 @@
   function isSealOff() {
     return localStorage.getItem(LS_SEAL) === "1";
   }
-
   function setSealOff(v) {
     localStorage.setItem(LS_SEAL, v ? "1" : "0");
   }
-
   function applySealUI() {
-    const wrap = $("kuroListWrap");
-    const bar = $("sealBar");
-    const btn = $("kuroToggleSeal");
+    const wrap = byId("kuroListWrap");
+    const bar = byId("sealBar");
+    const btn = byId("kuroToggleSeal");
     if (!wrap) return;
 
     const off = isSealOff();
@@ -141,7 +133,7 @@
 
   // ===== render =====
   function renderTags(allTags, active) {
-    const wrap = $("kuroTags");
+    const wrap = byId("kuroTags");
     if (!wrap) return;
 
     wrap.innerHTML = "";
@@ -170,7 +162,7 @@
   }
 
   function renderList(list) {
-    const out = $("kuroList");
+    const out = byId("kuroList");
     if (!out) return;
 
     out.innerHTML = "";
@@ -219,9 +211,9 @@
   }
 
   function update(activeTags) {
-    const qEl = $("kuroQuery");
-    const sortEl = $("kuroSort");
-    const countEl = $("kuroCount");
+    const qEl = byId("kuroQuery");
+    const sortEl = byId("kuroSort");
+    const countEl = byId("kuroCount");
 
     const q = norm(qEl ? qEl.value : "").toLowerCase();
     const sort = sortEl ? sortEl.value : "new";
@@ -260,7 +252,6 @@
     applySealUI();
   }
 
-  // ===== init =====
   document.addEventListener("DOMContentLoaded", () => {
     const allTags = uniq(KURO_ENTRIES.flatMap(x => x.tags || []))
       .sort((a, b) => a.localeCompare(b));
@@ -270,12 +261,12 @@
     renderTags(allTags, active);
     update(active);
 
-    $("kuroQuery")?.addEventListener("input", () => update(active));
-    $("kuroSort")?.addEventListener("change", () => update(active));
+    byId("kuroQuery")?.addEventListener("input", () => update(active));
+    byId("kuroSort")?.addEventListener("change", () => update(active));
 
-    $("kuroClear")?.addEventListener("click", () => {
-      const q = $("kuroQuery");
-      const s = $("kuroSort");
+    byId("kuroClear")?.addEventListener("click", () => {
+      const q = byId("kuroQuery");
+      const s = byId("kuroSort");
       if (q) q.value = "";
       if (s) s.value = "new";
       active.clear();
@@ -283,7 +274,7 @@
       update(active);
     });
 
-    $("kuroToggleSeal")?.addEventListener("click", () => {
+    byId("kuroToggleSeal")?.addEventListener("click", () => {
       setSealOff(!isSealOff());
       applySealUI();
     });
