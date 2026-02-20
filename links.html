@@ -7,6 +7,60 @@
   <meta name="description" content="SNSや外部リンク（公開したいものだけ）">
   <link rel="stylesheet" href="style.css">
   <script defer src="app.js"></script>
+
+  <style>
+    .ytThumb{
+      display:block;
+      position:relative;
+      border-radius: 18px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+      box-shadow: 0 16px 60px rgba(0,0,0,.22);
+      text-decoration:none;
+      color: inherit;
+    }
+    .ytThumb img{
+      width:100%;
+      height:auto;
+      display:block;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      filter: saturate(1.05);
+    }
+    .ytThumb::after{
+      content:"▶";
+      position:absolute;
+      left: 14px;
+      bottom: 12px;
+      width: 44px;
+      height: 44px;
+      display:grid;
+      place-items:center;
+      border-radius: 999px;
+      background: rgba(0,0,0,.45);
+      border: 1px solid rgba(255,255,255,.16);
+      box-shadow: 0 10px 25px rgba(0,0,0,.35);
+      font-weight: 900;
+      letter-spacing: .02em;
+    }
+    .ytMeta{
+      padding: 12px 14px;
+      border-top: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.14);
+    }
+    .ytMeta .t{
+      margin:0;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+    .ytMeta .s{
+      margin:6px 0 0;
+      opacity:.78;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+  </style>
 </head>
 <body>
   <header class="nav">
@@ -26,7 +80,7 @@
       <a class="chip" href="games.html">ゲーム</a>
       <a class="chip" href="door.html">ドア</a>
       <a class="chip" href="hachi.html">八百科事典</a>
-       <div class="nav-search">
+      <div class="nav-search">
         <input type="search" id="searchInput" placeholder="検索キーワードを入力してください" autocomplete="off">
         <button id="searchBtn">検索</button>
       </div>
@@ -55,8 +109,18 @@
       <div class="card">
         <h2>YouTube</h2>
         <p class="muted">いま聴いてる曲＆プレイリスト。</p>
-        <div class="btnrow">
-          <a class="btn primary" href="https://youtu.be/WUlMjK_VKhA" target="_blank" rel="noopener">Now Playing（YouTube）</a>
+
+        <!-- ✅ Now Playing のサムネ（自動生成） -->
+        <a class="ytThumb" id="nowPlayingThumb" href="https://youtu.be/WUlMjK_VKhA" target="_blank" rel="noopener">
+          <img id="nowPlayingImg" src="" alt="Now Playing thumbnail">
+          <div class="ytMeta">
+            <p class="t">Now Playing</p>
+            <p class="s" id="nowPlayingSub">YouTubeリンクからサムネ生成</p>
+          </div>
+        </a>
+
+        <div class="btnrow" style="margin-top:12px">
+          <a class="btn primary" id="nowPlayingLink" href="https://youtu.be/WUlMjK_VKhA" target="_blank" rel="noopener">Now Playing（YouTube）</a>
           <a class="btn" href="https://youtube.com/playlist?list=PL89MD5rmOuuJbpCYMMW8hB3rBRtNmq7lF" target="_blank" rel="noopener">プレイリストを開く</a>
           <a class="btn" href="gallery.html">埋め込みページへ</a>
         </div>
@@ -65,5 +129,58 @@
       </div>
     </section>
   </main>
+
+  <script>
+    // Now Playing のURLから動画IDを抜いてサムネURLを作る（API不要）
+    function getYouTubeId(url){
+      try{
+        const u = new URL(url);
+        const host = u.hostname.replace(/^www\./, "");
+        if(host === "youtu.be"){
+          const id = u.pathname.split("/").filter(Boolean)[0];
+          return id || "";
+        }
+        if(host.endsWith("youtube.com")){
+          if(u.pathname === "/watch") return u.searchParams.get("v") || "";
+          if(u.pathname.startsWith("/shorts/")) return u.pathname.split("/")[2] || "";
+          if(u.pathname.startsWith("/embed/")) return u.pathname.split("/")[2] || "";
+        }
+      }catch{}
+      return "";
+    }
+
+    function setNowPlayingThumb(){
+      const a = document.getElementById("nowPlayingLink");
+      const thumbA = document.getElementById("nowPlayingThumb");
+      const img = document.getElementById("nowPlayingImg");
+      const sub = document.getElementById("nowPlayingSub");
+      if(!a || !thumbA || !img) return;
+
+      // ボタンの href を正とする（ここを変えるだけでサムネも追従）
+      const href = a.getAttribute("href") || "";
+      const id = getYouTubeId(href);
+
+      thumbA.href = href;
+
+      if(!id){
+        img.alt = "Now Playing";
+        img.src = "";
+        img.style.display = "none";
+        if(sub) sub.textContent = "動画IDを取得できませんでした（URL形式を確認）";
+        return;
+      }
+
+      img.style.display = "block";
+      // 高画質 → 失敗したら自動で小さめに落とす
+      const primary = `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
+      const fallback = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+
+      img.src = primary;
+      img.onerror = () => { img.onerror = null; img.src = fallback; };
+      if(sub) sub.textContent = `video: ${id}`;
+    }
+
+    window.addEventListener("DOMContentLoaded", setNowPlayingThumb);
+  </script>
 </body>
 </html>
