@@ -6,7 +6,6 @@
   <title>tomoponz｜プロフィール</title>
   <meta name="description" content="tomoponzのプロフィールページ" />
 
-  <!-- ★更新時は v= の数字を変える（キャッシュ対策） -->
   <link rel="stylesheet" href="style.css?v=20260220">
 
   <style>
@@ -54,20 +53,11 @@
   </header>
 
   <main class="wrap">
-    <main class="wrap">
     
     <button id="dangerBtn" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: rgba(255,0,0,0.1); border: 2px solid #ff4444; color: #ff8888; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 0 15px rgba(255,0,0,0.3); letter-spacing: 0.1em; transition: 0.2s; opacity: 0.6;">
       ⚠️ 押すな
     </button>
-    ```
-
-### 💡 変更のポイント
-* **`position: fixed; bottom: 20px; right: 20px;`** を追加しました。これで画面をスクロールしても、常に右下の隅にへばりつくようになります。
-* **`z-index: 9999;`** を追加し、他の要素の下に隠れないようにしました。
-* **`opacity: 0.6;`** を追加して少しだけ透けさせ、文字も少し小さく（`font-size: 12px;`）しました。「風景に溶け込んでいるけど、よく見るとヤバいボタンがある」という不気味な雰囲気を演出しています。
-
-JavaScriptのコード（一番下に追加したスクリプト）はそのままで大丈夫です。ホバーしたときにブルブル震えるアニメーションもそのまま機能します！
-
+    <div id="voidClick" style="position: absolute; bottom: 0; left: 0; width: 20px; height: 20px; cursor: default; z-index: 9999;"></div>
     <section class="hero">
       <h1 class="h1" style="margin:0">tomoponz</h1>
       <p class="sub">秘密基地 / ネタ置き場 / ミニゲーム / いろいろ</p>
@@ -123,14 +113,11 @@ JavaScriptのコード（一番下に追加したスクリプト）はそのま�
     </div>
   </main>
 
-  <!-- ✅ app.js はここへ移動（上書き事故を避ける） -->
   <script src="app.js?v=20260220"></script>
 
-  <!-- ✅ 共通名言 + ユーザー追加（1回ずつ） -->
   <script src="quotes_base.js?v=20260220"></script>
   <script src="user_quotes.js?v=20260220"></script>
 
-  <!-- 今日の一言ローテ（BASE+USER） -->
   <script>
     const BASE = Array.isArray(window.BASE_QUOTES) ? window.BASE_QUOTES : [];
 
@@ -196,7 +183,6 @@ JavaScriptのコード（一番下に追加したスクリプト）はそのま�
     });
   </script>
 
-  <!-- キリ番（CounterAPI） -->
   <script>
     const WORKSPACE = "tomoponzs-workspace";
     const COUNTER = "first-counter";
@@ -238,7 +224,28 @@ JavaScriptのコード（一番下に追加したスクリプト）はそのま�
 
     window.addEventListener("load", updateCounter);
   </script>
-    <script>
+
+  <script>
+    // F12 コンソールへの語りかけ
+    console.log("%c[SYSTEM] 端末からのアクセスを検知。監視プロトコルを開始します。", "color: #888; font-size: 11px;");
+    console.log("%c[WARNING] 当サイトのソースコードを閲覧している方へ。これ以上の深入りは推奨しません。", "color: #ff0000; font-weight: bold; font-size: 14px;");
+    // ドラッグで反転させないと見えないパスコード
+    console.log("%c 機密領域アクセスコード: 'kuro-n-tomo' ", "color: #000; background-color: #000; padding: 2px;");
+
+    // 隠しログインの処理
+    const voidClick = document.getElementById("voidClick");
+    if (voidClick) {
+      voidClick.addEventListener("click", () => {
+        const code = prompt("【管理システム】\nアクセス権限が必要です。パスコードを入力してください。");
+        if (code === "kuro-n-tomo") {
+          alert("認証完了。裏付けされた記録を開示します。");
+          location.href = "deep.html"; // ← 次は deep.html を作りましょう！
+        } else if (code) {
+          alert("エラー：記録にない個体です。監視レベルを引き上げます。");
+        }
+      });
+    }
+
     // 絶対に押してはいけないボタンの処理
     const dangerBtn = document.getElementById("dangerBtn");
     if (dangerBtn) {
@@ -250,8 +257,8 @@ JavaScriptのコード（一番下に追加したスクリプト）はそのま�
         document.body.classList.add("glitch-mode");
         
         setTimeout(() => {
-          alert("……そうですか。"); // メッセージを不気味に変更
-          location.href = "horror.html"; // 行き先を horror.html に変更
+          alert("……そうですか。");
+          location.href = "horror.html"; 
         }, 1500);
       });
       
@@ -261,7 +268,7 @@ JavaScriptのコード（一番下に追加したスクリプト）はそのま�
         setTimeout(() => dangerBtn.style.transform = "translate(0, 0)", 100);
       });
     }
-    </script>
+  </script>
     
 </body>
 </html>
