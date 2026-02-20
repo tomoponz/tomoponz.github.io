@@ -29,43 +29,45 @@
     .grid3{ display:grid; gap:14px; grid-template-columns: repeat(3, minmax(0,1fr)); }
     @media (max-width: 900px){ .grid3{ grid-template-columns: 1fr; } }
 
-    /* ▼ ナビゲーションバーに配置する検索ボックスのスタイル ▼ */
+    /* ▼ かがみの特殊少年更生施設風の検索ボックス ▼ */
     .nav-search {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      margin-left: 8px;
-      flex-shrink: 0; /* スマホで潰れないようにする */
+      margin-left: 12px;
+      background: #ffffff;
+      border: 1px solid #dcdcdc;
+      border-radius: 2px;
+      overflow: hidden;
+      flex-shrink: 0;
     }
     .nav-search input {
-      padding: 8px 14px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.15);
-      background: rgba(0,0,0,0.2);
-      color: #fff;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      color: #333333;
       font-size: 13px;
-      width: 120px;
-      transition: width 0.3s ease, background 0.3s ease;
-    }
-    .nav-search input:focus {
+      width: 220px;
       outline: none;
-      border-color: rgba(255,255,255,0.4);
-      width: 160px; /* フォーカス時に少し伸びる */
-      background: rgba(0,0,0,0.4);
+      font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif;
+    }
+    .nav-search input::placeholder {
+      color: #999999;
     }
     .nav-search button {
-      padding: 8px 14px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.15);
-      background: rgba(255,255,255,0.08);
-      color: #fff;
+      padding: 8px 16px;
+      border: none;
+      background: #32373c; /* かがみのサイトで使われているようなお堅いグレー */
+      color: #ffffff;
       font-size: 13px;
       cursor: pointer;
-      white-space: nowrap;
-      transition: 0.2s;
+      font-weight: bold;
+      transition: background 0.2s;
     }
     .nav-search button:hover {
-      background: rgba(255,255,255,0.2);
+      background: #111111;
+    }
+    @media (max-width: 768px){
+      .nav-search input { width: 140px; }
     }
   </style>
 </head>
@@ -90,7 +92,7 @@
       <a class="chip" href="hachi.html">八百科事典</a>
       
       <div class="nav-search">
-        <input type="text" id="searchInput" placeholder="サイト内検索..." autocomplete="off">
+        <input type="search" id="searchInput" placeholder="検索キーワードを入力してください" autocomplete="off">
         <button id="searchBtn">検索</button>
       </div>
       </nav>
@@ -109,8 +111,7 @@
       <div class="btnrow">
         <a class="btnlike" href="games.html">ゲームへ</a>
         <a class="btnlike" href="links.html">リンク集へ</a>
-        <a class="btnlike" href="kuro.html">黒歴史（注意）</a>
-      </div>
+        </div>
     </section>
 
     <section class="grid2">
@@ -158,7 +159,6 @@
   </main>
 
   <script src="app.js?v=20260220"></script>
-
   <script src="quotes_base.js?v=20260220"></script>
   <script src="user_quotes.js?v=20260220"></script>
 
@@ -219,7 +219,6 @@
       }
     }
 
-    // ✅ app.js より後に、最後に確実に反映
     window.addEventListener("load", () => {
       loadQuote();
       document.getElementById("nextQuoteBtn")?.addEventListener("click", loadQuote);
@@ -293,7 +292,7 @@
     const searchBtn = document.getElementById("searchBtn");
     const searchInput = document.getElementById("searchInput");
 
-    // サイト内の簡易案内辞書
+    // サイト内の簡易案内辞書（※黒歴史は削除済）
     const siteIndex = [
       { keywords: ["プロフィール", "profile", "名前", "tomoponz", "自己紹介"], url: "index.html" },
       { keywords: ["おみくじ", "占い", "運勢", "omikuji", "大吉", "凶"], url: "omikuji.html" },
@@ -304,8 +303,7 @@
       { keywords: ["ミニゲーム", "minigames", "暇つぶし", "minigame"], url: "minigames.html" },
       { keywords: ["ドア", "door", "ワープ", "warp", "移動"], url: "door.html" },
       { keywords: ["八百科事典", "hachi", "事典", "辞典", "百科事典"], url: "hachi.html" },
-      { keywords: ["名言", "meigen", "迷言", "セリフ", "言葉"], url: "meigen.html" },
-      { keywords: ["黒歴史", "kuro", "注意", "閲覧注意"], url: "kuro.html" }
+      { keywords: ["名言", "meigen", "迷言", "セリフ", "言葉"], url: "meigen.html" }
     ];
 
     if (searchBtn && searchInput) {
