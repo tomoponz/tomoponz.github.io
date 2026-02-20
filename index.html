@@ -56,11 +56,17 @@
   <main class="wrap">
     <main class="wrap">
     
-    <div style="text-align: center; margin-bottom: 20px;">
-      <button id="dangerBtn" style="background: rgba(255,0,0,0.1); border: 2px solid #ff4444; color: #ff8888; padding: 12px 30px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 0 15px rgba(255,0,0,0.3); letter-spacing: 0.1em; transition: 0.2s;">
-        ⚠️ 絶対に押すな
-      </button>
-    </div>
+    <button id="dangerBtn" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: rgba(255,0,0,0.1); border: 2px solid #ff4444; color: #ff8888; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 0 15px rgba(255,0,0,0.3); letter-spacing: 0.1em; transition: 0.2s; opacity: 0.6;">
+      ⚠️ 押すな
+    </button>
+    ```
+
+### 💡 変更のポイント
+* **`position: fixed; bottom: 20px; right: 20px;`** を追加しました。これで画面をスクロールしても、常に右下の隅にへばりつくようになります。
+* **`z-index: 9999;`** を追加し、他の要素の下に隠れないようにしました。
+* **`opacity: 0.6;`** を追加して少しだけ透けさせ、文字も少し小さく（`font-size: 12px;`）しました。「風景に溶け込んでいるけど、よく見るとヤバいボタンがある」という不気味な雰囲気を演出しています。
+
+JavaScriptのコード（一番下に追加したスクリプト）はそのままで大丈夫です。ホバーしたときにブルブル震えるアニメーションもそのまま機能します！
 
     <section class="hero">
       <h1 class="h1" style="margin:0">tomoponz</h1>
