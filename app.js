@@ -425,14 +425,143 @@
           domain = "tomoponz.github.io";
         }
         const url = `https://www.google.com/search?q=site:${domain}+${encodeURIComponent(query)}`;
-        window.open(url, "_blank", "noopener,noreferrer");
+        window.open(url, "_blank");
       }
     };
 
     searchBtn.addEventListener("click", executeSearch);
-    searchInput.addEventListener("keydown", (e)=>{
+    searchInput.addEventListener("keypress", (e)=>{
       if(e.key === "Enter") executeSearch();
     });
+  }
+
+  // ========== sfx: クリック音（汎用） ==========
+  // ✅おすすめ：音声は assets/sfx/ にまとめる
+  //
+  // 使い方（HTML）：
+  //   <button data-sfx="neta">押す</button>
+  //   <a href="gallery.html" data-sfx="neta" data-sfx-delay="380">ネタ置き場</a>
+  //   <button data-sfx="click1" data-sfx-volume="0.6">OK</button>
+  //
+  // data-sfx には「キー」または「ファイルパス」を入れられる：
+  //   data-sfx="neta"  → 下の SFX_MAP を参照
+  //   data-sfx="assets/sfx/umahii.mp3" → そのまま再生
+
+  const SFX_MAP = {
+    // ネタ置き場用（例）
+    neta: "assets/sfx/umahii.mp3",
+
+    // 例：追加したらここに追記
+    // click1: "assets/sfx/click1.mp3",
+    // ok: "assets/sfx/ok.mp3",
+  };
+
+  // 既存仕様：ネタ置き場(gallery.html)は、data-sfx を付けてなくても鳴らす
+  const GALLERY_AUTO_SFX_KEY = "neta";
+  const GALLERY_AUTO_DELAY_MS = 380;
+
+  // 事前ロード（同じ音は使い回し）
+  const sfxCache = new Map(); // src -> HTMLAudioElement
+
+  function resolveSfxSrc(keyOrPath){
+    const s = (keyOrPath || "").trim();
+    if(!s) return "";
+    // パスっぽい/拡張子があるなら、そのまま使う
+    if(s.includes("/") || /\.(mp3|wav|ogg)$/i.test(s)) return s;
+    return SFX_MAP[s] || "";
+  }
+
+  function getAudio(src){
+    if(!src) return null;
+    if(sfxCache.has(src)) return sfxCache.get(src);
+    try{
+      const a = new Audio(src);
+      a.preload = "auto";
+      a.volume = 0.95;
+      sfxCache.set(src, a);
+      return a;
+    }catch(e){
+      return null;
+    }
+  }
+
+  function playSfx(keyOrPath, volume){
+    const src = resolveSfxSrc(keyOrPath);
+    if(!src) return;
+    const a = getAudio(src);
+    if(!a) return;
+    try{
+      if(typeof volume === "number" && isFinite(volume)){
+        a.volume = clamp(volume, 0, 1);
+      }
+      a.currentTime = 0;
+      a.play().catch(()=>{});
+    }catch(e){}
+  }
+
+  // 外からも呼べるように（任意）
+  window.playSfx = playSfx;
+
+  function initSfxClicks(){
+    document.addEventListener("click", (e)=>{
+      const t = e.target && e.target.closest ? e.target.closest("[data-sfx],a[href]") : null;
+      if(!t) return;
+
+      const isLink = (t.tagName || "").toLowerCase() === "a" && t.getAttribute("href");
+
+      // data-sfx があればそれを優先
+      let key = t.getAttribute("data-sfx") || "";
+
+      // data-sfx が無くても「ネタ置き場リンク」なら自動で鳴らす（旧仕様互換）
+      let autoDelay = 0;
+      if(!key && isLink){
+        let dest = "";
+        try{
+          const u = new URL(t.getAttribute("href"), location.href);
+          dest = (u.pathname.split("/").pop() || "").toLowerCase();
+        }catch{
+          dest = (t.getAttribute("href") || "").toLowerCase();
+        }
+        dest = dest.replace(/^[.\/]+/, "").split(/[?#]/)[0];
+        if(dest === "gallery.html"){
+          key = GALLERY_AUTO_SFX_KEY;
+          autoDelay = GALLERY_AUTO_DELAY_MS;
+        }
+      }
+
+      if(!key) return; // 音指定が無いなら何もしない
+
+      // 音を鳴らす
+      const volAttr = t.getAttribute("data-sfx-volume");
+      const vol = volAttr != null ? Number(volAttr) : undefined;
+      playSfx(key, (typeof vol === "number" && isFinite(vol)) ? vol : undefined);
+
+      // 遷移遅延：リンクだけ
+      if(!isLink) return;
+
+      const delayAttr = t.getAttribute("data-sfx-delay");
+      const delay = clamp(
+        parseInt((delayAttr != null ? delayAttr : autoDelay) || 0, 10) || 0,
+        0, 4000
+      );
+
+      // すでに同ページなら遷移しない（音だけ）
+      const hrefAbs = t.href;
+      const current = (location.href || "");
+      if(hrefAbs === current){
+        if(delay > 0) e.preventDefault();
+        return;
+      }
+
+      // 修飾キー/別タブ/target は尊重（音だけ鳴らして通常動作）
+      if(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if(t.target && t.target.toLowerCase() !== "_self") return;
+      if(delay <= 0) return;
+
+      // 同一タブ遷移だけ少し遅らせる
+      e.preventDefault();
+      setTimeout(()=>{ location.href = hrefAbs; }, delay);
+    }, true);
   }
 
   // ========== init ==========
@@ -441,6 +570,7 @@
     setDailyQuote();   // USER_QUOTES があるならそれだけで回る
     restoreOmikuji();
     initSiteSearch();
+    initSfxClicks();
   });
 
 })();
