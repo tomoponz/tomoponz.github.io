@@ -11,7 +11,6 @@
   <script defer src="hachi.js"></script>
 
   <style>
-    /* 学術資料風（紙・余白・セリフ） */
     .paper {
       border: 1px solid rgba(255,255,255,.10);
       background:
@@ -95,6 +94,15 @@
       opacity: .85;
     }
 
+    /* ✅ ページ内検索ハイライト */
+    #articleContent mark.hachiHit{
+      background: rgba(255, 235, 130, .35);
+      color: rgba(255,255,255,.98);
+      padding: 0 2px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 235, 130, .25);
+    }
+
     .console{
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
       font-size: 12px;
@@ -111,7 +119,6 @@
 </head>
 
 <body>
-  <!-- 統一メニュー -->
   <header class="nav">
     <a class="brand" href="index.html" aria-label="tomoponz ホーム">
       <span class="logo" aria-hidden="true"></span>
@@ -131,10 +138,10 @@
       <a class="chip" href="door.html">ドア</a>
       <a class="chip" href="hachi.html">八百科事典</a>
 
-      <!-- （任意）この検索欄は今は未使用：残してもOK -->
+      <!-- ✅ 右上：本文（ページ内）検索に使う -->
       <div class="nav-search">
-        <input type="search" id="searchInput" placeholder="検索キーワードを入力してください" autocomplete="off">
-        <button id="searchBtn">検索</button>
+        <input type="search" id="searchInput" placeholder="本文内検索（このページだけ）" autocomplete="off">
+        <button id="searchBtn">探す</button>
       </div>
     </nav>
   </header>
@@ -160,7 +167,7 @@
       <div class="metaRow">
         <span>読込先：</span>
         <a href="https://ja.uncyclopedia.info/wiki/%E3%83%A1%E3%82%A4%E3%83%B3%E3%83%9A%E3%83%BC%E3%82%B8" target="_blank" rel="noopener">ja.uncyclopedia.info</a>
-        <span>｜この版は <b>JSONP方式</b> で CORS を回避する（無理ならローカル辞書に逃がす）</span>
+        <span>｜この版は <b>JSONP(script)</b> で取得（CORS回避）／失敗したら外部検索に逃がす</span>
       </div>
     </section>
 
@@ -176,8 +183,8 @@
         <h2>Console</h2>
         <div class="console" id="console">init…</div>
         <div class="note" style="margin-top:10px">
-          “Failed to fetch” が出る環境でも動くように、<b>fetchを使わず JSONP(script)</b> で取得する。<br>
-          それでも外部取得が死んだ時は、<b>ローカル辞書</b>を表示して継続。
+          右上の検索バーは <b>このページの本文内検索</b>。記事検索は上の「検索して読む」。<br>
+          外部取得が死んだ時は、安全に <b>Googleの site検索</b>へ逃がす。
         </div>
       </div>
     </section>
