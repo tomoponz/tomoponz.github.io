@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>......</title>
+  <style>
+    /* ホラー専用のスタイル（既存のCSSは読み込まず、完全に隔離された空間にする） */
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: "MS Mincho", "Hiragino Mincho Pro", serif;
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      user-select: none;
+    }
+
+    #message {
+      font-size: 24px;
+      letter-spacing: 0.2em;
+      opacity: 0;
+      transition: opacity 4s ease-in-out;
+      text-align: center;
+      z-index: 10;
+    }
+
+    #curseBox {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      color: #8b0000;
+      font-size: 14px;
+      line-height: 1.2;
+      overflow: hidden;
+      word-wrap: break-word;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* 激しいバグ演出 */
+    .glitch-extreme {
+      animation: glitchAnim 0.1s infinite;
+      background-color: #fff !important;
+      color: #000 !important;
+    }
+
+    @keyframes glitchAnim {
+      0% { transform: translate(0, 0) scale(1); filter: invert(0); }
+      25% { transform: translate(-5px, 3px) scale(1.02); filter: invert(1); }
+      50% { transform: translate(4px, -4px) scale(0.98); filter: invert(0); }
+      75% { transform: translate(-2px, 5px) scale(1.05); filter: invert(1); }
+      100% { transform: translate(3px, -2px) scale(1); filter: invert(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="message">なぜ、開けたの？</div>
+  <div id="curseBox"></div>
+
+  <script>
+    const msg = document.getElementById("message");
+    const curseBox = document.getElementById("curseBox");
+    
+    // 1. ページを開いて2秒後に文字がじわっと浮かび上がる
+    setTimeout(() => {
+      msg.style.opacity = 1;
+    }, 2000);
+
+    // 2. さらに4秒後、文字が変わる
+    setTimeout(() => {
+      msg.style.opacity = 0;
+      setTimeout(() => {
+        msg.style.color = "#ff0000";
+        msg.textContent = "うしろをふりむかないで";
+        msg.style.opacity = 1;
+      }, 2000);
+    }, 6000);
+
+    // 3. 10秒後、突然カオスモード発動
+    setTimeout(() => {
+      document.body.classList.add("glitch-extreme");
+      curseBox.style.opacity = 1;
+      
+      // 画面を不気味な文字で埋め尽くす
+      const words = ["呪", "怨", "苦", "死", "闇", "痛", "逃ゲラレナイ", "ミテルヨ"];
+      setInterval(() => {
+        const span = document.createElement("span");
+        span.textContent = words[Math.floor(Math.random() * words.length)];
+        span.style.position = "absolute";
+        span.style.left = Math.random() * 100 + "%";
+        span.style.top = Math.random() * 100 + "%";
+        span.style.fontSize = (Math.random() * 50 + 10) + "px";
+        span.style.transform = `rotate(${Math.random() * 360}deg)`;
+        curseBox.appendChild(span);
+
+        // 増えすぎ防止
+        if (curseBox.childNodes.length > 200) {
+          curseBox.removeChild(curseBox.firstChild);
+        }
+      }, 50);
+
+    }, 10000);
+  </script>
+</body>
+</html>
