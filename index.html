@@ -100,7 +100,7 @@
 
   <main class="wrap">
     
-    <button id="dangerBtn" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: rgba(255,0,0,0.1); border: 2px solid #ff4444; color: #ff8888; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 0 15px rgba(255,0,0,0.3); letter-spacing: 0.1em; transition: 0.2s; opacity: 0.6;">
+    <button id="dangerBtn" data-sfx="osuna" data-sfx-volume="1" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: rgba(255,0,0,0.1); border: 2px solid #ff4444; color: #ff8888; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 0 15px rgba(255,0,0,0.3); letter-spacing: 0.1em; transition: 0.2s; opacity: 0.6;">
       ⚠️ 押すな
     </button>
     <div id="voidClick" style="position: absolute; bottom: 0; left: 0; width: 20px; height: 20px; cursor: default; z-index: 9999;"></div>
@@ -318,12 +318,6 @@
           return;
         }
 
-        // ★黒歴史ワードは検索対象外（裏コード以外ではヒットさせない）
-        if (/黒歴史|kuro/i.test(query)) {
-          alert("そのキーワードは検索対象外。");
-          return;
-        }
-
         // 【簡易ナビゲーション】
         const lowerQuery = query.toLowerCase();
         let foundUrl = null;
@@ -346,13 +340,13 @@
               domain = "tomoponz.github.io"; // 本番ドメイン
             }
             const googleSearchUrl = `https://www.google.com/search?q=site:${domain}+${encodeURIComponent(query)}`;
-            window.open(googleSearchUrl, "_blank", "noopener,noreferrer");
+            window.open(googleSearchUrl, "_blank");
           }
         }
       };
 
       searchBtn.addEventListener("click", executeSearch);
-      searchInput.addEventListener("keydown", (e) => {
+      searchInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter") executeSearch();
       });
     }
