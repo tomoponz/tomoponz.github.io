@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>......</title>
   <style>
-    /* ホラー専用のスタイル（既存のCSSは読み込まず、完全に隔離された空間にする） */
+    /* 隔離された空間・カーソルを消して逃げられなくする */
     body {
       background-color: #000;
       color: #fff;
@@ -18,13 +18,14 @@
       align-items: center;
       flex-direction: column;
       user-select: none;
+      cursor: none; /* ← マウスカーソル非表示 */
     }
 
     #message {
       font-size: 24px;
       letter-spacing: 0.2em;
       opacity: 0;
-      transition: opacity 4s ease-in-out;
+      transition: opacity 3s ease-in-out;
       text-align: center;
       z-index: 10;
     }
@@ -40,18 +41,16 @@
       line-height: 1.2;
       overflow: hidden;
       word-wrap: break-word;
-      opacity: 0;
       pointer-events: none;
       z-index: 1;
     }
 
-    /* 激しいバグ演出 */
+    /* カオス演出 */
     .glitch-extreme {
       animation: glitchAnim 0.1s infinite;
       background-color: #fff !important;
       color: #000 !important;
     }
-
     @keyframes glitchAnim {
       0% { transform: translate(0, 0) scale(1); filter: invert(0); }
       25% { transform: translate(-5px, 3px) scale(1.02); filter: invert(1); }
@@ -59,6 +58,64 @@
       75% { transform: translate(-2px, 5px) scale(1.05); filter: invert(1); }
       100% { transform: translate(3px, -2px) scale(1); filter: invert(0); }
     }
+
+    /* 巨大な眼（CSSだけで描画） */
+    #theEye {
+      position: absolute;
+      width: 150px;
+      height: 80px;
+      background: radial-gradient(circle, #000 15%, #f00 25%, #500 50%, #000 90%);
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scaleY(0);
+      opacity: 0;
+      box-shadow: 0 0 50px #f00;
+      transition: transform 0.1s, opacity 0.1s;
+      z-index: 100;
+    }
+    .eye-open {
+      opacity: 1 !important;
+      transform: translate(-50%, -50%) scaleY(1) !important;
+      animation: twitch 3s infinite;
+    }
+    @keyframes twitch {
+      0%, 100% { transform: translate(-50%, -50%) scaleY(1); }
+      5% { transform: translate(-52%, -48%) scaleY(0.9); }
+      10% { transform: translate(-48%, -52%) scaleY(1.1); }
+      15% { transform: translate(-50%, -50%) scaleY(1); }
+    }
+
+    /* 心音のように脈打つ背景 */
+    .heartbeat {
+      animation: hb 1s infinite;
+    }
+    @keyframes hb {
+      0%, 100% { background-color: #000; }
+      15% { background-color: #300; }
+      30% { background-color: #000; }
+      45% { background-color: #100; }
+    }
+
+    /* 偽のエラーダイアログ */
+    #sysError {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 300px;
+      background: #000;
+      border: 2px solid #f00;
+      color: #f00;
+      font-family: monospace;
+      padding: 20px;
+      z-index: 200;
+      display: none;
+      box-shadow: 5px 5px 0 rgba(255,0,0,0.3);
+    }
+    #sysError h3 { margin-top: 0; border-bottom: 1px solid #f00; padding-bottom: 5px; font-size: 16px; }
+    #progressBar { width: 100%; height: 20px; border: 1px solid #f00; margin-top: 15px; }
+    #progressFill { width: 0%; height: 100%; background: #f00; transition: width 3s linear; }
   </style>
 </head>
 <body>
@@ -66,33 +123,38 @@
   <div id="message">なぜ、開けたの？</div>
   <div id="curseBox"></div>
 
+  <div id="theEye"></div>
+
+  <div id="sysError">
+    <h3>CRITICAL ERROR</h3>
+    <div id="errText">端末の汚染を確認しました。<br>フォーマットを実行します...</div>
+    <div id="progressBar"><div id="progressFill"></div></div>
+  </div>
+
   <script>
     const msg = document.getElementById("message");
     const curseBox = document.getElementById("curseBox");
+    let textInterval;
     
-    // 1. ページを開いて2秒後に文字がじわっと浮かび上がる
-    setTimeout(() => {
-      msg.style.opacity = 1;
-    }, 2000);
+    // 2秒後：最初のメッセージ
+    setTimeout(() => { msg.style.opacity = 1; }, 2000);
 
-    // 2. さらに4秒後、文字が変わる
+    // 5秒後：メッセージ変化
     setTimeout(() => {
       msg.style.opacity = 0;
       setTimeout(() => {
         msg.style.color = "#ff0000";
-        msg.textContent = "うしろをふりむかないで";
+        msg.textContent = "みいつけた";
         msg.style.opacity = 1;
-      }, 2000);
-    }, 6000);
+      }, 1500);
+    }, 5000);
 
-    // 3. 10秒後、突然カオスモード発動
+    // 9秒後：バグ＆テキスト増殖発動
     setTimeout(() => {
       document.body.classList.add("glitch-extreme");
-      curseBox.style.opacity = 1;
       
-      // 画面を不気味な文字で埋め尽くす
-      const words = ["呪", "怨", "苦", "死", "闇", "痛", "逃ゲラレナイ", "ミテルヨ"];
-      setInterval(() => {
+      const words = ["呪", "怨", "苦", "死", "痛", "逃ゲラレナイ", "ミテルヨ"];
+      textInterval = setInterval(() => {
         const span = document.createElement("span");
         span.textContent = words[Math.floor(Math.random() * words.length)];
         span.style.position = "absolute";
@@ -101,14 +163,40 @@
         span.style.fontSize = (Math.random() * 50 + 10) + "px";
         span.style.transform = `rotate(${Math.random() * 360}deg)`;
         curseBox.appendChild(span);
+        if (curseBox.childNodes.length > 150) curseBox.removeChild(curseBox.firstChild);
+      }, 40);
+    }, 9000);
 
-        // 増えすぎ防止
-        if (curseBox.childNodes.length > 200) {
-          curseBox.removeChild(curseBox.firstChild);
-        }
-      }, 50);
+    // 14秒後：【急展開】突然止まり、眼が開く
+    setTimeout(() => {
+      clearInterval(textInterval); // 文字増殖を強制停止
+      document.body.classList.remove("glitch-extreme"); // バグ演出停止
+      curseBox.innerHTML = ""; // 文字を全消去
+      msg.style.display = "none"; // メッセージ消去
+      
+      // 心音背景と眼の出現
+      document.body.classList.add("heartbeat");
+      document.getElementById("theEye").classList.add("eye-open");
+    }, 14000);
 
-    }, 10000);
+    // 17秒後：偽のシステムエラー警告が出現
+    setTimeout(() => {
+      document.getElementById("theEye").style.opacity = 0; // 眼が消える
+      document.body.classList.remove("heartbeat"); // 心音停止
+      document.body.style.backgroundColor = "#000";
+      
+      const sysError = document.getElementById("sysError");
+      sysError.style.display = "block";
+      
+      // プログレスバーがグングン伸びる
+      setTimeout(() => { document.getElementById("progressFill").style.width = "99%"; }, 500);
+      
+      // 寸止めで脅し文句
+      setTimeout(() => {
+        document.getElementById("errText").innerHTML = "データ削除中... 99%<br><br>...対象：あなたのすべて";
+      }, 3500);
+    }, 17000);
+
   </script>
 </body>
 </html>
