@@ -64,6 +64,8 @@ body {
   color: #3d3a2e;
   z-index: 10;
 }
+p { font-size: 22px; margin: 10px 0; }
+.small { font-size: 14px; opacity: 0.5; margin-top: 30px; }
 
 .exit-sign {
   position: absolute;
@@ -78,25 +80,34 @@ body {
   border-radius: 4px;
   box-shadow: 0 0 15px rgba(204, 0, 0, 0.8);
   z-index: 20;
+  transition: transform 0.2s;
+}
+.exit-sign:hover {
+  transform: scale(1.05);
 }
 
-/* ★ 右下のクリック可能な画像（Daisy Bell） */
+/* ★ 右下の端っこに配置する小さい画像（Daisy Bell） */
 #daisy-btn {
   position: fixed;
-  bottom: 20px;
-  left: 20px; /* ページの端（左下）に配置 */
-  width: 120px;
+  bottom: 15px; /* 下からの距離 */
+  left: 15px;   /* 左からの距離（画面の左下に配置） */
+  width: 60px;  /* ← 大きさを60pxに縮小 */
+  max-width: 15vw;
   height: auto;
   cursor: pointer;
-  opacity: 0.6;
-  /* 壁に染み付いたようなブレンド効果 */
+  
+  /* 壁のシミのように存在感を薄くする */
+  opacity: 0.45;
   mix-blend-mode: multiply;
-  filter: sepia(0.5) contrast(1.2);
+  
+  /* さらに黄ばませて暗く落とす */
+  filter: sepia(0.7) contrast(1.3) brightness(0.7);
   transition: all 0.5s ease;
   z-index: 30;
 }
+
 #daisy-btn:hover {
   opacity: 0.9;
-  transform: scale(1.05);
-  filter: none;
+  transform: scale(1.1);
+  filter: sepia(0.2) contrast(1.1) brightness(0.9); /* マウスを乗せると少しだけハッキリ見える */
 }
