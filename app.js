@@ -30,6 +30,10 @@ function setActiveNav(){
     "door.html": "ドア",
     "warp.html": "ワープ",
     "hachi.html": "八百科事典",
+    "meigen.html": "名言",
+    "kuro.html": "黒歴史",
+    "horror.html": "ホラー",
+    "deep.html": "深層",
     "404.html": "迷ひ道"
   };
 
@@ -466,9 +470,82 @@ function runShindan(){
   };
 }
 
+// ========== site search (全ページ共通) ==========
+function initSiteSearch(){
+  const searchBtn = document.getElementById("searchBtn");
+  const searchInput = document.getElementById("searchInput");
+  if(!searchBtn || !searchInput) return;
+
+  // プロフィール(index)は index.html 側で検索が動いてる前提。二重発火を避ける
+  const file = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+  if(file === "index.html") return;
+
+  // サイト内の簡易辞書（増やしてOK）
+  const siteIndex = [
+    { keywords: ["プロフィール", "profile", "tomoponz", "自己紹介"], url: "index.html" },
+    { keywords: ["おみくじ", "占い", "運勢", "omikuji", "大吉", "凶"], url: "omikuji.html" },
+    { keywords: ["診断", "shindan", "性格", "タイプ"], url: "shindan.html" },
+    { keywords: ["ネタ", "ギャラリー", "gallery", "ネタ置き場", "画像"], url: "gallery.html" },
+    { keywords: ["リンク", "links"], url: "links.html" },
+    { keywords: ["ゲーム", "games"], url: "games.html" },
+    { keywords: ["ミニゲーム", "minigames"], url: "minigames.html" },
+    { keywords: ["ドア", "door", "ワープ", "warp"], url: "door.html" },
+    { keywords: ["八百科事典", "hachi", "百科事典", "事典"], url: "hachi.html" },
+    { keywords: ["名言", "meigen", "迷言", "セリフ"], url: "meigen.html" },
+    { keywords: ["黒歴史", "kuro", "封印庫", "供養"], url: "kuro.html" },
+    { keywords: ["ホラー", "horror", "怖い"], url: "horror.html" },
+  ];
+
+  const executeSearch = () => {
+    const query = (searchInput.value || "").trim();
+    if(!query) return;
+
+    // （必要なら残す / 不要なら消してOK）
+    if(query === "kuro-n-tomo"){
+      alert("認証完了。裏付けされた記録を開示します。");
+      location.href = "deep.html";
+      return;
+    }
+
+    const lower = query.toLowerCase();
+    let found = null;
+
+    for(const page of siteIndex){
+      const hit = page.keywords.some(kw=>{
+        const k = String(kw).toLowerCase();
+        return k.includes(lower) || lower.includes(k);
+      });
+      if(hit){ found = page.url; break; }
+    }
+
+    if(found){
+      if(confirm(`「${query}」に関連するページが見つかった。\n移動する？`)){
+        location.href = found;
+      }
+      return;
+    }
+
+    // 見つからない場合：Googleサイト内検索に投げる（別タブ）
+    if(confirm(`「${query}」は主要ページ辞書に無かった。\nGoogleでサイト内検索する？`)){
+      let domain = window.location.hostname;
+      if(domain === "localhost" || domain === "127.0.0.1" || domain === ""){
+        domain = "tomoponz.github.io";
+      }
+      const url = `https://www.google.com/search?q=site:${domain}+${encodeURIComponent(query)}`;
+      window.open(url, "_blank");
+    }
+  };
+
+  searchBtn.addEventListener("click", executeSearch);
+  searchInput.addEventListener("keypress", (e)=>{
+    if(e.key === "Enter") executeSearch();
+  });
+}
+
 // ========== init ==========
 document.addEventListener("DOMContentLoaded", ()=>{
   setActiveNav();
   setDailyQuote();
   restoreOmikuji();
+  initSiteSearch(); // ★追加：プロフィール以外でも検索バーを動かす
 });
