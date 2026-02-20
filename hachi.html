@@ -130,7 +130,9 @@
       <a class="chip" href="games.html">ゲーム</a>
       <a class="chip" href="door.html">ドア</a>
       <a class="chip" href="hachi.html">八百科事典</a>
-       <div class="nav-search">
+
+      <!-- （任意）この検索欄は今は未使用：残してもOK -->
+      <div class="nav-search">
         <input type="search" id="searchInput" placeholder="検索キーワードを入力してください" autocomplete="off">
         <button id="searchBtn">検索</button>
       </div>
@@ -158,7 +160,7 @@
       <div class="metaRow">
         <span>読込先：</span>
         <a href="https://ja.uncyclopedia.info/wiki/%E3%83%A1%E3%82%A4%E3%83%B3%E3%83%9A%E3%83%BC%E3%82%B8" target="_blank" rel="noopener">ja.uncyclopedia.info</a>
-        <span>｜内部リンクは“このページ内”で辿れる（失敗時はiframeで表示）</span>
+        <span>｜この版は <b>JSONP方式</b> で CORS を回避する（無理ならローカル辞書に逃がす）</span>
       </div>
     </section>
 
@@ -174,8 +176,8 @@
         <h2>Console</h2>
         <div class="console" id="console">init…</div>
         <div class="note" style="margin-top:10px">
-          “Failed to fetch” が出る場合：CORS/回線/相手仕様変更。<br>
-          この版は <b>自動でプロキシ→それでも無理ならiframe</b> に逃がす。
+          “Failed to fetch” が出る環境でも動くように、<b>fetchを使わず JSONP(script)</b> で取得する。<br>
+          それでも外部取得が死んだ時は、<b>ローカル辞書</b>を表示して継続。
         </div>
       </div>
     </section>
