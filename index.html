@@ -318,6 +318,12 @@
           return;
         }
 
+        // ★黒歴史ワードは検索対象外（裏コード以外ではヒットさせない）
+        if (/黒歴史|kuro/i.test(query)) {
+          alert("そのキーワードは検索対象外。");
+          return;
+        }
+
         // 【簡易ナビゲーション】
         const lowerQuery = query.toLowerCase();
         let foundUrl = null;
@@ -340,13 +346,13 @@
               domain = "tomoponz.github.io"; // 本番ドメイン
             }
             const googleSearchUrl = `https://www.google.com/search?q=site:${domain}+${encodeURIComponent(query)}`;
-            window.open(googleSearchUrl, "_blank");
+            window.open(googleSearchUrl, "_blank", "noopener,noreferrer");
           }
         }
       };
 
       searchBtn.addEventListener("click", executeSearch);
-      searchInput.addEventListener("keypress", (e) => {
+      searchInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") executeSearch();
       });
     }
