@@ -56,7 +56,10 @@
         
         // クリック演出：一瞬だけ画像にノイズ
         daisyBtn.style.filter = "invert(1) blur(1px)";
-        setTimeout(() => { daisyBtn.style.filter = ""; }, 100);
+        setTimeout(() => { 
+          // ノイズが終わったら元の色味に戻す
+          daisyBtn.style.filter = "sepia(0.7) contrast(1.3) brightness(0.7)"; 
+        }, 100);
       });
     });
   </script>
