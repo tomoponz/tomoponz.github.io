@@ -129,15 +129,18 @@
     }
     .door-container {
       display: flex;
-      gap: 40px;
-      margin-top: 30px;
+      gap: 20px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 800px;
     }
     .door {
-      color: #555;
+      color: #888;
       text-decoration: none;
-      font-size: 20px;
+      font-size: 18px;
       border: 1px solid #333;
-      padding: 20px 10px;
+      padding: 15px 25px;
       transition: all 0.3s;
     }
     .door:hover {
@@ -163,11 +166,19 @@
   </div>
 
   <div id="escapeZone">
-    <div style="color:#888; font-size:16px; letter-spacing:0.3em;">逃げ道はこちらです</div>
+    <div style="color:#888; font-size:16px; letter-spacing:0.3em; margin-bottom: 10px;">どこへ逃げますか？</div>
+    
     <div class="door-container">
       <a href="https://www.lomando.com/main.html" class="door">【 壱の扉 】</a>
       <a href="https://hasama.hippy.jp/aiueo/" class="door">【 弐の扉 】</a>
       <a href="https://kagamino-jrep.net/" class="door">【 参の扉 】</a>
+    </div>
+
+    <div class="door-container">
+      <a href="dreamcore/index.html" class="door">【 肆の扉 (Dreamcore) 】</a>
+      <a href="vaporwave/index.html" class="door">【 伍の扉 (Vaporwave) 】</a>
+      <a href="liminal/index.html" class="door">【 陸の扉 (Liminal) 】</a>
+      <a href="aero/index.html" class="door">【 漆の扉 (Aero) 】</a>
     </div>
   </div>
 
@@ -252,13 +263,6 @@
       }, 500);
 
     }, 23000);
-    <div style="text-align:center; margin-top:50px;">
-  <p style="color:white;">どこへ逃げますか？</p>
-  <a href="dreamcore/index.html" style="color:gray; margin:10px;">扉1</a>
-  <a href="vaporwave/index.html" style="color:gray; margin:10px;">扉2</a>
-  <a href="liminal/index.html" style="color:gray; margin:10px;">扉3</a>
-  <a href="aero/index.html" style="color:gray; margin:10px;">扉4</a>
-</div>
   </script>
 </body>
 </html>
