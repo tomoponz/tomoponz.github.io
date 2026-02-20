@@ -19,54 +19,44 @@
 
     <a href="../index.html" class="exit-sign">EXIT ➔</a>
 
-    <img id="radio-btn" src="../img/daisy bell.png" alt="Play Music">
+    <img id="daisy-btn" src="../img/daisy%20bell.png" alt="Daisy Bell Icon">
   </div>
 
-  <audio id="bgm-buzz" src="../assets/sfx/backrooms-buzzing-sound-effect.mp3" loop></audio>
-  <audio id="bgm-daisy" src="../assets/sfx/daisy-bell.mp3"></audio>
+  <audio id="audio-buzz" src="../assets/sfx/backrooms-buzzing-sound-effect.mp3" loop></audio>
+  <audio id="audio-daisy" src="../assets/sfx/daisy-bell.mp3"></audio>
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const buzz = document.getElementById("bgm-buzz");
-      const daisy = document.getElementById("bgm-daisy");
-      const radioBtn = document.getElementById("radio-btn");
+      const buzz = document.getElementById("audio-buzz");
+      const daisy = document.getElementById("audio-daisy");
+      const daisyBtn = document.getElementById("daisy-btn");
 
-      // 音量調整（ハム音は環境音として低く、曲は少し目立たせる）
-      buzz.volume = 0.4; 
-      daisy.volume = 0.8;
+      // 音量バランス調整
+      buzz.volume = 0.25; 
+      daisy.volume = 0.7;
 
-      let isStarted = false;
+      let hasInteracted = false;
 
-      // 初回タップ/クリック時に再生開始
-      const startAudio = () => {
-        if (isStarted) return;
-        isStarted = true;
-        buzz.play().catch(e => console.log("Buzz再生エラー:", e));
-        daisy.play().catch(e => console.log("Daisy再生エラー:", e));
+      // ブラウザの自動再生制限対策：画面をクリックした瞬間に再生を開始
+      const startAmbiance = () => {
+        if (hasInteracted) return;
+        hasInteracted = true;
+        buzz.play().catch(console.error);
+        daisy.play().catch(console.error);
       };
 
-      document.body.addEventListener("click", startAudio, { once: true });
-      document.body.addEventListener("touchstart", startAudio, { once: true });
+      document.body.addEventListener("click", startAmbiance, { once: true });
+      document.body.addEventListener("touchstart", startAmbiance, { once: true });
 
-      // 自動再生を試みる（ブロックされた場合は上記のクリックイベントでカバー）
-      buzz.play().then(() => {
-        daisy.play();
-        isStarted = true;
-      }).catch(() => {
-        console.log("自動再生がブロックされました。画面タップで開始します。");
-      });
-
-      // 画像をクリックした時の処理（Daisy Bellを巻き戻して再生）
-      radioBtn.addEventListener("click", (e) => {
-        e.stopPropagation(); // 背景のクリック判定と被らないようにする
-        daisy.currentTime = 0; 
+      // 画像クリック時にDaisy Bellをリプレイ
+      daisyBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); // ボディのクリックイベント発火を防止
+        daisy.currentTime = 0;
         daisy.play();
         
-        // クリックした瞬間に少しだけ画像をノイズっぽく揺らす（演出）
-        radioBtn.style.filter = "invert(1) blur(2px)";
-        setTimeout(() => {
-          radioBtn.style.filter = "";
-        }, 150);
+        // クリック演出：一瞬だけ画像にノイズ
+        daisyBtn.style.filter = "invert(1) blur(1px)";
+        setTimeout(() => { daisyBtn.style.filter = ""; }, 100);
       });
     });
   </script>
