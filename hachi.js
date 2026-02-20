@@ -1,9 +1,10 @@
-// hachi.js（検索URLを /index.php に修正＋フォールバック付き）
-// - ランダム：/wiki/Special:Random
-// - 検索：/index.php?search=... （ここが一番通りやすい）
-// - もし環境によって /index.php がダメでも、/wiki/特別:検索 と /wiki/Special:Search を順に試せるリンクも用意
+// hachi.js（検索は外部検索エンジンに丸投げ版：確実に動く）
+// - 「検索して読む」: Googleの site:ja.uncyclopedia.info 検索結果へ
+// - 「本家で開く」    : 入力を記事タイトルとして直接開く
+// - 「ランダム」      : Special:Randomへ
 
 const WIKI_BASE = "https://ja.uncyclopedia.info";
+const SITE = "ja.uncyclopedia.info"; // site: 検索用
 
 const el = (id) => document.getElementById(id);
 
@@ -22,28 +23,26 @@ function pageUrl(title){
   return `${WIKI_BASE}/wiki/${encodeURIComponent(t)}`;
 }
 
-// ✅ 検索：まず /index.php を使う（/w/index.php は Not Found になりがち）
-function searchUrl_primary(q){
-  const query = norm(q);
-  if(!query) return pageUrl("メインページ");
-  return `${WIKI_BASE}/index.php?search=${encodeURIComponent(query)}&title=Special:Search&fulltext=1`;
+// ✅ これが本命：本家の検索機能に依存しない
+function googleSiteSearchUrl(query){
+  const q = norm(query);
+  if(!q) return `https://www.google.com/search?q=${encodeURIComponent("site:" + SITE)}`;
+  return `https://www.google.com/search?q=${encodeURIComponent("site:" + SITE + " " + q)}`;
 }
 
-// 予備（環境差対策）
-function searchUrl_fallback_jp(q){
-  const query = norm(q);
-  if(!query) return pageUrl("メインページ");
-  // 「特別:検索」(日本語エイリアス)
-  return `${WIKI_BASE}/wiki/${encodeURIComponent("特別:検索")}?search=${encodeURIComponent(query)}&fulltext=1`;
-}
-function searchUrl_fallback_en(q){
-  const query = norm(q);
-  if(!query) return pageUrl("メインページ");
-  return `${WIKI_BASE}/wiki/Special:Search?search=${encodeURIComponent(query)}&fulltext=1`;
+// 予備：Googleが嫌ならこっちに切り替えてもOK
+function ddgSiteSearchUrl(query){
+  const q = norm(query);
+  if(!q) return `https://duckduckgo.com/?q=${encodeURIComponent("site:" + SITE)}`;
+  return `https://duckduckgo.com/?q=${encodeURIComponent("site:" + SITE + " " + q)}`;
 }
 
-// ポップアップブロック回避：検索は同一タブ遷移にする（これが一番確実）
-function go(url){
+function openUrl(url, newTab = true){
+  if(newTab){
+    const w = window.open(url, "_blank", "noopener");
+    if(w) return;
+  }
+  // ポップアップブロック時の保険
   location.href = url;
 }
 
@@ -57,17 +56,14 @@ function setStatus(){
   const t = el("articleTitle");
   const n = el("articleNote");
   const c = el("articleContent");
-  if(t) t.textContent = "外部表示モード";
-  if(n) n.textContent = "Cloudflare対策：サイト内に埋め込まず、本家ページへ移動します。";
+  if(t) t.textContent = "外部検索モード";
+  if(n) n.textContent = "Cloudflare等で本家検索が不安定なので、検索は外部検索結果へ飛ばす。";
   if(c) c.innerHTML = `
     <p class="note">
-      「検索して読む」＝本家の検索結果へ移動します。<br>
-      もし 404 になったら、下の“予備リンク”を試してください。
+      「検索して読む」→ Googleで <b>site:${SITE}</b> 検索結果を開きます。<br>
+      「本家で開く」→ 入力を記事名として直接開きます。<br>
+      「ランダム」→ 本家ランダムへ。
     </p>
-    <ul>
-      <li><a id="fb1" href="#" rel="noopener">予備①：/wiki/特別:検索</a></li>
-      <li><a id="fb2" href="#" rel="noopener">予備②：/wiki/Special:Search</a></li>
-    </ul>
   `;
 }
 
@@ -78,9 +74,10 @@ function wireSearch(inputId, buttonId){
 
   const run = () => {
     const q = inp.value || "";
-    const url = searchUrl_primary(q);
-    log(`go search: ${url}`);
-    go(url);
+    // ここを ddgSiteSearchUrl(q) に変えるとDuckDuckGoにできる
+    const url = googleSiteSearchUrl(q);
+    log(`open search: ${url}`);
+    openUrl(url, true);
   };
 
   btn.addEventListener("click", run);
@@ -89,41 +86,29 @@ function wireSearch(inputId, buttonId){
   });
 }
 
-function wireUI(){
-  // メイン入力（hachi.html の q / btnSearch）
+document.addEventListener("DOMContentLoaded", () => {
+  if(el("console")) el("console").textContent = "init…\n";
+
+  // メイン欄（q / btnSearch）
   wireSearch("q", "btnSearch");
 
-  // ナビ検索（共通app.jsにある想定：searchInput / searchBtn）
+  // ナビ検索（searchInput / searchBtn があるなら同じ挙動にする）
   wireSearch("searchInput", "searchBtn");
 
   // ランダム
   el("btnRandom")?.addEventListener("click", () => {
     const url = `${WIKI_BASE}/wiki/Special:Random`;
-    log(`go random: ${url}`);
-    go(url);
+    log(`open random: ${url}`);
+    openUrl(url, true);
   });
 
-  // 「本家で開く」リンク更新
+  // 「本家で開く」リンクを入力に追従
   const q = el("q");
+  if(q && !q.value) q.value = "メインページ";
   const updateOpen = () => setOpenLink(q?.value || "メインページ");
   q?.addEventListener("input", updateOpen);
   updateOpen();
 
   setStatus();
-
-  // 予備リンクを実際のURLに差し込む
-  const fb1 = el("fb1");
-  const fb2 = el("fb2");
-  const query = norm(q?.value || "");
-  if(fb1) fb1.href = searchUrl_fallback_jp(query);
-  if(fb2) fb2.href = searchUrl_fallback_en(query);
-
-  log("ready: search via /index.php");
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  if(el("console")) el("console").textContent = "init…\n";
-  const q = el("q");
-  if(q && !q.value) q.value = "メインページ";
-  wireUI();
+  log("ready: external search mode");
 });
