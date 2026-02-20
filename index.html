@@ -358,149 +358,152 @@
       });
     }
 
-// 4. 絶対に押してはいけないボタンの処理（絶望ホラー演出版・指定パス）
+// 4. 絶対に押してはいけないボタンの処理（絶望ホラー演出版・初期音声追加）
     const dangerBtn = document.getElementById("dangerBtn");
     if (dangerBtn) {
       dangerBtn.addEventListener("click", () => {
-        if (!confirm("警告：絶対に押すなと言いましたよね？本当に実行しますか？")) return;
-        if (!confirm("後悔しますよ。本当にいいんですね？")) return;
-        if (!confirm("最終警告です。この先、何が起きても一切の責任を負いません。")) return;
         
-        // 1. 画面を狂わせるCSSを動的に追加
-        const style = document.createElement('style');
-        style.innerHTML = `
-          @keyframes violent-shake {
-            0% { transform: translate(2px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(3px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(1px, 2px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
-          }
-          .horror-glitch {
-            animation: violent-shake 0.1s infinite;
-            filter: invert(1) contrast(150%) hue-rotate(180deg);
-            background-color: #000 !important;
-            cursor: crosshair !important; /* カーソルを不気味な十字に変更 */
-          }
-          .horror-glitch * {
-            cursor: crosshair !important;
-          }
-        `;
-        document.head.appendChild(style);
-        document.body.classList.add("horror-glitch");
+        // ★ クリックした瞬間に「nanikore」の音声を鳴らす ★
+        // ※ファイルの拡張子（.mp3 や .m4a）は、用意したファイルに合わせて変更してください
+        const nanikoreSound = new Audio("assets/sfx/nanikore.mp3");
+        nanikoreSound.volume = 1.0;
+        nanikoreSound.play().catch(() => {}); // ブラウザのブロック対策
 
-        // 不気味なメッセージのリスト
-        const creepyMessages = [
-          "メモリが\"read\"になることはできませんでした。",
-          "システムファイルが破損しています。",
-          "なぜ押したの？",
-          "警告したはずです",
-          "データ消去中...",
-          "I  S E E  Y O U",
-          "う し ろ を ふ り む か な い で",
-          "助けて助けて助けて助けて助けて",
-          "もう手遅れです"
-        ];
-
-        let errorCount = 0;
-
-        // 呪われた音を鳴らす関数（ピッチが徐々に狂う）
-        const playDistortedSound = () => {
-          // ★ 指定された assets/sfx/ フォルダのパスに変更 ★
-          const se = new Audio("assets/sfx/windows error sound.mp3"); 
-          se.volume = 0.6;
-          // エラーが増えるほど音が低く、遅く、不気味になる
-          se.playbackRate = Math.max(0.2, 1.0 - (errorCount * 0.02) + (Math.random() * 0.2 - 0.1));
-          se.play().catch(() => {});
-        };
-
-        // 異常なエラーウィンドウを生成する関数
-        const createFakeError = () => {
-          playDistortedSound();
-          errorCount++;
-
-          const div = document.createElement("div");
-          div.style.position = "fixed";
-          div.style.left = Math.random() * (window.innerWidth - 300) + "px";
-          div.style.top = Math.random() * (window.innerHeight - 150) + "px";
-          div.style.width = "280px";
+        // 音が鳴るのと同時にダイアログが出ると音が消える場合があるため、0.1秒(100ミリ秒)だけ遅らせて警告を出す
+        setTimeout(() => {
+          if (!confirm("警告：絶対に押すなと言いましたよね？本当に実行しますか？")) return;
+          if (!confirm("後悔しますよ。本当にいいんですね？")) return;
+          if (!confirm("最終警告です。この先、何が起きても一切の責任を負いません。")) return;
           
-          // 後半になるほど背景が赤黒く染まる
-          const isLateStage = errorCount > 20;
-          div.style.backgroundColor = isLateStage ? "#4a0000" : "#ece9d8"; 
-          div.style.border = isLateStage ? "2px solid #ff0000" : "2px solid #0055ea";
-          div.style.boxShadow = "5px 5px 15px rgba(0,0,0,0.8)";
-          div.style.color = isLateStage ? "#ff0000" : "#000";
-          div.style.zIndex = Math.floor(Math.random() * 10000) + 10000;
-          div.style.fontFamily = "Tahoma, 'MS UI Gothic', sans-serif";
-
-          const errorCode = Math.floor(Math.random() * 16777215).toString(16).toUpperCase().padStart(6, '0');
-          
-          // メッセージの狂気度を上げる
-          let msgText = creepyMessages[0];
-          if (errorCount > 5) msgText = creepyMessages[Math.floor(Math.random() * creepyMessages.length)];
-          if (errorCount > 30) msgText = "死死死死死死死死死死死死死"; // 限界突破
-
-          div.innerHTML = `
-            <div style="background: ${isLateStage ? 'black' : 'linear-gradient(to right, #0058e6, #3a93ff)'}; color: white; padding: 4px 8px; font-size: 13px; font-weight: bold; display: flex; justify-content: space-between; user-select: none;">
-              <span>${isLateStage ? 'FATAL' : 'System Error'}</span>
-              <span class="fake-close" style="background: #e04343; border-radius: 3px; padding: 0 5px; cursor: pointer;">×</span>
-            </div>
-            <div style="padding: 20px; text-align: center;">
-              <p style="margin: 0 0 15px; font-size: ${isLateStage ? '18px' : '13px'}; font-weight: ${isLateStage ? 'bold' : 'normal'};">
-                Fatal Error: 0x${errorCode}<br>${msgText}
-              </p>
-              <button class="fake-ok" style="padding: 4px 20px; cursor: pointer; color: black;">OK</button>
-            </div>
+          // 1. 画面を狂わせるCSSを動的に追加
+          const style = document.createElement('style');
+          style.innerHTML = `
+            @keyframes violent-shake {
+              0% { transform: translate(2px, 1px) rotate(0deg); }
+              10% { transform: translate(-1px, -2px) rotate(-1deg); }
+              20% { transform: translate(-3px, 0px) rotate(1deg); }
+              30% { transform: translate(3px, 2px) rotate(0deg); }
+              40% { transform: translate(1px, -1px) rotate(1deg); }
+              50% { transform: translate(-1px, 2px) rotate(-1deg); }
+              60% { transform: translate(-3px, 1px) rotate(0deg); }
+              70% { transform: translate(3px, 1px) rotate(-1deg); }
+              80% { transform: translate(-1px, -1px) rotate(1deg); }
+              90% { transform: translate(1px, 2px) rotate(0deg); }
+              100% { transform: translate(1px, -2px) rotate(-1deg); }
+            }
+            .horror-glitch {
+              animation: violent-shake 0.1s infinite;
+              filter: invert(1) contrast(150%) hue-rotate(180deg);
+              background-color: #000 !important;
+              cursor: crosshair !important;
+            }
+            .horror-glitch * {
+              cursor: crosshair !important;
+            }
           `;
-          document.body.appendChild(div);
+          document.head.appendChild(style);
+          document.body.classList.add("horror-glitch");
 
-          // 閉じようとすると指数関数的に増殖する最悪の罠
-          const multiplyErrors = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            createFakeError();
-            createFakeError();
-            createFakeError(); // 1クリックで3つに増える
+          // 不気味なメッセージのリスト
+          const creepyMessages = [
+            "メモリが\"read\"になることはできませんでした。",
+            "システムファイルが破損しています。",
+            "なぜ押したの？",
+            "警告したはずです",
+            "データ消去中...",
+            "I  S E E  Y O U",
+            "う し ろ を ふ り む か な い で",
+            "助けて助けて助けて助けて助けて",
+            "もう手遅れです"
+          ];
+
+          let errorCount = 0;
+
+          // 増殖するエラーの音（前回設定した Windowsエラー音 m4a）
+          const playDistortedSound = () => {
+            const se = new Audio("assets/sfx/windows error sound.m4a"); 
+            se.volume = 0.6;
+            se.playbackRate = Math.max(0.2, 1.0 - (errorCount * 0.02) + (Math.random() * 0.2 - 0.1));
+            se.play().catch(() => {});
           };
 
-          div.querySelector(".fake-close").addEventListener("click", multiplyErrors);
-          div.querySelector(".fake-ok").addEventListener("click", multiplyErrors);
-        };
+          // 異常なエラーウィンドウを生成する関数
+          const createFakeError = () => {
+            playDistortedSound();
+            errorCount++;
 
-        // 最初の連鎖発動（10個ボコボコ出す）
-        let initCount = 0;
-        const chaosInterval = setInterval(() => {
-          createFakeError();
-          initCount++;
-          if (initCount > 10) clearInterval(chaosInterval);
-        }, 200);
+            const div = document.createElement("div");
+            div.style.position = "fixed";
+            div.style.left = Math.random() * (window.innerWidth - 300) + "px";
+            div.style.top = Math.random() * (window.innerHeight - 150) + "px";
+            div.style.width = "280px";
+            
+            const isLateStage = errorCount > 20;
+            div.style.backgroundColor = isLateStage ? "#4a0000" : "#ece9d8"; 
+            div.style.border = isLateStage ? "2px solid #ff0000" : "2px solid #0055ea";
+            div.style.boxShadow = "5px 5px 15px rgba(0,0,0,0.8)";
+            div.style.color = isLateStage ? "#ff0000" : "#000";
+            div.style.zIndex = Math.floor(Math.random() * 10000) + 10000;
+            div.style.fontFamily = "Tahoma, 'MS UI Gothic', sans-serif";
 
-        // 少し遅れてタブを複数開く攻撃
-        setTimeout(() => {
-          window.open("horror.html", "_blank");
-        }, 1500);
-        
-        // 6秒間パニックにさせた後、画面を真っ暗にしてホラー画面へ
-        setTimeout(() => {
-          document.body.innerHTML = "<h1 style='color:red; text-align:center; margin-top:20%; font-size:50px; font-family:serif;'>逃 が さ な い</h1>";
-          document.body.style.animation = "none";
-          document.body.style.filter = "none";
-          document.body.style.backgroundColor = "black";
+            const errorCode = Math.floor(Math.random() * 16777215).toString(16).toUpperCase().padStart(6, '0');
+            
+            let msgText = creepyMessages[0];
+            if (errorCount > 5) msgText = creepyMessages[Math.floor(Math.random() * creepyMessages.length)];
+            if (errorCount > 30) msgText = "死死死死死死死死死死死死死"; 
+
+            div.innerHTML = `
+              <div style="background: ${isLateStage ? 'black' : 'linear-gradient(to right, #0058e6, #3a93ff)'}; color: white; padding: 4px 8px; font-size: 13px; font-weight: bold; display: flex; justify-content: space-between; user-select: none;">
+                <span>${isLateStage ? 'FATAL' : 'System Error'}</span>
+                <span class="fake-close" style="background: #e04343; border-radius: 3px; padding: 0 5px; cursor: pointer;">×</span>
+              </div>
+              <div style="padding: 20px; text-align: center;">
+                <p style="margin: 0 0 15px; font-size: ${isLateStage ? '18px' : '13px'}; font-weight: ${isLateStage ? 'bold' : 'normal'};">
+                  Fatal Error: 0x${errorCode}<br>${msgText}
+                </p>
+                <button class="fake-ok" style="padding: 4px 20px; cursor: pointer; color: black;">OK</button>
+              </div>
+            `;
+            document.body.appendChild(div);
+
+            const multiplyErrors = (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              createFakeError();
+              createFakeError();
+              createFakeError(); 
+            };
+
+            div.querySelector(".fake-close").addEventListener("click", multiplyErrors);
+            div.querySelector(".fake-ok").addEventListener("click", multiplyErrors);
+          };
+
+          // 最初の連鎖発動
+          let initCount = 0;
+          const chaosInterval = setInterval(() => {
+            createFakeError();
+            initCount++;
+            if (initCount > 10) clearInterval(chaosInterval);
+          }, 200);
+
+          setTimeout(() => {
+            window.open("horror.html", "_blank");
+          }, 1500);
           
           setTimeout(() => {
-            location.href = "horror.html"; 
-          }, 2000); // 最後のメッセージを2秒見せてから飛ばす
-        }, 6000);
+            document.body.innerHTML = "<h1 style='color:red; text-align:center; margin-top:20%; font-size:50px; font-family:serif;'>逃 が さ な い</h1>";
+            document.body.style.animation = "none";
+            document.body.style.filter = "none";
+            document.body.style.backgroundColor = "black";
+            
+            setTimeout(() => {
+              location.href = "horror.html"; 
+            }, 2000); 
+          }, 6000);
+
+        }, 100); // ← 0.1秒だけ待ってから警告ダイアログを出す
       });
       
-      // ボタンが逃げる演出（既存のまま）
       dangerBtn.addEventListener("mouseenter", () => {
         dangerBtn.style.transform = "translate(2px, -2px)";
         setTimeout(() => dangerBtn.style.transform = "translate(-2px, 2px)", 50);
