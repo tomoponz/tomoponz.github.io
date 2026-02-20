@@ -1,70 +1,58 @@
 body {
   margin: 0;
   height: 100vh;
+  /* 初期の黄ばんだ壁紙パターンを維持 */
   background-color: #d1c7a3;
-  /* 狂気を誘う黄ばんだカーペット/壁紙のパターン */
-  background-image: repeating-linear-gradient(45deg, #c4ba98 25%, transparent 25%, transparent 75%, #c4ba98 75%, #c4ba98), repeating-linear-gradient(45deg, #c4ba98 25%, #d1c7a3 25%, #d1c7a3 75%, #c4ba98 75%, #c4ba98);
+  background-image: repeating-linear-gradient(45deg, #c4ba98 25%, transparent 25%, transparent 75%, #c4ba98 75%, #c4ba98), 
+                    repeating-linear-gradient(45deg, #c4ba98 25%, #d1c7a3 25%, #d1c7a3 75%, #c4ba98 75%, #c4ba98);
   background-position: 0 0, 10px 10px;
   background-size: 20px 20px;
   font-family: "游明朝", serif;
   overflow: hidden;
-  cursor: crosshair; /* マウスカーソルを不気味な十字に変更 */
+  cursor: crosshair;
 }
 
-/* ビデオカメラを手持ちしているような、ゆっくりとした揺れ */
+/* ビデオカメラのような揺れ演出 */
 .camera-drift {
   width: 100%;
   height: 100%;
   animation: drift 15s infinite alternate ease-in-out;
 }
-
 @keyframes drift {
   0% { transform: scale(1.02) translate(0px, 0px); }
-  33% { transform: scale(1.02) translate(3px, -2px); }
-  66% { transform: scale(1.02) translate(-2px, 3px); }
-  100% { transform: scale(1.02) translate(0px, 0px); }
+  100% { transform: scale(1.02) translate(4px, -3px); }
 }
 
-/* 視界の四隅を暗くする（ビデオカメラ特有のケラレ効果） */
+/* 視界の隅を暗くする効果 */
 .vignette {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.85) 100%);
+  background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
   pointer-events: none;
-  z-index: 10;
+  z-index: 5;
 }
 
-/* 古いVHSテープのような走査線（横シマのノイズ） */
+/* VHSのような走査線 */
 .scanlines {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0.1),
-    rgba(0, 0, 0, 0.1) 1px,
-    transparent 1px,
-    transparent 2px
-  );
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,0.05), rgba(0,0,0,0.05) 1px, transparent 1px, transparent 2px);
   pointer-events: none;
-  z-index: 11;
+  z-index: 6;
 }
 
 /* 蛍光灯の点滅 */
 .flicker-light {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0);
   pointer-events: none;
   animation: flicker 6s infinite;
-  z-index: 12;
+  z-index: 7;
 }
-
 @keyframes flicker {
-  0%, 89% { background: rgba(0,0,0,0); }
-  90% { background: rgba(0,0,0,0.8); } /* 一瞬の暗転 */
-  92% { background: rgba(0,0,0,0.1); }
-  94% { background: rgba(0,0,0,0.6); }
-  96% { background: rgba(0,0,0,0); }
+  0%, 93% { background: rgba(0,0,0,0); }
+  94% { background: rgba(0,0,0,0.4); }
+  96% { background: rgba(0,0,0,0.1); }
   100% { background: rgba(0,0,0,0); }
 }
 
@@ -73,55 +61,42 @@ body {
   top: 40%; left: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
-  color: #2b281f; /* 黒ではなく、濃いカビのような色 */
-  z-index: 20;
+  color: #3d3a2e;
+  z-index: 10;
 }
-
-p { font-size: 24px; margin: 10px 0; letter-spacing: 2px; }
-.small { font-size: 14px; opacity: 0.5; margin-top: 30px; letter-spacing: 0; }
 
 .exit-sign {
   position: absolute;
-  bottom: 50px; right: 50px;
-  background: #990000;
+  bottom: 40px; right: 40px;
+  background: #cc0000;
   color: #fff;
-  padding: 8px 16px;
-  font-family: monospace;
+  padding: 10px 20px;
+  font-family: sans-serif;
   font-weight: bold;
-  font-size: 20px;
+  font-size: 22px;
   text-decoration: none;
-  border: 2px solid #550000;
-  box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
-  z-index: 30;
-  opacity: 0.8;
-  transition: all 0.3s;
+  border-radius: 4px;
+  box-shadow: 0 0 15px rgba(204, 0, 0, 0.8);
+  z-index: 20;
 }
 
-.exit-sign:hover {
-  background: #ff0000;
-  opacity: 1;
-  box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
-}
-
-/* ★ 自転車乗りの画像（壁に染み付いたシミのように表現） */
-#radio-btn {
-  position: absolute;
-  bottom: 15%;
-  left: 20%;
-  width: 150px; /* サイズは画像に合わせて適宜変更してください */
+/* ★ 右下のクリック可能な画像（Daisy Bell） */
+#daisy-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 20px; /* ページの端（左下）に配置 */
+  width: 120px;
   height: auto;
-  cursor: crosshair;
-  /* 黄ばませて、少しぼやけさせる */
-  filter: sepia(0.8) contrast(1.2) brightness(0.7) blur(0.5px);
-  /* 背景の黄色い壁紙に画像を「焼き付ける（乗算）」処理 */
+  cursor: pointer;
+  opacity: 0.6;
+  /* 壁に染み付いたようなブレンド効果 */
   mix-blend-mode: multiply;
-  opacity: 0.7;
-  transition: all 0.3s ease;
-  z-index: 25;
+  filter: sepia(0.5) contrast(1.2);
+  transition: all 0.5s ease;
+  z-index: 30;
 }
-
-#radio-btn:hover {
-  opacity: 1;
-  filter: sepia(0) contrast(1.5) brightness(1) blur(0px);
-  transform: scale(1.05) rotate(-2deg);
+#daisy-btn:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+  filter: none;
 }
