@@ -29,14 +29,14 @@
     .grid3{ display:grid; gap:14px; grid-template-columns: repeat(3, minmax(0,1fr)); }
     @media (max-width: 900px){ .grid3{ grid-template-columns: 1fr; } }
 
-    /* 偽装検索ボックスのスタイル */
-    .fake-search-container {
+    /* 検索ボックスのスタイル */
+    .search-container {
       margin: 0 auto 24px;
       max-width: 320px;
       display: flex;
       gap: 8px;
     }
-    .fake-search-input {
+    .search-input {
       flex: 1;
       padding: 10px 16px;
       border-radius: 14px;
@@ -45,7 +45,7 @@
       color: #fff;
       font-size: 14px;
     }
-    .fake-search-input:focus {
+    .search-input:focus {
       outline: none;
       border-color: rgba(255,255,255,0.3);
     }
@@ -78,9 +78,10 @@
     <button id="dangerBtn" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: rgba(255,0,0,0.1); border: 2px solid #ff4444; color: #ff8888; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 0 15px rgba(255,0,0,0.3); letter-spacing: 0.1em; transition: 0.2s; opacity: 0.6;">
       ⚠️ 押すな
     </button>
-    <div class="fake-search-container">
-      <input type="text" id="fakeSearchInput" class="fake-search-input" placeholder="サイト内検索..." autocomplete="off">
-      <button id="fakeSearchBtn" class="btnlike">検索</button>
+    <div id="voidClick" style="position: absolute; bottom: 0; left: 0; width: 20px; height: 20px; cursor: default; z-index: 9999;"></div>
+    <div class="search-container">
+      <input type="text" id="searchInput" class="search-input" placeholder="サイト内検索..." autocomplete="off">
+      <button id="searchBtn" class="btnlike">検索</button>
     </div>
     <section class="hero">
       <h1 class="h1" style="margin:0">tomoponz</h1>
@@ -138,6 +139,7 @@
   </main>
 
   <script src="app.js?v=20260220"></script>
+
   <script src="quotes_base.js?v=20260220"></script>
   <script src="user_quotes.js?v=20260220"></script>
 
@@ -198,6 +200,7 @@
       }
     }
 
+    // ✅ app.js より後に、最後に確実に反映
     window.addEventListener("load", () => {
       loadQuote();
       document.getElementById("nextQuoteBtn")?.addEventListener("click", loadQuote);
@@ -253,33 +256,85 @@
     console.log("%c[WARNING] 当サイトのソースコードを閲覧している方へ。これ以上の深入りは推奨しません。", "color: #ff0000; font-weight: bold; font-size: 14px;");
     console.log("%c 機密領域アクセスコード: 'kuro-n-tomo' ", "color: #000; background-color: #000; padding: 2px;");
 
-    // 2. 偽装サイト内検索（裏サイトへの入り口）
-    const fakeSearchBtn = document.getElementById("fakeSearchBtn");
-    const fakeSearchInput = document.getElementById("fakeSearchInput");
-
-    if (fakeSearchBtn && fakeSearchInput) {
-      const executeSearch = () => {
-        const query = fakeSearchInput.value.trim();
-        if (query === "kuro-n-tomo") {
-          // 正解のパスコードを入力した時だけ発動
+    // 2. 隠しログインの処理（左下クリック）
+    const voidClick = document.getElementById("voidClick");
+    if (voidClick) {
+      voidClick.addEventListener("click", () => {
+        const code = prompt("【管理システム】\nアクセス権限が必要です。パスコードを入力してください。");
+        if (code === "kuro-n-tomo") {
           alert("認証完了。裏付けされた記録を開示します。");
           location.href = "deep.html"; 
-        } else if (query !== "") {
-          // 普通の検索のフリをしてあしらう
-          alert(`「${query}」に一致する情報は見つかりませんでした。\n検索ワードを変えて再試行してください。`);
+        } else if (code) {
+          alert("エラー：記録にない個体です。監視レベルを引き上げます。");
+        }
+      });
+    }
+
+    // 3. ハイブリッドサイト内検索
+    const searchBtn = document.getElementById("searchBtn");
+    const searchInput = document.getElementById("searchInput");
+
+    // サイト内の簡易案内辞書
+    const siteIndex = [
+      { keywords: ["プロフィール", "profile", "名前", "tomoponz", "自己紹介"], url: "index.html" },
+      { keywords: ["おみくじ", "占い", "運勢", "omikuji", "大吉", "凶"], url: "omikuji.html" },
+      { keywords: ["診断", "shindan", "性格", "タイプ"], url: "shindan.html" },
+      { keywords: ["ネタ", "ギャラリー", "gallery", "ネタ置き場", "画像"], url: "gallery.html" },
+      { keywords: ["リンク", "links", "お気に入り", "おすすめ"], url: "links.html" },
+      { keywords: ["ゲーム", "games", "遊ぶ", "game"], url: "games.html" },
+      { keywords: ["ミニゲーム", "minigames", "暇つぶし", "minigame"], url: "minigames.html" },
+      { keywords: ["ドア", "door", "ワープ", "warp", "移動"], url: "door.html" },
+      { keywords: ["八百科事典", "hachi", "事典", "辞典", "百科事典"], url: "hachi.html" },
+      { keywords: ["名言", "meigen", "迷言", "セリフ", "言葉"], url: "meigen.html" },
+      { keywords: ["黒歴史", "kuro", "注意", "閲覧注意"], url: "kuro.html" }
+    ];
+
+    if (searchBtn && searchInput) {
+      const executeSearch = () => {
+        const query = searchInput.value.trim();
+        if (query === "") return;
+
+        // 【裏コード】
+        if (query === "kuro-n-tomo") {
+          alert("認証完了。裏付けされた記録を開示します。");
+          location.href = "deep.html"; 
+          return;
+        }
+
+        // 【簡易ナビゲーション】
+        const lowerQuery = query.toLowerCase();
+        let foundUrl = null;
+        for (const page of siteIndex) {
+          if (page.keywords.some(kw => kw.includes(lowerQuery) || lowerQuery.includes(kw))) {
+            foundUrl = page.url;
+            break;
+          }
+        }
+
+        if (foundUrl) {
+          if (confirm(`「${query}」に関連するページが見つかりました。\n移動しますか？`)) {
+            location.href = foundUrl;
+          }
+        } else {
+          // 【Googleサイト内検索】
+          if (confirm(`サイト内の主要ページに「${query}」は見つかりませんでした。\nGoogleを使用してサイト全体から検索しますか？`)) {
+            let domain = window.location.hostname;
+            if (domain === "localhost" || domain === "127.0.0.1" || domain === "") {
+              domain = "tomoponz.github.io"; // 本番ドメイン
+            }
+            const googleSearchUrl = `https://www.google.com/search?q=site:${domain}+${encodeURIComponent(query)}`;
+            window.open(googleSearchUrl, "_blank");
+          }
         }
       };
 
-      // ボタンクリックで検索
-      fakeSearchBtn.addEventListener("click", executeSearch);
-      
-      // Enterキーでも検索できるようにする
-      fakeSearchInput.addEventListener("keypress", (e) => {
+      searchBtn.addEventListener("click", executeSearch);
+      searchInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter") executeSearch();
       });
     }
 
-    // 3. 絶対に押してはいけないボタンの処理
+    // 4. 絶対に押してはいけないボタンの処理
     const dangerBtn = document.getElementById("dangerBtn");
     if (dangerBtn) {
       dangerBtn.addEventListener("click", () => {
