@@ -1,516 +1,64 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>tomoponz｜プロフィール</title>
-  <meta name="description" content="tomoponzのプロフィールページ" />
-
-  <link rel="stylesheet" href="style.css?v=20260220">
-
-  <style>
-    .quoteBox{
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.03);
-      border-radius: 18px;
-      padding: 16px;
-    }
-    .quoteText{ font-size: 18px; line-height: 1.7; margin: 0 0 8px; }
-    .quoteBy{ opacity:.75; margin:0; }
-    .btnrow{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
-    .btnlike{
-      display:inline-flex; align-items:center; justify-content:center;
-      padding:10px 14px; border-radius: 14px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      text-decoration:none; color: inherit;
-      cursor:pointer;
-    }
-    .grid3{ display:grid; gap:14px; grid-template-columns: repeat(3, minmax(0,1fr)); }
-    @media (max-width: 900px){ .grid3{ grid-template-columns: 1fr; } }
-
-    /* ▼ かがみの特殊少年更生施設風の検索ボックス ▼ */
-    .nav-search {
-      display: inline-flex;
-      align-items: center;
-      margin-left: 12px;
-      background: #ffffff;
-      border: 1px solid #dcdcdc;
-      border-radius: 2px;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-    .nav-search input {
-      padding: 8px 12px;
-      border: none;
-      background: transparent;
-      color: #333333;
-      font-size: 13px;
-      width: 220px;
-      outline: none;
-      font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif;
-    }
-    .nav-search input::placeholder {
-      color: #999999;
-    }
-    .nav-search button {
-      padding: 8px 16px;
-      border: none;
-      background: #32373c; /* かがみのサイトで使われているようなお堅いグレー */
-      color: #ffffff;
-      font-size: 13px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.2s;
-    }
-    .nav-search button:hover {
-      background: #111111;
-    }
-    @media (max-width: 768px){
-      .nav-search input { width: 140px; }
-    }
-  </style>
+  <meta charset="UTF-8">
+  <title>Where am I?</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-  <header class="nav">
-    <div class="brand">
-      <div class="logo"></div>
-      <div>
-        <b>tomoponz</b><br><small>プロフィール</small>
-      </div>
+  <div class="camera-drift">
+    <div class="flicker-light"></div>
+    <div class="vignette"></div>
+    <div class="scanlines"></div>
+
+    <div class="text-container">
+      <p>誰もいない。</p>
+      <p>ずっと前から、誰もいない。</p>
+      <p class="small">足音が聞こえるのは、気のせいです。</p>
     </div>
 
-    <nav class="navlinks">
-      <a class="chip" href="index.html">プロフィール</a>
-      <a class="chip" href="omikuji.html">おみくじ</a>
-      <a class="chip" href="shindan.html">診断</a>
-      <a class="chip" href="gallery.html">ネタ置き場</a>
-      <a class="chip" href="links.html">リンク</a>
-      <a class="chip" href="games.html">ゲーム</a>
-      <a class="chip" href="door.html">ドア</a>
-      <a class="chip" href="hachi.html">八百科事典</a>
-      
-      <div class="nav-search">
-        <input type="search" id="searchInput" placeholder="検索キーワードを入力してください" autocomplete="off">
-        <button id="searchBtn">検索</button>
-      </div>
-      </nav>
-  </header>
+    <a href="../index.html" class="exit-sign">EXIT ➔</a>
 
-  <main class="wrap">
-    
-    <button id="dangerBtn" data-sfx="osuna" data-sfx-volume="1" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: rgba(255,0,0,0.1); border: 2px solid #ff4444; color: #ff8888; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 0 15px rgba(255,0,0,0.3); letter-spacing: 0.1em; transition: 0.2s; opacity: 0.6;">
-      ⚠️ 押すな
-    </button>
-    <div id="voidClick" style="position: absolute; bottom: 0; left: 0; width: 20px; height: 20px; cursor: default; z-index: 9999;"></div>
-    <section class="hero">
-      <h1 class="h1" style="margin:0">tomoponz</h1>
-      <p class="sub">秘密基地 / ネタ置き場 / ミニゲーム / いろいろ</p>
+    <img id="daisy-btn" src="../img/daisy%20bell.png" alt="Daisy Bell Icon">
+  </div>
 
-      <div class="btnrow">
-        <a class="btnlike" href="games.html">ゲームへ</a>
-        <a class="btnlike" href="links.html">リンク集へ</a>
-        </div>
-    </section>
-
-    <section class="grid2">
-      <div class="card">
-        <h2>プロフィール</h2>
-        <ul class="list">
-          <li>名前：tomoponz</li>
-          <li>やってること：Web / ネタ / ちょいゲーム</li>
-          <li>メモ：このサイトは気分で増えます</li>
-        </ul>
-        <div class="note">※好きに追記してOK</div>
-      </div>
-
-      <div class="card">
-        <h2>今日の一言（名言）</h2>
-
-        <div class="quoteBox">
-          <p class="quoteText" id="quoteText">読み込み中…</p>
-          <p class="quoteBy" id="quoteBy"></p>
-
-          <div class="btnrow">
-            <button class="btnlike" type="button" id="nextQuoteBtn">次の名言</button>
-            <button class="btnlike" type="button" id="copyQuoteBtn">コピー</button>
-          </div>
-        </div>
-
-        <div class="note">
-          meigen の BASE_QUOTES + user_quotes.js を混ぜる
-        </div>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>ショートカット</h2>
-      <div class="grid3">
-        <a class="btnlike" href="minigames.html">ミニゲーム一覧</a>
-        <a class="btnlike" href="gallery.html">ネタ置き場</a>
-        <a class="btnlike" href="door.html">ドア（ワープ演出）</a>
-      </div>
-    </section>
-
-    <div class="footer">
-      © tomoponz | <span id="access-count">Access: ...</span>
-    </div>
-  </main>
-
-  <script src="app.js?v=20260220"></script>
-  <script src="quotes_base.js?v=20260220"></script>
-  <script src="user_quotes.js?v=20260220"></script>
+  <audio id="audio-buzz" src="../assets/sfx/backrooms-buzzing-sound-effect.mp3" loop></audio>
+  <audio id="audio-daisy" src="../assets/sfx/daisy-bell.mp3"></audio>
 
   <script>
-    const BASE = Array.isArray(window.BASE_QUOTES) ? window.BASE_QUOTES : [];
+    document.addEventListener("DOMContentLoaded", () => {
+      const buzz = document.getElementById("audio-buzz");
+      const daisy = document.getElementById("audio-daisy");
+      const daisyBtn = document.getElementById("daisy-btn");
 
-    function normalizeUserQuote(q){
-      if(!q || !q.text) return null;
-      return {
-        text: String(q.text),
-        work: String(q.work || "User"),
-        character: String(q.character || q.author || "tomoponz"),
-        tags: Array.isArray(q.tags) ? q.tags : []
+      // 音量バランス調整
+      buzz.volume = 0.25; 
+      daisy.volume = 0.7;
+
+      let hasInteracted = false;
+
+      // ブラウザの自動再生制限対策：画面をクリックした瞬間に再生を開始
+      const startAmbiance = () => {
+        if (hasInteracted) return;
+        hasInteracted = true;
+        buzz.play().catch(console.error);
+        daisy.play().catch(console.error);
       };
-    }
 
-    const USER = Array.isArray(window.USER_QUOTES)
-      ? window.USER_QUOTES.map(normalizeUserQuote).filter(Boolean)
-      : [];
+      document.body.addEventListener("click", startAmbiance, { once: true });
+      document.body.addEventListener("touchstart", startAmbiance, { once: true });
 
-    const QUOTES = [...BASE, ...USER];
-
-    function pickQuote() {
-      if (QUOTES.length === 0) return { text:"(名言データが空)", work:"", character:"" };
-      return QUOTES[Math.floor(Math.random() * QUOTES.length)];
-    }
-
-    function showQuote(q) {
-      const qt = document.getElementById("quoteText");
-      const qb = document.getElementById("quoteBy");
-      if (!qt || !qb) return;
-
-      qt.textContent = "“" + q.text + "”";
-      const meta = [];
-      if (q.character) meta.push(q.character);
-      if (q.work) meta.push(`（${q.work}）`);
-      qb.textContent = meta.length ? "— " + meta.join("") : "";
-    }
-
-    function loadQuote(){ showQuote(pickQuote()); }
-
-    async function copyCurrent(){
-      const text = document.getElementById("quoteText")?.textContent || "";
-      const by = document.getElementById("quoteBy")?.textContent || "";
-      const payload = (text + "\n" + by).trim();
-      try{
-        await navigator.clipboard.writeText(payload);
-        alert("コピーしました");
-      }catch{
-        const ta = document.createElement("textarea");
-        ta.value = payload;
-        ta.style.position = "fixed";
-        ta.style.left = "-9999px";
-        document.body.appendChild(ta);
-        ta.focus(); ta.select();
-        try{ document.execCommand("copy"); alert("コピーしました"); }catch{ alert("コピー失敗"); }
-        document.body.removeChild(ta);
-      }
-    }
-
-    window.addEventListener("load", () => {
-      loadQuote();
-      document.getElementById("nextQuoteBtn")?.addEventListener("click", loadQuote);
-      document.getElementById("copyQuoteBtn")?.addEventListener("click", copyCurrent);
+      // 画像クリック時にDaisy Bellをリプレイ
+      daisyBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); // ボディのクリックイベント発火を防止
+        daisy.currentTime = 0;
+        daisy.play();
+        
+        // クリック演出：一瞬だけ画像にノイズ
+        daisyBtn.style.filter = "invert(1) blur(1px)";
+        setTimeout(() => { daisyBtn.style.filter = ""; }, 100);
+      });
     });
   </script>
-
-  <script>
-    const WORKSPACE = "tomoponzs-workspace";
-    const COUNTER = "first-counter";
-
-    async function updateCounter() {
-      try {
-        const res = await fetch(`https://api.counterapi.dev/v1/${WORKSPACE}/${COUNTER}/up`);
-        const data = await res.json();
-        const count = parseInt(data.count, 10);
-
-        const accessEl = document.getElementById("access-count");
-        if (accessEl) accessEl.textContent = `Access: ${count}`;
-
-        const luckyNumbers = [7, 10, 22, 50, 77, 100, 123, 777, 1000];
-        if (luckyNumbers.includes(count)) triggerKiribanEvent(count);
-
-      } catch (e) {
-        console.log("カウンターの取得に失敗しました。秘密基地はオフラインのようです。");
-        const accessEl = document.getElementById("access-count");
-        if (accessEl) accessEl.textContent = "Access: (offline)";
-      }
-    }
-
-    function triggerKiribanEvent(num) {
-      alert(
-        `【🎊 祝・キリ番達成 🎊】\n` +
-        `おめでとうございます！あなたは ${num} 番目の訪問者です！\n` +
-        `この画面をスクリーンショットして店主に報告してください。`
-      );
-      document.body.style.transition = "all 2s ease";
-      document.body.style.background = "linear-gradient(45deg, #ffd700, #ff8c00)";
-      document.body.style.color = "#000";
-      const bars = document.querySelectorAll(".bar i");
-      bars.forEach(bar => {
-        bar.style.background = "linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet)";
-        bar.style.width = "100%";
-      });
-    }
-
-    window.addEventListener("load", updateCounter);
-  </script>
-
-  <script>
-    // 1. F12 コンソールへの語りかけ（パスコードのヒント）
-    console.log("%c[SYSTEM] 端末からのアクセスを検知。監視プロトコルを開始します。", "color: #888; font-size: 11px;");
-    console.log("%c[WARNING] 当サイトのソースコードを閲覧している方へ。これ以上の深入りは推奨しません。", "color: #ff0000; font-weight: bold; font-size: 14px;");
-    console.log("%c 機密領域アクセスコード: 'kuro-n-tomo' ", "color: #000; background-color: #000; padding: 2px;");
-
-    // 2. 隠しログインの処理（左下クリック）
-    const voidClick = document.getElementById("voidClick");
-    if (voidClick) {
-      voidClick.addEventListener("click", () => {
-        const code = prompt("【管理システム】\nアクセス権限が必要です。パスコードを入力してください。");
-        if (code === "kuro-n-tomo") {
-          alert("認証完了。裏付けされた記録を開示します。");
-          location.href = "deep.html"; 
-        } else if (code) {
-          alert("エラー：記録にない個体です。監視レベルを引き上げます。");
-        }
-      });
-    }
-
-    // 3. ハイブリッドサイト内検索
-    const searchBtn = document.getElementById("searchBtn");
-    const searchInput = document.getElementById("searchInput");
-
-    // サイト内の簡易案内辞書（※黒歴史は削除済）
-    const siteIndex = [
-      { keywords: ["プロフィール", "profile", "名前", "tomoponz", "自己紹介"], url: "index.html" },
-      { keywords: ["おみくじ", "占い", "運勢", "omikuji", "大吉", "凶"], url: "omikuji.html" },
-      { keywords: ["診断", "shindan", "性格", "タイプ"], url: "shindan.html" },
-      { keywords: ["ネタ", "ギャラリー", "gallery", "ネタ置き場", "画像"], url: "gallery.html" },
-      { keywords: ["リンク", "links", "お気に入り", "おすすめ"], url: "links.html" },
-      { keywords: ["ゲーム", "games", "遊ぶ", "game"], url: "games.html" },
-      { keywords: ["ミニゲーム", "minigames", "暇つぶし", "minigame"], url: "minigames.html" },
-      { keywords: ["ドア", "door", "ワープ", "warp", "移動"], url: "door.html" },
-      { keywords: ["八百科事典", "hachi", "事典", "辞典", "百科事典"], url: "hachi.html" },
-      { keywords: ["名言", "meigen", "迷言", "セリフ", "言葉"], url: "meigen.html" }
-    ];
-
-    if (searchBtn && searchInput) {
-      const executeSearch = () => {
-        const query = searchInput.value.trim();
-        if (query === "") return;
-
-        // 【裏コード】
-        if (query === "kuro-n-tomo") {
-          alert("認証完了。裏付けされた記録を開示します。");
-          location.href = "deep.html"; 
-          return;
-        }
-
-        // ★黒歴史ワードは検索対象外（ヒットさせない＆Google検索にも投げない）
-        const blocked = /黒歴史|kuro/i;
-        if (blocked.test(query)) {
-          alert("そのキーワードは検索対象外。");
-          return;
-        }
-
-        // 【簡易ナビゲーション】
-        const lowerQuery = query.toLowerCase();
-        let foundUrl = null;
-        for (const page of siteIndex) {
-          if (page.keywords.some(kw => kw.includes(lowerQuery) || lowerQuery.includes(kw))) {
-            foundUrl = page.url;
-            break;
-          }
-        }
-
-        if (foundUrl) {
-          if (confirm(`「${query}」に関連するページが見つかりました。\n移動しますか？`)) {
-            location.href = foundUrl;
-          }
-        } else {
-          // 【Googleサイト内検索】
-          if (confirm(`サイト内の主要ページに「${query}」は見つかりませんでした。\nGoogleを使用してサイト全体から検索しますか？`)) {
-            let domain = window.location.hostname;
-            if (domain === "localhost" || domain === "127.0.0.1" || domain === "") {
-              domain = "tomoponz.github.io"; // 本番ドメイン
-            }
-            const googleSearchUrl = `https://www.google.com/search?q=site:${domain}+${encodeURIComponent(query)}`;
-            window.open(googleSearchUrl, "_blank");
-          }
-        }
-      };
-
-      searchBtn.addEventListener("click", executeSearch);
-      searchInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") executeSearch();
-      });
-    }
-
-// 4. 絶対に押してはいけないボタンの処理（絶望ホラー演出版・初期音声追加）
-    const dangerBtn = document.getElementById("dangerBtn");
-    if (dangerBtn) {
-      dangerBtn.addEventListener("click", () => {
-        
-        // ★ クリックした瞬間に「nanikore」の音声を鳴らす ★
-        // ※ファイルの拡張子（.mp3 や .m4a）は、用意したファイルに合わせて変更してください
-        const nanikoreSound = new Audio("assets/sfx/nanikore.mp3");
-        nanikoreSound.volume = 1.0;
-        nanikoreSound.play().catch(() => {}); // ブラウザのブロック対策
-
-        // 音が鳴るのと同時にダイアログが出ると音が消える場合があるため、0.1秒(100ミリ秒)だけ遅らせて警告を出す
-        setTimeout(() => {
-          if (!confirm("警告：絶対に押すなと言いましたよね？本当に実行しますか？")) return;
-          if (!confirm("後悔しますよ。本当にいいんですね？")) return;
-          if (!confirm("最終警告です。この先、何が起きても一切の責任を負いません。")) return;
-          
-          // 1. 画面を狂わせるCSSを動的に追加
-          const style = document.createElement('style');
-          style.innerHTML = `
-            @keyframes violent-shake {
-              0% { transform: translate(2px, 1px) rotate(0deg); }
-              10% { transform: translate(-1px, -2px) rotate(-1deg); }
-              20% { transform: translate(-3px, 0px) rotate(1deg); }
-              30% { transform: translate(3px, 2px) rotate(0deg); }
-              40% { transform: translate(1px, -1px) rotate(1deg); }
-              50% { transform: translate(-1px, 2px) rotate(-1deg); }
-              60% { transform: translate(-3px, 1px) rotate(0deg); }
-              70% { transform: translate(3px, 1px) rotate(-1deg); }
-              80% { transform: translate(-1px, -1px) rotate(1deg); }
-              90% { transform: translate(1px, 2px) rotate(0deg); }
-              100% { transform: translate(1px, -2px) rotate(-1deg); }
-            }
-            .horror-glitch {
-              animation: violent-shake 0.1s infinite;
-              filter: invert(1) contrast(150%) hue-rotate(180deg);
-              background-color: #000 !important;
-              cursor: crosshair !important;
-            }
-            .horror-glitch * {
-              cursor: crosshair !important;
-            }
-          `;
-          document.head.appendChild(style);
-          document.body.classList.add("horror-glitch");
-
-          // 不気味なメッセージのリスト
-          const creepyMessages = [
-            "メモリが\"read\"になることはできませんでした。",
-            "システムファイルが破損しています。",
-            "なぜ押したの？",
-            "警告したはずです",
-            "データ消去中...",
-            "I  S E E  Y O U",
-            "う し ろ を ふ り む か な い で",
-            "助けて助けて助けて助けて助けて",
-            "もう手遅れです"
-          ];
-
-          let errorCount = 0;
-
-          // 増殖するエラーの音（前回設定した Windowsエラー音 m4a）
-          const playDistortedSound = () => {
-            const se = new Audio("assets/sfx/windows error sound.m4a"); 
-            se.volume = 0.6;
-            se.playbackRate = Math.max(0.2, 1.0 - (errorCount * 0.02) + (Math.random() * 0.2 - 0.1));
-            se.play().catch(() => {});
-          };
-
-          // 異常なエラーウィンドウを生成する関数
-          const createFakeError = () => {
-            playDistortedSound();
-            errorCount++;
-
-            const div = document.createElement("div");
-            div.style.position = "fixed";
-            div.style.left = Math.random() * (window.innerWidth - 300) + "px";
-            div.style.top = Math.random() * (window.innerHeight - 150) + "px";
-            div.style.width = "280px";
-            
-            const isLateStage = errorCount > 20;
-            div.style.backgroundColor = isLateStage ? "#4a0000" : "#ece9d8"; 
-            div.style.border = isLateStage ? "2px solid #ff0000" : "2px solid #0055ea";
-            div.style.boxShadow = "5px 5px 15px rgba(0,0,0,0.8)";
-            div.style.color = isLateStage ? "#ff0000" : "#000";
-            div.style.zIndex = Math.floor(Math.random() * 10000) + 10000;
-            div.style.fontFamily = "Tahoma, 'MS UI Gothic', sans-serif";
-
-            const errorCode = Math.floor(Math.random() * 16777215).toString(16).toUpperCase().padStart(6, '0');
-            
-            let msgText = creepyMessages[0];
-            if (errorCount > 5) msgText = creepyMessages[Math.floor(Math.random() * creepyMessages.length)];
-            if (errorCount > 30) msgText = "死死死死死死死死死死死死死"; 
-
-            div.innerHTML = `
-              <div style="background: ${isLateStage ? 'black' : 'linear-gradient(to right, #0058e6, #3a93ff)'}; color: white; padding: 4px 8px; font-size: 13px; font-weight: bold; display: flex; justify-content: space-between; user-select: none;">
-                <span>${isLateStage ? 'FATAL' : 'System Error'}</span>
-                <span class="fake-close" style="background: #e04343; border-radius: 3px; padding: 0 5px; cursor: pointer;">×</span>
-              </div>
-              <div style="padding: 20px; text-align: center;">
-                <p style="margin: 0 0 15px; font-size: ${isLateStage ? '18px' : '13px'}; font-weight: ${isLateStage ? 'bold' : 'normal'};">
-                  Fatal Error: 0x${errorCode}<br>${msgText}
-                </p>
-                <button class="fake-ok" style="padding: 4px 20px; cursor: pointer; color: black;">OK</button>
-              </div>
-            `;
-            document.body.appendChild(div);
-
-            const multiplyErrors = (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              createFakeError();
-              createFakeError();
-              createFakeError(); 
-            };
-
-            div.querySelector(".fake-close").addEventListener("click", multiplyErrors);
-            div.querySelector(".fake-ok").addEventListener("click", multiplyErrors);
-          };
-
-          // 最初の連鎖発動
-          let initCount = 0;
-          const chaosInterval = setInterval(() => {
-            createFakeError();
-            initCount++;
-            if (initCount > 10) clearInterval(chaosInterval);
-          }, 200);
-
-          setTimeout(() => {
-            window.open("horror.html", "_blank");
-          }, 1500);
-          
-          setTimeout(() => {
-            document.body.innerHTML = "<h1 style='color:red; text-align:center; margin-top:20%; font-size:50px; font-family:serif;'>逃 が さ な い</h1>";
-            document.body.style.animation = "none";
-            document.body.style.filter = "none";
-            document.body.style.backgroundColor = "black";
-            
-            setTimeout(() => {
-              location.href = "horror.html"; 
-            }, 2000); 
-          }, 6000);
-
-        }, 100); // ← 0.1秒だけ待ってから警告ダイアログを出す
-      });
-      
-      dangerBtn.addEventListener("mouseenter", () => {
-        dangerBtn.style.transform = "translate(2px, -2px)";
-        setTimeout(() => dangerBtn.style.transform = "translate(-2px, 2px)", 50);
-        setTimeout(() => dangerBtn.style.transform = "translate(0, 0)", 100);
-      });
-    }
-  </script>
-    
 </body>
 </html>
