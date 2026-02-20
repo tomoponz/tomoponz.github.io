@@ -435,8 +435,9 @@
     });
   }
 
-  // ========== sfx: クリック音（汎用） ==========
-  // ✅おすすめ：音声は assets/sfx/ にまとめる
+    // ========== sfx: クリック音（汎用） ==========
+  // ✅おすすめ：音声は  assets/sfx/  にまとめる（例: assets/sfx/umahii.mp3）
+  // ただし「今すぐ動かしたい」場合は、現状どおりサイト直下に置いてもOK。
   //
   // 使い方（HTML）：
   //   <button data-sfx="neta">押す</button>
@@ -447,9 +448,12 @@
   //   data-sfx="neta"  → 下の SFX_MAP を参照
   //   data-sfx="assets/sfx/umahii.mp3" → そのまま再生
 
+  // ここに音を追加（キー→ファイル）
+  // ※フォルダ運用にしたら、値を assets/sfx/... に変えるだけ
   const SFX_MAP = {
-    // ネタ置き場用（例）
+    // 音源（assets/sfx/ 配下）
     neta: "assets/sfx/umahii.mp3",
+    osuna: "assets/sfx/nanikore.wav",
 
     // 例：追加したらここに追記
     // click1: "assets/sfx/click1.mp3",
@@ -503,6 +507,8 @@
   window.playSfx = playSfx;
 
   function initSfxClicks(){
+    // 一部ブラウザで「最初のユーザー操作」以降でないと音が鳴らないので、
+    // ここは click をトリガにする（OK）
     document.addEventListener("click", (e)=>{
       const t = e.target && e.target.closest ? e.target.closest("[data-sfx],a[href]") : null;
       if(!t) return;
@@ -564,7 +570,8 @@
     }, true);
   }
 
-  // ========== init ==========
+
+// ========== init ==========
   document.addEventListener("DOMContentLoaded", ()=>{
     setActiveNav();
     setDailyQuote();   // USER_QUOTES があるならそれだけで回る
