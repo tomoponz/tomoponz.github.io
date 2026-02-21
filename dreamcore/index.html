@@ -70,7 +70,7 @@
 
 
   <div id="phase-3d">
-    <div class="hud-timer" id="timer-display">EXPLORE MODE</div>
+    <div class="hud-timer" id="timer-display">SURVIVE: 60s</div>
     <div class="hud-vignette" id="hud-vignette"></div>
 
     <a-scene embedded fog="type: exponential; color: #000; density: 0.01;">
@@ -82,11 +82,23 @@
         <a-light type="point" color="#fff" intensity="1.2" distance="60" position="0 2 0"></a-light>
       </a-entity>
 
+      <a-entity id="monster" position="10 1.5 80">
+        <a-sphere radius="2.0" color="#000" material="roughness: 1;">
+          <a-sphere radius="0.8" position="0 0 1.8" color="#fff">
+            <a-sphere radius="0.4" position="0 0 0.6" color="red" material="emissive:red; emissiveIntensity:10;"></a-sphere>
+          </a-sphere>
+        </a-sphere>
+        <a-light type="point" color="red" intensity="3" distance="40"></a-light>
+      </a-entity>
+
       <a-entity id="map-root"></a-entity>
 
       <a-light type="ambient" color="#ffffff" intensity="0.6"></a-light>
     </a-scene>
   </div>
+  
+  <div class="overlay-screen" id="game-over"><h1 style="color: red;">CAUGHT.</h1></div>
+  <div class="overlay-screen" id="game-clear" style="background: #fff; color: #000;"><h1>AWAKE.</h1></div>
 
   <script>
     const exitBtn = document.getElementById('real-exit');
@@ -106,7 +118,7 @@
       [1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1],
       [1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1],
       [1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1],
-      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1], // Z=7, X=1 がスタート地点
+      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
       [1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1],
       [1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1],
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
@@ -116,20 +128,17 @@
     const mapWidth = mapData[0].length * UNIT;
     const mapDepth = mapData.length * UNIT;
 
-    // 画像を使わず、色(Color)だけで空間を作る
     function generateMap() {
       const root = document.getElementById('map-root');
 
-      // 巨大な床 (少し緑がかったグレー)
       const floor = document.createElement('a-plane');
       floor.setAttribute('position', `${(mapWidth/2) - (UNIT/2)} 0 ${(mapDepth/2) - (UNIT/2)}`);
       floor.setAttribute('rotation', '-90 0 0');
       floor.setAttribute('width', mapWidth);
       floor.setAttribute('height', mapDepth);
-      floor.setAttribute('color', '#4a504a'); // 画像指定を削除し、色だけにする
+      floor.setAttribute('color', '#4a504a'); 
       root.appendChild(floor);
 
-      // 巨大な天井 (濃いグレー)
       const ceil = document.createElement('a-plane');
       ceil.setAttribute('position', `${(mapWidth/2) - (UNIT/2)} 6 ${(mapDepth/2) - (UNIT/2)}`);
       ceil.setAttribute('rotation', '90 0 0');
@@ -138,7 +147,6 @@
       ceil.setAttribute('color', '#1a1a1a'); 
       root.appendChild(ceil);
 
-      // 壁の生成 (無機質なグレーの箱)
       mapData.forEach((row, z) => {
         row.forEach((cell, x) => {
           if (cell === 1) {
@@ -149,7 +157,7 @@
             wall.setAttribute('width', UNIT);
             wall.setAttribute('height', 6);
             wall.setAttribute('depth', UNIT);
-            wall.setAttribute('color', '#888888'); // 画像指定を削除
+            wall.setAttribute('color', '#888888'); 
             root.appendChild(wall);
           }
         });
@@ -158,6 +166,8 @@
 
     generateMap(); 
 
+    let isPlaying = false; let timeLeft = 60;
+    
     // ボタンを押した時の画面切り替え
     exitBtn.addEventListener('click', () => {
       document.getElementById('svg-filter').remove(); 
@@ -166,7 +176,62 @@
       
       document.getElementById('phase-3d').classList.add('active');
       window.dispatchEvent(new Event('resize'));
+      
+      // ★ 敵とタイマーの処理を開始する ★
+      startSurvival();
     });
+
+    function startSurvival() {
+      isPlaying = true;
+      const playerCam = document.getElementById('main-cam');
+      const monster = document.getElementById('monster');
+      const timerDisp = document.getElementById('timer-display');
+      const hudVignette = document.getElementById('hud-vignette');
+      
+      // タイマー処理
+      const timerInterval = setInterval(() => {
+        if(!isPlaying) return clearInterval(timerInterval);
+        timeLeft--;
+        timerDisp.innerText = `SURVIVE: ${timeLeft}s`;
+        if(timeLeft <= 0) gameClear();
+      }, 1000);
+
+      // 怪物の追跡処理
+      function update() {
+        if(!isPlaying) return;
+        
+        const pPos = new THREE.Vector3();
+        playerCam.object3D.getWorldPosition(pPos);
+        const mPos = monster.object3D.position;
+
+        const dx = pPos.x - mPos.x; 
+        const dz = pPos.z - mPos.z;
+        const dist = Math.sqrt(dx*dx + dz*dz);
+        
+        // 捕まった判定（距離3.0以内）
+        if(dist < 3.0) { gameOver(); return; }
+        
+        // 近づくと画面が赤くなる
+        if (dist < 20) { 
+          const danger = 1 - (dist / 20); 
+          hudVignette.style.background = `radial-gradient(circle, transparent ${40 - danger*40}%, rgba(255,0,0,${danger}) 100%)`; 
+        } else { 
+          hudVignette.style.background = `radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%)`; 
+        }
+        
+        // 時間経過で怪物が早くなる
+        const speed = 0.08 + (60 - timeLeft) * 0.003;
+        
+        mPos.x += (dx/dist) * speed;
+        mPos.z += (dz/dist) * speed;
+        
+        requestAnimationFrame(update);
+      }
+      update();
+    }
+
+    function gameOver() { isPlaying = false; document.getElementById('game-over').style.opacity = 1; setTimeout(() => location.href = '../liminal/index.html', 3000); }
+    function gameClear() { isPlaying = false; document.getElementById('game-clear').style.opacity = 1; setTimeout(() => location.href = '../special/index.html', 3000); }
     
     document.addEventListener('mousemove', (e) => { 
       document.querySelectorAll('.eye').forEach(eye => { 
