@@ -1,4 +1,4 @@
-/* fps-player.js
+/*
   A-Frame simple FPS controls (keyboard + touch joysticks) with in-page settings UI.
 
   - WASD: move
@@ -111,7 +111,7 @@
           <label for="fps-move">移動速度</label>
           <div class="val" id="fps-move-val"></div>
         </div>
-        <input id="fps-move" type="range" min="0.10" max="0.35" step="0.01">
+        <input id="fps-move" type="range" min="0.04" max="0.35" step="0.005">
 
         <div class="row">
           <label for="fps-look">視点速度</label>
