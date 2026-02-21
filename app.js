@@ -7,6 +7,19 @@
 (() => {
   "use strict";
 
+  // ========== security-lite (deterrence only) ==========
+  // 静的サイトでは本当の意味で「ソースを隠す」ことはできない。
+  // これは Ctrl+U/F12 等を“軽く”妨害し、target=_blank を noopener で安全化するだけ。
+  try {
+    if (typeof window !== "undefined" && !window.__securityLiteInjected) {
+      window.__securityLiteInjected = true;
+      const sc = document.createElement("script");
+      sc.src = "assets/js/security-lite.js?v=20260222";
+      sc.defer = true;
+      document.head.appendChild(sc);
+    }
+  } catch (_) {}
+
   // ========== utilities ==========
   const $id = (id) => document.getElementById(id);
 
