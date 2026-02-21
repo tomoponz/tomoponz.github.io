@@ -2,28 +2,65 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Where am I?</title>
+  <title>Where am I? (3D)</title>
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* 3D空間の上のレイヤーにUIを配置するための追加CSS */
+    .ui-layer {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; /* UI以外の場所は3D操作にパスする */
+      z-index: 100;
+    }
+    .exit-sign {
+      position: absolute; bottom: 40px; right: 40px;
+      pointer-events: auto; /* ここだけクリック可能に */
+      background: #cc0000; color: #fff; padding: 10px 20px;
+      font-family: sans-serif; font-weight: bold; font-size: 22px;
+      text-decoration: none; border-radius: 4px; box-shadow: 0 0 15px rgba(204, 0, 0, 0.8);
+    }
+    #daisy-btn {
+      position: absolute; bottom: 15px; left: 15px; width: 60px;
+      pointer-events: auto; cursor: pointer; opacity: 0.6;
+      filter: sepia(0.7) contrast(1.3) brightness(0.7);
+    }
+  </style>
 </head>
 <body>
-  <div class="camera-drift">
-    <div class="flicker-light"></div>
-    <div class="vignette"></div>
-    <div class="scanlines"></div>
 
-    <div class="text-container">
-      <p>誰もいない。</p>
-      <p>ずっと前から、誰もいない。</p>
-      <p class="small">足音が聞こえるのは、気のせいです。</p>
+  <div class="ui-layer">
+    <div style="position:absolute; top:40%; left:50%; transform:translate(-50%,-50%); text-align:center; color:rgba(0,0,0,0.5); font-family:'游明朝',serif;">
+      <p style="font-size:24px; font-weight:bold;">WASDキーで移動 / マウスドラッグで視点移動</p>
     </div>
-
     <a href="../index.html" class="exit-sign">EXIT ➔</a>
-
     <img id="daisy-btn" src="../img/daisy%20bell.png" alt="Daisy Bell Icon">
   </div>
 
   <audio id="audio-buzz" src="../assets/sfx/backrooms-buzzing-sound-effect.mp3" loop></audio>
   <audio id="audio-daisy" src="../assets/sfx/daisy-bell.mp3"></audio>
+
+  <a-scene fog="type: exponential; color: #d1c7a3; density: 0.15">
+    
+    <a-assets>
+      <img id="wall-tex" src="https://images.unsplash.com/photo-1605806616949-1e87b487bc2a?q=80&w=512&auto=format&fit=crop" crossorigin="anonymous">
+      <img id="floor-tex" src="https://images.unsplash.com/photo-1581894158358-5ecd2c518883?q=80&w=512&auto=format&fit=crop" crossorigin="anonymous">
+    </a-assets>
+
+    <a-entity position="0 1.6 0">
+      <a-camera look-controls="pointerLockEnabled: false" wasd-controls="acceleration: 15"></a-camera>
+    </a-entity>
+
+    <a-light type="ambient" color="#aaaaaa"></a-light>
+    <a-light type="point" color="#fffae6" position="0 3 0" intensity="0.8" distance="10" animation="property: intensity; to: 0.2; dur: 200; dir: alternate; loop: true"></a-light> <a-plane src="#floor-tex" rotation="-90 0 0" width="50" height="50" repeat="20 20" color="#d1c7a3"></a-plane>
+    <a-plane position="0 4 0" rotation="90 0 0" width="50" height="50" color="#e8e4d8"></a-plane>
+
+    <a-box src="#wall-tex" position="0 2 -5" width="10" height="4" depth="1" color="#d1c7a3" repeat="4 2"></a-box>
+    <a-box src="#wall-tex" position="-5 2 0" width="1" height="4" depth="10" color="#d1c7a3" repeat="4 2"></a-box>
+    <a-box src="#wall-tex" position="5 2 0" width="1" height="4" depth="10" color="#d1c7a3" repeat="4 2"></a-box>
+    <a-box src="#wall-tex" position="0 2 5" width="10" height="4" depth="1" color="#d1c7a3" repeat="4 2"></a-box>
+    
+  </a-scene>
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
@@ -31,13 +68,10 @@
       const daisy = document.getElementById("audio-daisy");
       const daisyBtn = document.getElementById("daisy-btn");
 
-      // 音量バランス調整
       buzz.volume = 0.25; 
       daisy.volume = 0.7;
 
       let hasInteracted = false;
-
-      // ブラウザの自動再生制限対策：画面をクリックした瞬間に再生を開始
       const startAmbiance = () => {
         if (hasInteracted) return;
         hasInteracted = true;
@@ -46,20 +80,11 @@
       };
 
       document.body.addEventListener("click", startAmbiance, { once: true });
-      document.body.addEventListener("touchstart", startAmbiance, { once: true });
 
-      // 画像クリック時にDaisy Bellをリプレイ
       daisyBtn.addEventListener("click", (e) => {
-        e.stopPropagation(); // ボディのクリックイベント発火を防止
+        e.stopPropagation();
         daisy.currentTime = 0;
         daisy.play();
-        
-        // クリック演出：一瞬だけ画像にノイズ
-        daisyBtn.style.filter = "invert(1) blur(1px)";
-        setTimeout(() => { 
-          // ノイズが終わったら元の色味に戻す
-          daisyBtn.style.filter = "sepia(0.7) contrast(1.3) brightness(0.7)"; 
-        }, 100);
       });
     });
   </script>
