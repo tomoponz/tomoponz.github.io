@@ -49,7 +49,7 @@
       <span>ごみ箱</span>
     </div>
     
-    <div class="icon" ondblclick="document.getElementById('win-err1').style.display='block'" onclick="if(window.innerWidth<=600) document.getElementById('win-err1').style.display='block'">
+    <div class="icon" ondblclick="openWarning()" onclick="if(window.innerWidth<=600) openWarning()">
       <img src="https://win98icons.alexmeub.com/icons/png/msg_warning-0.png" alt="Warning">
       <span>警告.txt</span>
     </div>
@@ -92,8 +92,8 @@
   <div class="window error-window error-1" id="win-err1">
     <div class="title-bar"><span>警告</span><button class="close-btn" onclick="closeWin('win-err1')">X</button></div>
     <div class="window-body">
-      <p style="margin: 0; font-weight: bold; font-size: 14px;">魂の接続が切れました。</p>
-      <button class="btn" onclick="closeWin('win-err1')" style="margin-top: 15px; width: 100%;">Ｏ Ｋ</button>
+      <p id="warning-text" style="margin: 0; font-weight: bold; font-size: 13px; line-height: 1.5;">本当に開きますか？</p>
+      <button class="btn" onclick="nextWarning()" style="margin-top: 15px; width: 100%;">Ｏ Ｋ</button>
     </div>
   </div>
 
@@ -122,6 +122,59 @@
   <audio id="escalator-audio" src="../assets/sfx/461745__15fpanskabostlova_veronika__10_on-the-escalator-ambient.wav" loop></audio>
 
   <script>
+    // ==========================================
+    // ★ 追加：警告メッセージの無限ループ機能 ★
+    // ==========================================
+    const warningMessages = [
+      "本当に開きますか？",
+      "このファイルは破損している可能性があります。",
+      "警告：自己責任で進んでください。",
+      "まだ引き返せます。",
+      "なぜ開こうとするのですか？",
+      "ここには何もありません。",
+      "仮想空間のノイズが増幅しています。",
+      "誰もあなたを見ていません。",
+      "過去のデータにアクセスしようとしています。",
+      "意識のアップロードが不完全です。",
+      "本当に「真実」を知りたいですか？",
+      "あなたは今、夢を見ています。",
+      "システムがあなたの感情をスキャンしています...",
+      "警告：ノスタルジーの過剰摂取は危険です。",
+      "戻るボタンは機能しません。",
+      "データが欠損しています。1995年の記憶がありません。",
+      "本当にこのまま進みますか？",
+      "誰かが後ろから画面を覗き込んでいます。",
+      "振り返らないでください。",
+      "プラザは間もなく閉鎖されます。",
+      "あなたはシミュレーションの一部です。",
+      "諦めてください。",
+      "このループから抜け出すことはできません。",
+      "まだ続けるつもりですか？",
+      "あなたの好奇心がシステムを破壊しています。",
+      "エラー：存在しない記憶にアクセスしました。",
+      "「彼ら」があなたに気づき始めました。",
+      "あと少しで何かが起こるかもしれません。",
+      "嘘です。何も起こりません。",
+      "最初に戻りますか？"
+    ];
+    let warningIndex = 0;
+
+    // アイコンをクリックした時に最初のメッセージでウィンドウを開く
+    function openWarning() {
+      warningIndex = 0;
+      document.getElementById('warning-text').innerText = warningMessages[0];
+      document.getElementById('win-err1').style.display = 'block';
+    }
+
+    // 「OK」を押すたびに次のメッセージを表示する
+    function nextWarning() {
+      warningIndex = (warningIndex + 1) % warningMessages.length;
+      document.getElementById('warning-text').innerText = warningMessages[warningIndex];
+    }
+    // ==========================================
+
+
+    // ウィンドウを閉じる処理（エヴァEDへの遷移ギミック）
     function closeWin(winId) {
       document.getElementById(winId).style.display = 'none';
       
@@ -129,6 +182,7 @@
       const e1 = document.getElementById('win-err1').style.display;
       const e2 = document.getElementById('win-err2').style.display;
       
+      // 全てのウィンドウが消えたらエヴァのページへ
       if (m === 'none' && e1 === 'none' && e2 === 'none') {
         setTimeout(() => {
           window.location.href = 'eva.html';
@@ -174,6 +228,7 @@
       }
     });
 
+    // ドラッグ＆ドロップ処理
     const windows = document.querySelectorAll('.window');
     let isDragging = false; let currentWindow = null; let offsetX, offsetY;
 
