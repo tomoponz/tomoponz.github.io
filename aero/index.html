@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Aero OS 2007</title>
+  <title>Aero OS 2007 - Ultimate Clutter</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -17,21 +17,45 @@
   <div class="aero-bg"></div>
   <div class="bubbles-container">
     <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
-    <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
   </div>
 
+  <div class="sticky-note" style="top: 150px; left: 300px; transform: rotate(-2deg);">
+    <p>TODO:<br>- イルカに餌をやる<br>- 仮想空間のデフラグ<br>- Wake up.</p>
+  </div>
+
+  <img src="../img/dolphin.png" class="desktop-loose-img" style="top: 350px; left: 80px; width: 100px; transform: rotate(15deg);">
+
   <div class="desktop-icons">
-    <div class="icon" ondblclick="openAeroWindow('welcome-win')" onclick="if(window.innerWidth<=600) openAeroWindow('welcome-win')">
-      <img src="../img/globe.png" class="desktop-img" alt="Network">
-      <span>ネットワーク</span>
+    <div class="icon-column">
+      <div class="icon" ondblclick="openAeroWindow('welcome-win')">
+        <img src="../img/globe.png" class="desktop-img" alt="Network"><span>ネットワーク</span>
+      </div>
+      <div class="icon" ondblclick="location.href='../liminal/index.html'">
+        <img src="../img/green%20folder.png" class="desktop-img" alt="Folder"><span>古い記録 (Level 0)</span>
+      </div>
+      <div class="icon" ondblclick="location.href='../vaporwave/index.html'">
+        <img src="../img/CD.png" class="desktop-img" alt="Disk"><span>Ｖ Ｉ Ｒ Ｔ Ｕ Ａ Ｌ</span>
+      </div>
+      <div class="icon">
+        <div class="glossy-icon file-icon">📄</div><span>未確認のメモ.txt</span>
+      </div>
+      <div class="icon">
+        <img src="../img/beach.png" class="desktop-img" alt="Photos"><span>写真素材集</span>
+      </div>
     </div>
-    <div class="icon" ondblclick="location.href='../liminal/index.html'" onclick="if(window.innerWidth<=600) location.href='../liminal/index.html'">
-      <div class="glossy-orb folder-orb"></div>
-      <span>古い記録 (Level 0)</span>
-    </div>
-    <div class="icon" ondblclick="location.href='../vaporwave/index.html'" onclick="if(window.innerWidth<=600) location.href='../vaporwave/index.html'">
-      <div class="glossy-orb disk-orb"></div>
-      <span>Ｖ Ｉ Ｒ Ｔ Ｕ Ａ Ｌ</span>
+    <div class="icon-column">
+      <div class="icon">
+        <img src="../img/compass.png" class="desktop-img" alt="Browser"><span>Aero Explorer</span>
+      </div>
+      <div class="icon">
+        <img src="../img/music%20folder.png" class="desktop-img" alt="Music"><span>思い出の曲</span>
+      </div>
+      <div class="icon">
+        <div class="glossy-icon file-icon">📄</div><span>パスワード案.txt</span>
+      </div>
+      <div class="icon">
+        <img src="../img/dust%20box.png" class="desktop-img" alt="Trash"><span>ごみ箱 (満杯)</span>
+      </div>
     </div>
   </div>
 
@@ -44,16 +68,58 @@
         <div class="center-dot"></div>
       </div>
     </div>
+    <div class="gadget cpu-gadget">
+      <div class="gauge-dial">
+        <div class="gauge-needle" id="cpu-needle"></div>
+        <span style="position:absolute; bottom: 20px; font-size: 10px;">CPU</span>
+      </div>
+    </div>
+    <div class="gadget weather-gadget" style="background: transparent; border: none; box-shadow: none;">
+      <img src="../img/weather.png" style="width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));" alt="Weather">
+    </div>
   </div>
 
-  <div class="aero-window panel-bg" id="welcome-win" onmousedown="bringToFront('welcome-win')">
+  <div class="aero-window" id="wmp-win" style="display: flex; top: 50%; left: 45%; transform: translate(-50%, -50%); width: 500px; z-index: 5;" onmousedown="bringToFront('wmp-win')">
+    <div class="glass-highlight"></div>
+    <div class="title-bar">
+      <div class="title-text"><span class="title-icon">🎵</span> Windows Media Player</div>
+      <div class="window-controls"><button class="ctrl-btn min-btn">—</button><button class="ctrl-btn max-btn">□</button><button class="ctrl-btn close-btn" onclick="closeAeroWindow('wmp-win')">✕</button></div>
+    </div>
+    <div class="window-content" style="background: #111; color: #fff;">
+      <div style="height: 150px; background: #000; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+        <div class="visualizer-bar" style="left: 30%; animation-delay: 0.1s;"></div><div class="visualizer-bar" style="left: 40%; animation-delay: 0.3s;"></div><div class="visualizer-bar" style="left: 50%; animation-delay: 0.2s;"></div><div class="visualizer-bar" style="left: 60%; animation-delay: 0.5s;"></div><div class="visualizer-bar" style="left: 70%; animation-delay: 0.4s;"></div>
+      </div>
+      <div style="padding: 15px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(to bottom, #333, #111);">
+        <div><h4 style="margin: 0; font-size: 14px; color: #55e6ff;">Aquatic Ambience.mp3</h4><span style="font-size: 11px; color: #aaa;">Frutiger Aero Soundtrack</span></div>
+        <div style="display: flex; gap: 10px;"><button class="player-btn">⏮</button><button class="player-btn" style="transform: scale(1.2);">▶</button><button class="player-btn">⏭</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="aero-window" id="ie-win" style="display: flex; top: 55%; left: 55%; transform: translate(-50%, -50%); width: 600px; height: 400px; z-index: 6;" onmousedown="bringToFront('ie-win')">
+    <div class="glass-highlight"></div>
+    <div class="title-bar">
+      <div class="title-text"><span class="title-icon">🌐</span> Windows Internet Explorer</div>
+      <div class="window-controls"><button class="ctrl-btn min-btn">—</button><button class="ctrl-btn max-btn">□</button><button class="ctrl-btn close-btn" onclick="closeAeroWindow('ie-win')">✕</button></div>
+    </div>
+    <div class="window-content" style="background: #fff;">
+      <div class="browser-toolbar">
+        <button class="nav-btn">◀</button> <button class="nav-btn">▶</button>
+        <input type="text" class="url-bar" value="http://www.aero-utopia.net/dolphin_fan_club" readonly>
+      </div>
+      <div class="content-body" style="height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+        <img src="../img/compass.png" style="width: 80px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2)); margin-bottom: 20px; opacity: 0.7;">
+        <h2 style="color: #0078d7; margin: 0 0 10px 0; font-size: 16px;">ページを表示できません</h2>
+        <p style="color: #666; font-size: 12px; text-align: center;">検索中のページは、削除されたか、名前が変更されたか、<br>または現在利用できない可能性があります。</p>
+        <p style="color: #888; font-size: 11px; margin-top: 20px;">HTTP 404 - ファイル未検出<br>Internet Explorer</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="aero-window panel-bg" id="welcome-win" style="display: none; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;" onmousedown="bringToFront('welcome-win')">
     <div class="title-bar">
       <div class="title-text"><span class="title-icon">✨</span> ウェルカム センター</div>
-      <div class="window-controls">
-        <button class="ctrl-btn min-btn">—</button>
-        <button class="ctrl-btn max-btn">□</button>
-        <button class="ctrl-btn close-btn" onclick="closeAeroWindow('welcome-win')">✕</button>
-      </div>
+      <div class="window-controls"><button class="ctrl-btn min-btn">—</button><button class="ctrl-btn max-btn">□</button><button class="ctrl-btn close-btn" onclick="closeAeroWindow('welcome-win')">✕</button></div>
     </div>
     <div class="window-content semi-transparent">
       <div class="content-header">
@@ -61,97 +127,34 @@
         <p>自然とテクノロジーが融合した、理想郷（ユートピア）へ。</p>
       </div>
       <div class="content-body">
-        <div class="feature-box">
-          <h3>💧 水滴ガラスパネル</h3>
-          <p>新しく搭載された、濡れたガラスのような美しいUI。</p>
-        </div>
-        <div class="feature-box">
-          <h3>🐬 Frutiger Aero</h3>
-          <p>澄み切った青空、透き通る水、そしてイルカ。2000年代の夢。</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="aero-window" id="ie-win" style="display: none; top: 40%; left: 45%; width: 600px; height: 400px;" onmousedown="bringToFront('ie-win')">
-    <div class="glass-highlight"></div>
-    <div class="title-bar">
-      <div class="title-text"><span class="title-icon">🌐</span> Windows Internet Explorer</div>
-      <div class="window-controls">
-        <button class="ctrl-btn min-btn">—</button>
-        <button class="ctrl-btn max-btn">□</button>
-        <button class="ctrl-btn close-btn" onclick="closeAeroWindow('ie-win')">✕</button>
-      </div>
-    </div>
-    <div class="window-content" style="background: #fff;">
-      <div class="browser-toolbar">
-        <button class="nav-btn">◀</button> <button class="nav-btn">▶</button>
-        <input type="text" class="url-bar" value="http://www.aero-utopia.net" readonly>
-      </div>
-      <div class="content-body" style="height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column;">
-        <img src="../img/globe.png" style="width: 80px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2)); margin-bottom: 20px;">
-        <h2 style="color: #0078d7; margin: 0 0 10px 0;">インターネットに接続されていません</h2>
-        <p style="color: #666; font-size: 13px;">仮想空間のネットワークケーブルを確認してください。</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="aero-window" id="wmp-win" style="display: none; top: 45%; left: 55%; width: 500px;" onmousedown="bringToFront('wmp-win')">
-    <div class="glass-highlight"></div>
-    <div class="title-bar">
-      <div class="title-text"><span class="title-icon">🎵</span> Windows Media Player</div>
-      <div class="window-controls">
-        <button class="ctrl-btn min-btn">—</button>
-        <button class="ctrl-btn max-btn">□</button>
-        <button class="ctrl-btn close-btn" onclick="closeAeroWindow('wmp-win')">✕</button>
-      </div>
-    </div>
-    <div class="window-content" style="background: #111; color: #fff;">
-      <div style="height: 150px; background: #000; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
-        <div class="visualizer-bar" style="left: 30%; animation-delay: 0.1s;"></div>
-        <div class="visualizer-bar" style="left: 40%; animation-delay: 0.3s;"></div>
-        <div class="visualizer-bar" style="left: 50%; animation-delay: 0.2s;"></div>
-        <div class="visualizer-bar" style="left: 60%; animation-delay: 0.5s;"></div>
-        <div class="visualizer-bar" style="left: 70%; animation-delay: 0.4s;"></div>
-      </div>
-      <div style="padding: 15px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(to bottom, #333, #111);">
-        <div>
-          <h4 style="margin: 0; font-size: 14px; color: #55e6ff;">Aquatic Ambience.mp3</h4>
-          <span style="font-size: 11px; color: #aaa;">Frutiger Aero Soundtrack</span>
-        </div>
-        <div style="display: flex; gap: 10px;">
-          <button class="player-btn">⏮</button>
-          <button class="player-btn" style="transform: scale(1.2);">▶</button>
-          <button class="player-btn">⏭</button>
-        </div>
+        <div class="feature-box"><h3>💧 水滴ガラスパネル</h3><p>新しく搭載された、濡れたガラスのような美しいUI。</p></div>
+        <div class="feature-box"><h3>🐬 Frutiger Aero</h3><p>澄み切った青空、透き通る水、そしてイルカ。2000年代の夢。</p></div>
       </div>
     </div>
   </div>
 
   <div class="start-menu" id="start-menu">
-    <div class="user-profile-top">
-      <div class="user-icon-frame"><div class="user-icon-inner">🌸</div></div>
-    </div>
+    <div class="user-profile-top"><div class="user-icon-frame"><div class="user-icon-inner">🌸</div></div></div>
     <div class="start-menu-inner">
       <div class="start-menu-left">
         <div class="menu-item" onclick="location.href='../liminal/index.html'">
-          <span class="menu-icon">🚪</span> <div class="menu-text">Backrooms (Level 0)</div>
+          <img src="../img/green%20folder.png" class="menu-img-icon" alt="icon">
+          <div class="menu-text">Backrooms (Level 0)</div>
         </div>
         <div class="menu-item" onclick="location.href='../vaporwave/index.html'">
-          <span class="menu-icon">📼</span> <div class="menu-text">Virtual Plaza</div>
+          <img src="../img/CD.png" class="menu-img-icon" alt="icon">
+          <div class="menu-text">Virtual Plaza</div>
         </div>
         <div class="menu-separator"></div>
         <div class="menu-item" onclick="openAeroWindow('ie-win'); toggleStartMenu();">
-          <span class="menu-icon">🌐</span> <div class="menu-text">Internet Explorer</div>
+          <img src="../img/compass.png" class="menu-img-icon" alt="icon">
+          <div class="menu-text">Internet Explorer</div>
         </div>
         <div class="menu-item" onclick="openAeroWindow('wmp-win'); toggleStartMenu();">
-          <span class="menu-icon">🎵</span> <div class="menu-text">Media Player</div>
+          <img src="../img/music%20folder.png" class="menu-img-icon" alt="icon">
+          <div class="menu-text">Media Player</div>
         </div>
-        
-        <div class="start-search-box">
-          <input type="text" placeholder="検索の開始">
-          <span class="search-icon">🔍</span>
-        </div>
+        <div class="start-search-box"><input type="text" placeholder="検索の開始"><span class="search-icon">🔍</span></div>
       </div>
       <div class="start-menu-right">
         <div class="menu-item-right"><strong>Guest User</strong></div>
@@ -161,10 +164,10 @@
         <div class="menu-item-right">ミュージック</div>
         <div class="menu-separator-right"></div>
         <div class="menu-item-right" onclick="openAeroWindow('welcome-win'); toggleStartMenu();">コントロール パネル</div>
-        <div class="power-section">
-          <button class="power-btn">🔒</button>
-          <button class="power-btn" style="color: #ff5555;">⏻</button>
+        <div class="menu-item-right" style="display: flex; align-items: center; gap: 5px;">
+          <img src="../img/help%20logo.png" style="width: 16px; height: 16px;"> ヘルプとサポート
         </div>
+        <div class="power-section"><button class="power-btn">🔒</button><button class="power-btn" style="color: #ff5555;">⏻</button></div>
       </div>
     </div>
   </div>
@@ -173,96 +176,47 @@
     <div class="taskbar-glass"></div>
     <div class="start-orb-image" onclick="toggleStartMenu()" id="start-btn"></div>
     <div class="taskbar-items" id="taskbar-items">
-      <div class="task-item active">✨ ウェルカム センター</div>
+      <div class="task-item" onclick="bringToFront('wmp-win')">🎵 Windows Media P...</div>
+      <div class="task-item active" onclick="bringToFront('ie-win')">🌐 Windows Internet...</div>
     </div>
     <div class="tray">
-      <span>🌐</span><span>🔊</span><span id="taskbar-time">12:00</span>
+      <span>🛡️</span><span>🌐</span><span>🔊</span><span id="taskbar-time">12:00</span>
+    </div>
+    <div class="tray-balloon">
+      <div class="balloon-close">✕</div>
+      <div class="balloon-title">🛡️ セキュリティ警告</div>
+      <div class="balloon-text">ファイアウォールが無効になっています。ここをクリックして設定を確認してください。</div>
     </div>
   </div>
 
   <script>
-    // --- スタートメニュー開閉 ---
-    function toggleStartMenu() {
-      const menu = document.getElementById('start-menu');
-      menu.classList.toggle('active');
-    }
-    document.addEventListener('click', function(e) {
-      const menu = document.getElementById('start-menu');
-      const btn = document.getElementById('start-btn');
-      if (!menu.contains(e.target) && !btn.contains(e.target)) {
-        menu.classList.remove('active');
-      }
-    });
+    function toggleStartMenu() { const menu = document.getElementById('start-menu'); menu.classList.toggle('active'); }
+    document.addEventListener('click', function(e) { const menu = document.getElementById('start-menu'); const btn = document.getElementById('start-btn'); if (!menu.contains(e.target) && !btn.contains(e.target)) { menu.classList.remove('active'); } });
 
-    // --- ウィンドウ管理システム（マルチウィンドウ対応） ---
-    let highestZIndex = 10; // ウィンドウの重なり順を管理
+    let highestZIndex = 100;
+    function openAeroWindow(id) { const win = document.getElementById(id); win.style.display = 'flex'; bringToFront(id); }
+    function closeAeroWindow(id) { document.getElementById(id).style.display = 'none'; }
+    function bringToFront(id) { highestZIndex++; document.getElementById(id).style.zIndex = highestZIndex; }
 
-    function openAeroWindow(id) {
-      const win = document.getElementById(id);
-      win.style.display = 'flex';
-      bringToFront(id);
-    }
-
-    function closeAeroWindow(id) {
-      document.getElementById(id).style.display = 'none';
-    }
-
-    function bringToFront(id) {
-      highestZIndex++;
-      document.getElementById(id).style.zIndex = highestZIndex;
-    }
-
-    // --- ウィンドウのドラッグ処理（全ての .aero-window に適用） ---
     const windows = document.querySelectorAll('.aero-window');
     windows.forEach(win => {
-      const titleBar = win.querySelector('.title-bar');
-      let isDragging = false, offsetX, offsetY;
-
-      const startDrag = (clientX, clientY) => {
-        isDragging = true;
-        bringToFront(win.id); // ドラッグ開始時にも最前面へ
-        const rect = win.getBoundingClientRect();
-        offsetX = clientX - rect.left;
-        offsetY = clientY - rect.top;
-        win.style.transform = 'none';
-        win.style.left = rect.left + 'px';
-        win.style.top = rect.top + 'px';
-      };
-
-      titleBar.addEventListener('mousedown', (e) => {
-        if(e.target.closest('.ctrl-btn')) return;
-        startDrag(e.clientX, e.clientY);
-      });
-      titleBar.addEventListener('touchstart', (e) => {
-        if(e.target.closest('.ctrl-btn')) return;
-        startDrag(e.touches[0].clientX, e.touches[0].clientY);
-      }, {passive: true});
-
-      const moveDrag = (clientX, clientY) => {
-        if(!isDragging) return;
-        win.style.left = (clientX - offsetX) + 'px';
-        win.style.top = (clientY - offsetY) + 'px';
-      };
-
-      document.addEventListener('mousemove', (e) => { if(isDragging) moveDrag(e.clientX, e.clientY); });
-      document.addEventListener('touchmove', (e) => { if(isDragging) moveDrag(e.touches[0].clientX, e.touches[0].clientY); }, {passive: true});
-      
-      document.addEventListener('mouseup', () => { isDragging = false; });
-      document.addEventListener('touchend', () => { isDragging = false; });
+      const titleBar = win.querySelector('.title-bar'); let isDragging = false, offsetX, offsetY;
+      const startDrag = (clientX, clientY) => { isDragging = true; bringToFront(win.id); const rect = win.getBoundingClientRect(); offsetX = clientX - rect.left; offsetY = clientY - rect.top; win.style.transform = 'none'; win.style.left = rect.left + 'px'; win.style.top = rect.top + 'px'; };
+      titleBar.addEventListener('mousedown', (e) => { if(e.target.closest('.ctrl-btn')) return; startDrag(e.clientX, e.clientY); });
+      titleBar.addEventListener('touchstart', (e) => { if(e.target.closest('.ctrl-btn')) return; startDrag(e.touches[0].clientX, e.touches[0].clientY); }, {passive: true});
+      const moveDrag = (clientX, clientY) => { if(!isDragging) return; win.style.left = (clientX - offsetX) + 'px'; win.style.top = (clientY - offsetY) + 'px'; };
+      document.addEventListener('mousemove', (e) => { if(isDragging) moveDrag(e.clientX, e.clientY); }); document.addEventListener('touchmove', (e) => { if(isDragging) moveDrag(e.touches[0].clientX, e.touches[0].clientY); }, {passive: true});
+      document.addEventListener('mouseup', () => { isDragging = false; }); document.addEventListener('touchend', () => { isDragging = false; });
     });
 
-    // --- 時計の更新 ---
     function updateClock() {
-      const now = new Date();
-      let h = now.getHours();
-      const m = String(now.getMinutes()).padStart(2, '0');
-      document.getElementById('taskbar-time').innerText = `${h}:${m}`;
+      const now = new Date(); let h = now.getHours(); const m = String(now.getMinutes()).padStart(2, '0'); document.getElementById('taskbar-time').innerText = `${h}:${m}`;
       const sec = now.getSeconds(); const min = now.getMinutes(); const hr = now.getHours();
-      document.getElementById('second-hand').style.transform = `translateX(-50%) rotate(${sec * 6}deg)`;
-      document.getElementById('minute-hand').style.transform = `translateX(-50%) rotate(${min * 6 + sec * 0.1}deg)`;
-      document.getElementById('hour-hand').style.transform = `translateX(-50%) rotate(${hr * 30 + min * 0.5}deg)`;
+      document.getElementById('second-hand').style.transform = `translateX(-50%) rotate(${sec * 6}deg)`; document.getElementById('minute-hand').style.transform = `translateX(-50%) rotate(${min * 6 + sec * 0.1}deg)`; document.getElementById('hour-hand').style.transform = `translateX(-50%) rotate(${hr * 30 + min * 0.5}deg)`;
     }
     setInterval(updateClock, 1000); updateClock();
+
+    setInterval(() => { const cpuNeedle = document.getElementById('cpu-needle'); const randomAngle = Math.random() * 180 - 90; cpuNeedle.style.transform = `translateX(-50%) rotate(${randomAngle}deg)`; }, 800);
   </script>
 </body>
 </html>
