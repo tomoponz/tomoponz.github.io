@@ -14,16 +14,14 @@
     <img src="../img/cloud.png" class="bg-element cloud cloud-2" alt="Cloud">
   </div>
   <img src="../img/dolphin.png" class="bg-element dolphin" alt="Dolphin">
-
   <div class="aero-bg"></div>
-
   <div class="bubbles-container">
     <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
     <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
   </div>
 
   <div class="desktop-icons">
-    <div class="icon" ondblclick="document.getElementById('welcome-win').style.display='flex'" onclick="if(window.innerWidth<=600) document.getElementById('welcome-win').style.display='flex'">
+    <div class="icon" ondblclick="openAeroWindow('welcome-win')" onclick="if(window.innerWidth<=600) openAeroWindow('welcome-win')">
       <img src="../img/globe.png" class="desktop-img" alt="Network">
       <span>ネットワーク</span>
     </div>
@@ -48,13 +46,13 @@
     </div>
   </div>
 
-  <div class="aero-window panel-bg" id="welcome-win">
+  <div class="aero-window panel-bg" id="welcome-win" onmousedown="bringToFront('welcome-win')">
     <div class="title-bar">
       <div class="title-text"><span class="title-icon">✨</span> ウェルカム センター</div>
       <div class="window-controls">
         <button class="ctrl-btn min-btn">—</button>
         <button class="ctrl-btn max-btn">□</button>
-        <button class="ctrl-btn close-btn" onclick="document.getElementById('welcome-win').style.display='none'">✕</button>
+        <button class="ctrl-btn close-btn" onclick="closeAeroWindow('welcome-win')">✕</button>
       </div>
     </div>
     <div class="window-content semi-transparent">
@@ -75,68 +73,196 @@
     </div>
   </div>
 
-  <div class="start-menu" id="start-menu">
-    <div class="start-menu-left">
-      <div class="menu-item" onclick="location.href='../liminal/index.html'">🚪 Backroomsへ戻る</div>
-      <div class="menu-item" onclick="location.href='../vaporwave/index.html'">📼 Virtual Plazaを開く</div>
-      <div class="menu-separator"></div>
-      <div class="menu-item">🌐 Internet Explorer 7</div>
-      <div class="menu-item">🎵 Windows Media Player</div>
-    </div>
-    <div class="start-menu-right">
-      <div class="user-profile">
-        <div class="user-icon">👤</div>
-        <span>Guest User</span>
+  <div class="aero-window" id="ie-win" style="display: none; top: 40%; left: 45%; width: 600px; height: 400px;" onmousedown="bringToFront('ie-win')">
+    <div class="glass-highlight"></div>
+    <div class="title-bar">
+      <div class="title-text"><span class="title-icon">🌐</span> Windows Internet Explorer</div>
+      <div class="window-controls">
+        <button class="ctrl-btn min-btn">—</button>
+        <button class="ctrl-btn max-btn">□</button>
+        <button class="ctrl-btn close-btn" onclick="closeAeroWindow('ie-win')">✕</button>
       </div>
-      <div class="menu-item-right">ドキュメント</div>
-      <div class="menu-item-right">ピクチャ</div>
-      <div class="menu-item-right">ミュージック</div>
-      <div class="menu-separator-right"></div>
-      <div class="menu-item-right">コントロール パネル</div>
+    </div>
+    <div class="window-content" style="background: #fff;">
+      <div class="browser-toolbar">
+        <button class="nav-btn">◀</button> <button class="nav-btn">▶</button>
+        <input type="text" class="url-bar" value="http://www.aero-utopia.net" readonly>
+      </div>
+      <div class="content-body" style="height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+        <img src="../img/globe.png" style="width: 80px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2)); margin-bottom: 20px;">
+        <h2 style="color: #0078d7; margin: 0 0 10px 0;">インターネットに接続されていません</h2>
+        <p style="color: #666; font-size: 13px;">仮想空間のネットワークケーブルを確認してください。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="aero-window" id="wmp-win" style="display: none; top: 45%; left: 55%; width: 500px;" onmousedown="bringToFront('wmp-win')">
+    <div class="glass-highlight"></div>
+    <div class="title-bar">
+      <div class="title-text"><span class="title-icon">🎵</span> Windows Media Player</div>
+      <div class="window-controls">
+        <button class="ctrl-btn min-btn">—</button>
+        <button class="ctrl-btn max-btn">□</button>
+        <button class="ctrl-btn close-btn" onclick="closeAeroWindow('wmp-win')">✕</button>
+      </div>
+    </div>
+    <div class="window-content" style="background: #111; color: #fff;">
+      <div style="height: 150px; background: #000; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+        <div class="visualizer-bar" style="left: 30%; animation-delay: 0.1s;"></div>
+        <div class="visualizer-bar" style="left: 40%; animation-delay: 0.3s;"></div>
+        <div class="visualizer-bar" style="left: 50%; animation-delay: 0.2s;"></div>
+        <div class="visualizer-bar" style="left: 60%; animation-delay: 0.5s;"></div>
+        <div class="visualizer-bar" style="left: 70%; animation-delay: 0.4s;"></div>
+      </div>
+      <div style="padding: 15px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(to bottom, #333, #111);">
+        <div>
+          <h4 style="margin: 0; font-size: 14px; color: #55e6ff;">Aquatic Ambience.mp3</h4>
+          <span style="font-size: 11px; color: #aaa;">Frutiger Aero Soundtrack</span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button class="player-btn">⏮</button>
+          <button class="player-btn" style="transform: scale(1.2);">▶</button>
+          <button class="player-btn">⏭</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="start-menu" id="start-menu">
+    <div class="user-profile-top">
+      <div class="user-icon-frame"><div class="user-icon-inner">🌸</div></div>
+    </div>
+    <div class="start-menu-inner">
+      <div class="start-menu-left">
+        <div class="menu-item" onclick="location.href='../liminal/index.html'">
+          <span class="menu-icon">🚪</span> <div class="menu-text">Backrooms (Level 0)</div>
+        </div>
+        <div class="menu-item" onclick="location.href='../vaporwave/index.html'">
+          <span class="menu-icon">📼</span> <div class="menu-text">Virtual Plaza</div>
+        </div>
+        <div class="menu-separator"></div>
+        <div class="menu-item" onclick="openAeroWindow('ie-win'); toggleStartMenu();">
+          <span class="menu-icon">🌐</span> <div class="menu-text">Internet Explorer</div>
+        </div>
+        <div class="menu-item" onclick="openAeroWindow('wmp-win'); toggleStartMenu();">
+          <span class="menu-icon">🎵</span> <div class="menu-text">Media Player</div>
+        </div>
+        
+        <div class="start-search-box">
+          <input type="text" placeholder="検索の開始">
+          <span class="search-icon">🔍</span>
+        </div>
+      </div>
+      <div class="start-menu-right">
+        <div class="menu-item-right"><strong>Guest User</strong></div>
+        <div class="menu-separator-right"></div>
+        <div class="menu-item-right">ドキュメント</div>
+        <div class="menu-item-right">ピクチャ</div>
+        <div class="menu-item-right">ミュージック</div>
+        <div class="menu-separator-right"></div>
+        <div class="menu-item-right" onclick="openAeroWindow('welcome-win'); toggleStartMenu();">コントロール パネル</div>
+        <div class="power-section">
+          <button class="power-btn">🔒</button>
+          <button class="power-btn" style="color: #ff5555;">⏻</button>
+        </div>
+      </div>
     </div>
   </div>
 
   <div class="taskbar">
     <div class="taskbar-glass"></div>
-    
     <div class="start-orb-image" onclick="toggleStartMenu()" id="start-btn"></div>
-    
-    <div class="taskbar-items">
-      <div class="task-item active">ウェルカム センター</div>
+    <div class="taskbar-items" id="taskbar-items">
+      <div class="task-item active">✨ ウェルカム センター</div>
     </div>
     <div class="tray">
-      <span>🌐</span>
-      <span>🔊</span>
-      <span id="taskbar-time">12:00</span>
+      <span>🌐</span><span>🔊</span><span id="taskbar-time">12:00</span>
     </div>
   </div>
 
   <script>
-    function toggleStartMenu() { const menu = document.getElementById('start-menu'); menu.classList.toggle('active'); }
-    document.addEventListener('click', function(e) { const menu = document.getElementById('start-menu'); const btn = document.getElementById('start-btn'); if (!menu.contains(e.target) && !btn.contains(e.target)) { menu.classList.remove('active'); } });
-    function updateClock() { const now = new Date(); let h = now.getHours(); const m = String(now.getMinutes()).padStart(2, '0'); document.getElementById('taskbar-time').innerText = `${h}:${m}`; const sec = now.getSeconds(); const min = now.getMinutes(); const hr = now.getHours(); document.getElementById('second-hand').style.transform = `translateX(-50%) rotate(${sec * 6}deg)`; document.getElementById('minute-hand').style.transform = `translateX(-50%) rotate(${min * 6 + sec * 0.1}deg)`; document.getElementById('hour-hand').style.transform = `translateX(-50%) rotate(${hr * 30 + min * 0.5}deg)`; }
+    // --- スタートメニュー開閉 ---
+    function toggleStartMenu() {
+      const menu = document.getElementById('start-menu');
+      menu.classList.toggle('active');
+    }
+    document.addEventListener('click', function(e) {
+      const menu = document.getElementById('start-menu');
+      const btn = document.getElementById('start-btn');
+      if (!menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.classList.remove('active');
+      }
+    });
+
+    // --- ウィンドウ管理システム（マルチウィンドウ対応） ---
+    let highestZIndex = 10; // ウィンドウの重なり順を管理
+
+    function openAeroWindow(id) {
+      const win = document.getElementById(id);
+      win.style.display = 'flex';
+      bringToFront(id);
+    }
+
+    function closeAeroWindow(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    function bringToFront(id) {
+      highestZIndex++;
+      document.getElementById(id).style.zIndex = highestZIndex;
+    }
+
+    // --- ウィンドウのドラッグ処理（全ての .aero-window に適用） ---
+    const windows = document.querySelectorAll('.aero-window');
+    windows.forEach(win => {
+      const titleBar = win.querySelector('.title-bar');
+      let isDragging = false, offsetX, offsetY;
+
+      const startDrag = (clientX, clientY) => {
+        isDragging = true;
+        bringToFront(win.id); // ドラッグ開始時にも最前面へ
+        const rect = win.getBoundingClientRect();
+        offsetX = clientX - rect.left;
+        offsetY = clientY - rect.top;
+        win.style.transform = 'none';
+        win.style.left = rect.left + 'px';
+        win.style.top = rect.top + 'px';
+      };
+
+      titleBar.addEventListener('mousedown', (e) => {
+        if(e.target.closest('.ctrl-btn')) return;
+        startDrag(e.clientX, e.clientY);
+      });
+      titleBar.addEventListener('touchstart', (e) => {
+        if(e.target.closest('.ctrl-btn')) return;
+        startDrag(e.touches[0].clientX, e.touches[0].clientY);
+      }, {passive: true});
+
+      const moveDrag = (clientX, clientY) => {
+        if(!isDragging) return;
+        win.style.left = (clientX - offsetX) + 'px';
+        win.style.top = (clientY - offsetY) + 'px';
+      };
+
+      document.addEventListener('mousemove', (e) => { if(isDragging) moveDrag(e.clientX, e.clientY); });
+      document.addEventListener('touchmove', (e) => { if(isDragging) moveDrag(e.touches[0].clientX, e.touches[0].clientY); }, {passive: true});
+      
+      document.addEventListener('mouseup', () => { isDragging = false; });
+      document.addEventListener('touchend', () => { isDragging = false; });
+    });
+
+    // --- 時計の更新 ---
+    function updateClock() {
+      const now = new Date();
+      let h = now.getHours();
+      const m = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('taskbar-time').innerText = `${h}:${m}`;
+      const sec = now.getSeconds(); const min = now.getMinutes(); const hr = now.getHours();
+      document.getElementById('second-hand').style.transform = `translateX(-50%) rotate(${sec * 6}deg)`;
+      document.getElementById('minute-hand').style.transform = `translateX(-50%) rotate(${min * 6 + sec * 0.1}deg)`;
+      document.getElementById('hour-hand').style.transform = `translateX(-50%) rotate(${hr * 30 + min * 0.5}deg)`;
+    }
     setInterval(updateClock, 1000); updateClock();
-    
-    const windowEl = document.getElementById('welcome-win'); 
-    const titleBar = windowEl.querySelector('.title-bar'); 
-    let isDragging = false, offsetX, offsetY;
-    const startDrag = (clientX, clientY) => { 
-      isDragging = true; 
-      const rect = windowEl.getBoundingClientRect(); 
-      offsetX = clientX - rect.left; 
-      offsetY = clientY - rect.top; 
-      windowEl.style.transform = 'none'; 
-      windowEl.style.left = rect.left + 'px'; 
-      windowEl.style.top = rect.top + 'px'; 
-    };
-    titleBar.addEventListener('mousedown', (e) => { if(e.target.closest('.ctrl-btn')) return; startDrag(e.clientX, e.clientY); });
-    titleBar.addEventListener('touchstart', (e) => { if(e.target.closest('.ctrl-btn')) return; startDrag(e.touches[0].clientX, e.touches[0].clientY); }, {passive: true});
-    const moveDrag = (clientX, clientY) => { if(!isDragging) return; windowEl.style.left = (clientX - offsetX) + 'px'; windowEl.style.top = (clientY - offsetY) + 'px'; };
-    document.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY)); 
-    document.addEventListener('touchmove', (e) => moveDrag(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
-    const endDrag = () => { isDragging = false; }; 
-    document.addEventListener('mouseup', endDrag); 
-    document.addEventListener('touchend', endDrag);
   </script>
 </body>
 </html>
