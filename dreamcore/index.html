@@ -9,7 +9,7 @@
   
   <script>
     // ==========================================
-    // ★ カスタム操作コントローラー (FPS完全準拠) ★
+    // ★ カスタム操作コントローラー (FPS完全準拠)
     // ==========================================
     AFRAME.registerComponent('custom-controls', {
       schema: {
@@ -18,14 +18,14 @@
       },
       init: function () {
         this.keys = {};
-        this.yaw = 0;   // 左右の角度 (Y軸回転)
-        this.pitch = 0; // 上下の角度 (X軸回転)
+        this.yaw = 0;   // 左右の角度
+        this.pitch = 0; // 上下の角度
 
         window.addEventListener('keydown', (e) => { this.keys[e.code] = true; });
         window.addEventListener('keyup', (e) => { this.keys[e.code] = false; });
       },
       tick: function (time, timeDelta) {
-        if (!window.isPlaying) return;
+        if (!window.is3DActive) return;
 
         const delta = Math.min(timeDelta / 16.6, 2);
 
@@ -39,52 +39,40 @@
         const limit = Math.PI / 2.2;
         this.pitch = Math.max(-limit, Math.min(limit, this.pitch));
 
-        // カメラに角度を適用 (YXZの順序が重要)
+        // カメラの角度を適用
         this.el.object3D.rotation.set(this.pitch, this.yaw, 0, 'YXZ');
 
         // --- 2. 移動 (WASDキー) ---
-        // ★ ここがFPS準拠の移動計算のキモ ★
         let moveX = 0;
         let moveZ = 0;
 
-        // 入力方向の決定 (Z: 前後, X: 左右)
-        if (this.keys['KeyW']) moveZ -= 1; 
-        if (this.keys['KeyS']) moveZ += 1; 
-        if (this.keys['KeyA']) moveX -= 1; 
-        if (this.keys['KeyD']) moveX += 1; 
+        if (this.keys['KeyW']) moveZ -= 1; // 前
+        if (this.keys['KeyS']) moveZ += 1; // 後ろ
+        if (this.keys['KeyA']) moveX -= 1; // 左
+        if (this.keys['KeyD']) moveX += 1; // 右
 
         if (moveX !== 0 || moveZ !== 0) {
-          // 斜め移動時の速度補正 (ピタゴラスの定理)
-          const length = Math.sqrt(moveX * moveX + moveZ * moveZ);
-          moveX /= length;
-          moveZ /= length;
-
-          // 実際の移動ベクトルに速度を掛ける
-          moveX *= this.data.moveSpeed * delta;
-          moveZ *= this.data.moveSpeed * delta;
-
-          // ★ 現在向いている角度(yaw)を使って、前後左右を「ワールド座標」に変換 ★
-          const s = Math.sin(this.yaw);
-          const c = Math.cos(this.yaw);
-
-          // 行列の回転計算を適用して、自分が向いている方向へ進ませる
-          const finalX = moveX * c + moveZ * s;
-          const finalZ = -moveX * s + moveZ * c;
-
+          // 移動方向のベクトルを作成
+          let moveVec = new THREE.Vector3(moveX, 0, moveZ);
+          moveVec.normalize(); // 斜め移動が速くならないように補正
+          moveVec.multiplyScalar(this.data.moveSpeed * delta);
+          
+          // ★ 自分が向いている方向（yaw）に合わせてベクトルを回転させる ★
+          moveVec.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.yaw);
+          
           // 座標を更新
-          this.el.object3D.position.x += finalX;
-          this.el.object3D.position.z += finalZ;
+          this.el.object3D.position.add(moveVec);
         }
       }
     });
 
-    // --- 壁の当たり判定 (すり抜け防止) ---
+    // --- 壁の当たり判定 ---
     AFRAME.registerComponent('grid-collider', {
       init: function () {
         this.lastLocalPos = new THREE.Vector3().copy(this.el.object3D.position);
       },
       tick: function () {
-        if (!window.isPlaying) return;
+        if (!window.is3DActive) return;
         const worldPos = new THREE.Vector3();
         this.el.object3D.getWorldPosition(worldPos);
         const gX = Math.round(worldPos.x / 10);
@@ -123,23 +111,13 @@
 
 
   <div id="phase-3d">
-    <div class="hud-timer" id="timer-display">SURVIVE: 60s</div>
-    <div class="hud-vignette" id="hud-vignette"></div>
+    <div class="hud-timer" id="timer-display">EXPLORE MODE</div>
 
     <a-scene embedded fog="type: exponential; color: #000; density: 0.01;">
       
-      <a-entity id="player" position="10 1.6 70">
-        <a-camera id="main-cam" custom-controls grid-collider></a-camera>
-        <a-light type="point" color="#fff" intensity="1.2" distance="60" position="0 2 0"></a-light>
-      </a-entity>
-
-      <a-entity id="monster" position="130 1.5 10">
-        <a-sphere radius="2.0" color="#000" material="roughness: 1;">
-          <a-sphere radius="0.8" position="0 0 1.8" color="#fff">
-            <a-sphere radius="0.4" position="0 0 0.6" color="red" material="emissive:red; emissiveIntensity:10;"></a-sphere>
-          </a-sphere>
-        </a-sphere>
-        <a-light type="point" color="red" intensity="3" distance="40"></a-light>
+      <a-entity id="main-cam" camera position="10 1.6 70" custom-controls grid-collider>
+        <a-cursor color="#fff" scale="0.5 0.5 0.5"></a-cursor>
+        <a-light type="point" color="#fff" intensity="1.2" distance="60" position="0 0 0"></a-light>
       </a-entity>
 
       <a-entity id="map-root"></a-entity>
@@ -147,13 +125,9 @@
     </a-scene>
   </div>
   
-  <div class="overlay-screen" id="game-over"><h1 style="color: red;">CAUGHT.</h1></div>
-  <div class="overlay-screen" id="game-clear" style="background: #fff; color: #000;"><h1>AWAKE.</h1></div>
-
   <script>
-    // ゲーム進行用フラグ
-    window.isPlaying = false; 
-    let timeLeft = 60;
+    // グローバル状態
+    window.is3DActive = false;
 
     const exitBtn = document.getElementById('real-exit');
     const hell = document.getElementById('button-hell');
@@ -220,124 +194,19 @@
 
     generateMap(); 
 
-    // 経路探索アルゴリズム (BFS)
-    function findPath(startX, startZ, goalX, goalZ) {
-      let queue = [{x: startX, z: startZ, path: []}];
-      let visited = Array(mapData.length).fill(0).map(() => Array(mapData[0].length).fill(false));
-      
-      if(startZ < 0 || startZ >= mapData.length || startX < 0 || startX >= mapData[0].length) return [];
-      visited[startZ][startX] = true;
-
-      const dirs = [[0, -1], [0, 1], [-1, 0], [1, 0]]; 
-
-      while(queue.length > 0) {
-        let curr = queue.shift();
-        if(curr.x === goalX && curr.z === goalZ) { return curr.path; }
-
-        for(let d of dirs) {
-          let nx = curr.x + d[0]; let nz = curr.z + d[1];
-          if(nz >= 0 && nz < mapData.length && nx >= 0 && nx < mapData[0].length) {
-            if(mapData[nz][nx] === 0 && !visited[nz][nx]) { 
-              visited[nz][nx] = true;
-              queue.push({x: nx, z: nz, path: curr.path.concat([{x: nx, z: nz}])});
-            }
-          }
-        }
-      }
-      return []; 
-    }
-    
     // ゲームスタート
     exitBtn.addEventListener('click', () => {
       document.getElementById('svg-filter').remove(); 
       document.getElementById('phase-2d').style.opacity = '0';
       setTimeout(() => { document.getElementById('phase-2d').style.display = 'none'; }, 500);
+      
       document.getElementById('phase-3d').classList.add('active');
       window.dispatchEvent(new Event('resize'));
       
-      startSurvival();
+      // コントローラーをアクティブにする
+      window.is3DActive = true;
     });
 
-    function startSurvival() {
-      window.isPlaying = true;
-      const playerCam = document.getElementById('main-cam');
-      const monster = document.getElementById('monster');
-      const timerDisp = document.getElementById('timer-display');
-      const hudVignette = document.getElementById('hud-vignette');
-      
-      let currentPath = [];
-      let pathUpdateTimer = 0; 
-
-      const timerInterval = setInterval(() => {
-        if(!window.isPlaying) return clearInterval(timerInterval);
-        timeLeft--;
-        timerDisp.innerText = `SURVIVE: ${timeLeft}s`;
-        if(timeLeft <= 0) gameClear();
-      }, 1000);
-
-      function update() {
-        if(!window.isPlaying) return;
-        
-        const pPos = new THREE.Vector3();
-        playerCam.object3D.getWorldPosition(pPos);
-        const mPos = monster.object3D.position;
-
-        // 捕獲判定
-        const dx = pPos.x - mPos.x; 
-        const dz = pPos.z - mPos.z;
-        const dist = Math.sqrt(dx*dx + dz*dz);
-        if(dist < 3.0) { gameOver(); return; }
-        
-        // 接近時の画面の赤み
-        if (dist < 30) { 
-          const danger = 1 - (dist / 30); 
-          hudVignette.style.background = `radial-gradient(circle, transparent ${50 - danger*50}%, rgba(255,0,0,${danger}) 100%)`; 
-        } else { 
-          hudVignette.style.background = `radial-gradient(circle, transparent 50%, rgba(0,0,0,0.8) 100%)`; 
-        }
-        
-        const speed = 0.15 + (60 - timeLeft) * 0.005; 
-
-        // 経路の更新
-        pathUpdateTimer--;
-        if (pathUpdateTimer <= 0) {
-          let mgX = Math.max(0, Math.min(mapData[0].length - 1, Math.round(mPos.x / UNIT)));
-          let mgZ = Math.max(0, Math.min(mapData.length - 1, Math.round(mPos.z / UNIT)));
-          let pgX = Math.max(0, Math.min(mapData[0].length - 1, Math.round(pPos.x / UNIT)));
-          let pgZ = Math.max(0, Math.min(mapData.length - 1, Math.round(pPos.z / UNIT)));
-          
-          currentPath = findPath(mgX, mgZ, pgX, pgZ);
-          pathUpdateTimer = 30; 
-        }
-
-        // 怪物の移動
-        if (currentPath.length > 0) {
-          let targetNode = currentPath[0];
-          let targetX = targetNode.x * UNIT;
-          let targetZ = targetNode.z * UNIT;
-
-          let tdx = targetX - mPos.x;
-          let tdz = targetZ - mPos.z;
-          let tDist = Math.sqrt(tdx*tdx + tdz*tdz);
-
-          if (tDist < speed) {
-            mPos.x = targetX;
-            mPos.z = targetZ;
-            currentPath.shift();
-          } else {
-            mPos.x += (tdx/tDist) * speed;
-            mPos.z += (tdz/tDist) * speed;
-          }
-        }
-        
-        requestAnimationFrame(update);
-      }
-      update();
-    }
-
-    function gameOver() { window.isPlaying = false; document.getElementById('game-over').style.opacity = 1; setTimeout(() => location.href = '../liminal/index.html', 3000); }
-    function gameClear() { window.isPlaying = false; document.getElementById('game-clear').style.opacity = 1; setTimeout(() => location.href = '../special/index.html', 3000); }
-    
     document.addEventListener('mousemove', (e) => { 
       document.querySelectorAll('.eye').forEach(eye => { 
         const rect = eye.getBoundingClientRect(); const x = rect.left + rect.width / 2; const y = rect.top + rect.height / 2; 
