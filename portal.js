@@ -19,6 +19,8 @@
   const WARP_INDEX_KEY = "warp_place_index"; // sessionStorage
   const WARP_LOG_KEY = "warp_log_v1";         // localStorage
 
+  const KURO_UNLOCK_KEY = "kuro_unlocked_v1";
+
   const FX_SOUND_KEY = "fx_sound_v1";
   const FX_PARTICLES_KEY = "fx_particles_v1";
 
@@ -91,6 +93,16 @@
     if (!places.length) throw new Error("PLACES is empty");
     const i = Math.floor(Math.random() * places.length);
     return { place: places[i], index: i };
+  }
+
+  // 公開ワープ先（kuro:true を除外）から、元の index を保ったままランダム選択
+  function pickRandomPublicPlace() {
+    const places = window.PLACES || [];
+    const pool = places
+      .map((place, index) => ({ place, index }))
+      .filter(x => x.place && !x.place.kuro);
+    if (!pool.length) throw new Error("No public places");
+    return pool[Math.floor(Math.random() * pool.length)];
   }
 
   function setCurrentPlaceIndex(i) {
@@ -580,7 +592,7 @@
     const canvas = $("fxCanvas");
 
     // ワープ先を先に決めておく
-    const { index } = pickRandomPlace();
+    const { index } = pickRandomPublicPlace();
     setCurrentPlaceIndex(index);
 
     // 1) まずドア演出を見せる（opening → ガタガタ → 開く）
@@ -619,7 +631,7 @@
   function warpAgainImpl() {
     const places = window.PLACES || [];
     if (!places.length) return;
-    const p = pickRandomPlace(places);
+    const p = pickRandomPublicPlace();
     setCurrentPlaceIndex(p.index);
     location.reload();
   }
@@ -632,8 +644,9 @@
     }
 
     let idx = getCurrentPlaceIndex();
-    if (idx == null || !places[idx]) {
-      const p = pickRandomPlace(places);
+    // 直打ち/復元で kuro:true を引いた場合も回避
+    if (idx == null || !places[idx] || places[idx]?.kuro) {
+      const p = pickRandomPublicPlace();
       idx = p.index;
       setCurrentPlaceIndex(idx);
     }
@@ -686,6 +699,7 @@
         i++;
         if (i >= seq.length) {
           i = 0;
+          sessionStorage.setItem(KURO_UNLOCK_KEY, "1");
           location.href = "kuro.html";
         }
       } else {

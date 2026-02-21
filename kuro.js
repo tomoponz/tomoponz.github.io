@@ -2,6 +2,26 @@
 (() => {
   "use strict";
 
+// NOTE: 黒歴史は「コナミコマンド解錠」時だけ表示する（直打ち対策）
+  const KURO_UNLOCK_KEY = "kuro_unlocked_v1";
+  if (sessionStorage.getItem(KURO_UNLOCK_KEY) !== "1") {
+    document.addEventListener("DOMContentLoaded", () => {
+      const main = document.querySelector("main.wrap") || document.body;
+      if (main) {
+        main.innerHTML = `
+          <section class="hero">
+            <h1 class="h1">黒歴史（封印）</h1>
+            <p class="sub">ここは封印されている。<br>入口は <b>コナミコマンド</b> のみ（↑↑↓↓←→←→BA）。</p>
+            <div class="btnrow">
+              <a class="btn primary" href="index.html">戻る</a>
+            </div>
+          </section>
+        `;
+      }
+    });
+    return;
+  }
+
   const KURO_ENTRIES = [
     {
       id: "k-gintama-001",
