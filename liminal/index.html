@@ -5,6 +5,42 @@
   <title>Level 0 - The Backrooms</title>
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <link rel="stylesheet" href="style.css">
+
+  <script>
+    // ★ 追加：歩いた時だけ足音を鳴らすカスタムコンポーネント ★
+    AFRAME.registerComponent('footstep-sound', {
+      init: function () {
+        this.lastPos = new THREE.Vector3();
+        this.lastPos.copy(this.el.object3D.position);
+        this.audio = document.getElementById("audio-footstep");
+        this.isWalking = false;
+      },
+      tick: function () {
+        if (!this.audio || !window.audioUnlocked) return;
+        
+        // 現在のカメラ位置を取得
+        var currentPos = this.el.object3D.position;
+        // X軸とZ軸（平面）の移動距離を計算（Y軸の上下動は無視）
+        var dx = currentPos.x - this.lastPos.x;
+        var dz = currentPos.z - this.lastPos.z;
+        var dist = dx * dx + dz * dz;
+
+        // 移動していれば再生、止まれば一時停止
+        if (dist > 0.0001) {
+          if (!this.isWalking) {
+            this.audio.play().catch(()=>{});
+            this.isWalking = true;
+          }
+        } else {
+          if (this.isWalking) {
+            this.audio.pause();
+            this.isWalking = false;
+          }
+        }
+        this.lastPos.copy(currentPos);
+      }
+    });
+  </script>
 </head>
 <body>
 
@@ -22,62 +58,65 @@
     </div>
 
     <a href="../index.html" class="exit-sign">EXIT ➔</a>
-
     <img id="daisy-btn" src="../img/daisy%20bell.png" alt="Daisy Bell">
   </div>
 
   <audio id="audio-buzz" src="../assets/sfx/backrooms-buzzing-sound-effect.mp3" loop></audio>
   <audio id="audio-daisy" src="../assets/sfx/daisy-bell.mp3"></audio>
+  <audio id="audio-footstep" src="../assets/sfx/walking%20on%20the%20carpet.mp3" loop></audio>
 
   <a-scene fog="type: exponential; color: #d1c7a3; density: 0.15">
     
     <a-assets>
       <a-asset-item id="backrooms-model" src="../assets/models/original_backrooms.glb"></a-asset-item>
+      <a-asset-item id="car-model" src="../assets/models/destroyed_car_03__backrooms_car_gameready.glb"></a-asset-item>
     </a-assets>
 
-    <a-entity position="0 1.6 0">
-      <a-camera wasd-controls="acceleration: 15" look-controls="pointerLockEnabled: false"></a-camera>
+    <a-entity id="rig" position="0 -2.5 0">
+      <a-camera footstep-sound wasd-controls="acceleration: 15" look-controls="pointerLockEnabled: false"></a-camera>
     </a-entity>
 
     <a-gltf-model src="#backrooms-model" position="0 0 0" scale="1 1 1"></a-gltf-model>
 
+    <a-gltf-model src="#car-model" position="15 0 -15" rotation="0 -45 0" scale="1 1 1"></a-gltf-model>
+
     <a-light type="ambient" color="#ffffff" intensity="0.3"></a-light>
-    
     <a-light type="point" color="#fffae6" position="0 2.5 0" intensity="0.8" distance="15" 
              animation="property: intensity; from: 0.8; to: 0.3; dur: 120; dir: alternate; loop: true"></a-light>
 
   </a-scene>
 
   <script>
+    // ブラウザの自動再生ブロックを解除するためのフラグ
+    window.audioUnlocked = false;
+
     document.addEventListener("DOMContentLoaded", () => {
       const buzz = document.getElementById("audio-buzz");
       const daisy = document.getElementById("audio-daisy");
+      const footstep = document.getElementById("audio-footstep");
       const daisyBtn = document.getElementById("daisy-btn");
 
+      // 音量バランス
       buzz.volume = 0.3; 
       daisy.volume = 0.8;
+      footstep.volume = 0.6; // 足音の音量
 
-      let isStarted = false;
-
-      // 初回タップ/クリック時に環境音とDaisy Bell(1回のみ)を再生
+      // 初回タップ/クリック時に環境音などを再生許可
       const startAmbiance = () => {
-        if (isStarted) return;
-        isStarted = true;
+        if (window.audioUnlocked) return;
+        window.audioUnlocked = true;
         buzz.play().catch(console.error);
         daisy.play().catch(console.error);
       };
 
-      // UIレイヤーのどこかをクリックしたら再生開始
       document.getElementById("ui-overlay").addEventListener("click", startAmbiance, { once: true });
       document.getElementById("ui-overlay").addEventListener("touchstart", startAmbiance, { once: true });
 
-      // 画像クリック時にDaisy Bellをリプレイ
+      // Daisy Bell画像クリック
       daisyBtn.addEventListener("click", (e) => {
         e.stopPropagation(); 
         daisy.currentTime = 0;
         daisy.play();
-        
-        // クリック演出：一瞬だけ画像にノイズ
         daisyBtn.style.filter = "invert(1) blur(1px)";
         setTimeout(() => { 
           daisyBtn.style.filter = "sepia(0.8) contrast(1.2) brightness(0.6)"; 
