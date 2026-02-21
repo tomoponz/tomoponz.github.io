@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="style.css">
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="../assets/js/fps-player.js"></script>
+  <script defer src="../assets/js/security-lite.js?v=20260222"></script>
   
   <script>
     // ==========================================
@@ -78,19 +79,22 @@
     <div class="hud-vignette" id="hud-vignette"></div>
 
     <a-scene embedded fog="type: exponential; color: #000; density: 0.01;">
+      <a-assets>
+        <img id=\"tex-eye\" src=\"../img/eye.png\" crossorigin=\"anonymous\">
+      </a-assets>
       
       <a-entity id="main-cam" camera position="10 1.6 70" fps-player grid-collider>
         <a-cursor color="#fff" scale="0.5 0.5 0.5"></a-cursor>
         <a-light type="point" color="#fff" intensity="1.2" distance="60" position="0 0 0"></a-light>
       </a-entity>
 
-      <a-entity id="monster" position="130 1.5 10">
-        <a-sphere radius="2.0" color="#000" material="roughness: 1;">
-          <a-sphere radius="0.8" position="0 0 1.8" color="#fff">
-            <a-sphere radius="0.4" position="0 0 0.6" color="red" material="emissive:red; emissiveIntensity:10;"></a-sphere>
-          </a-sphere>
-        </a-sphere>
-        <a-light type="point" color="red" intensity="3" distance="40"></a-light>
+      <a-entity id="monster" position="130 1.6 10">
+        <!-- リアル目玉テクスチャ（img/eye.png） -->
+        <a-sphere radius="2.05" color="#ffffff" material="roughness:0.35; metalness:0.0"></a-sphere>
+        <a-plane width="4.8" height="4.8" position="0 0 -2.12" rotation="0 180 0"
+                 material="src:#tex-eye; transparent:true; alphaTest:0.05; side:double; shader:standard; roughness:0.25; metalness:0.0"></a-plane>
+        <a-light type="point" color="#ffffff" intensity="1.4" distance="35" position="0 0 0"></a-light>
+        <a-light type="point" color="red" intensity="2.2" distance="25" position="0 0 0"></a-light>
       </a-entity>
 
       <a-entity id="map-root"></a-entity>
