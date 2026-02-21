@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Ｖ Ｉ Ｒ Ｔ Ｕ Ａ Ｌ　Ｐ Ｌ Ａ Ｚ Ａ</title>
+  
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -17,7 +20,27 @@
   <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Silhouette_of_palm_trees.png/800px-Silhouette_of_palm_trees.png" class="palm palm-left" alt="palm">
   <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Silhouette_of_palm_trees.png/800px-Silhouette_of_palm_trees.png" class="palm palm-right" alt="palm">
 
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Bust_of_Aphrodite.jpg/400px-Bust_of_Aphrodite.jpg" class="statue" alt="statue">
+  <a-scene embedded renderer="alpha: true" vr-mode-ui="enabled: false" class="aframe-overlay">
+    <a-assets>
+      <a-asset-item id="statue-glb" src="../assets/models/white_mesh.glb"></a-asset-item>
+      <img id="marble-tex" src="../img/Marble001_2K-JPG_Color.jpg">
+    </a-assets>
+
+    <a-entity camera position="0 1.6 4" look-controls="enabled: false" wasd-controls="enabled: false"></a-entity>
+
+    <a-entity position="0 0.5 0" 
+              animation="property: rotation; to: 0 360 0; dur: 10000; loop: true; easing: linear" 
+              animation__float="property: position; to: 0 0.8 0; dur: 4000; dir: alternate; loop: true; easing: easeInOutSine">
+              
+      <a-cylinder src="#marble-tex" radius="0.6" height="1.5" position="0 0 0" repeat="2 1"></a-cylinder>
+      
+      <a-gltf-model src="#statue-glb" position="0 1.6 0" scale="1.2 1.2 1.2"></a-gltf-model>
+    </a-entity>
+
+    <a-light type="ambient" color="#2b2b2b"></a-light>
+    <a-light type="directional" color="#ff71ce" intensity="2.0" position="2 1 1"></a-light>
+    <a-light type="directional" color="#01cdfe" intensity="2.0" position="-2 1 1"></a-light>
+  </a-scene>
 
   <div class="vhs-glitch"></div>
   <div class="scanlines"></div>
@@ -36,7 +59,7 @@
       <p>何も感じない。<br>未来は過去の中にあります。</p>
       
       <div class="player">
-        <span>▶ ＰＬＡＹＩＮＧ : リサフランク420</span>
+        <span>▶ ＰＬＡＹＩＮＧ : M a l l s o f t</span>
         <button id="play-btn" class="btn" style="background:#000; color:#05ffa1; border-color:#05ffa1;">再生 / ＰＬＡＹ</button>
       </div>
       
@@ -61,17 +84,40 @@
   </div>
 
   <audio id="vapor-audio" src="../assets/sfx/umahii.mp3" loop></audio>
+  <audio id="mall-audio" src="../assets/sfx/429068__leonelmail__shopping-mall-ambience.mp3" loop></audio>
+  <audio id="fountain-audio" src="../assets/sfx/399027__mileuthner__fountain-stereo-ambience.wav" loop></audio>
+  <audio id="escalator-audio" src="../assets/sfx/461745__15fpanskabostlova_veronika__10_on-the-escalator-ambient.wav" loop></audio>
 
   <script>
-    // 音楽再生（スローダウン）
+    // 音声オブジェクトの取得
+    const vaporAudio = document.getElementById('vapor-audio');
+    const mallAudio = document.getElementById('mall-audio');
+    const fountainAudio = document.getElementById('fountain-audio');
+    const escalatorAudio = document.getElementById('escalator-audio');
+
+    // ★ 音量と速度の調整 ★
+    // メイン曲はスローダウンして不気味に
+    vaporAudio.playbackRate = 0.85; 
+    vaporAudio.volume = 0.8;
+    
+    // 環境音は「遠くで鳴っている感」を出すために音量を小さく設定
+    mallAudio.volume = 0.4;        // ショッピングモールのガヤガヤ
+    fountainAudio.volume = 0.3;    // 噴水
+    escalatorAudio.volume = 0.25;  // エスカレーター
+
+    // 再生ボタンの処理（すべての音を同時に再生・停止）
     document.getElementById('play-btn').addEventListener('click', function() {
-      const audio = document.getElementById('vapor-audio');
-      audio.playbackRate = 0.85; 
-      if(audio.paused) {
-        audio.play().catch(()=>{});
+      if(vaporAudio.paused) {
+        vaporAudio.play().catch(()=>{});
+        mallAudio.play().catch(()=>{});
+        fountainAudio.play().catch(()=>{});
+        escalatorAudio.play().catch(()=>{});
         this.innerText = '停止 / ＳＴＯＰ';
       } else {
-        audio.pause();
+        vaporAudio.pause();
+        mallAudio.pause();
+        fountainAudio.pause();
+        escalatorAudio.pause();
         this.innerText = '再生 / ＰＬＡＹ';
       }
     });
