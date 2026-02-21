@@ -10,58 +10,20 @@
   <link rel="stylesheet" href="style.css">
 
   <style>
-    /* ===============================
-       ビデオカメラ風UIのスタイル
-       =============================== */
+    /* ビデオカメラ風UIのスタイル（変更なし） */
     #camcorder-ui {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      pointer-events: none;
-      z-index: 55;
-      color: white;
-      font-family: 'Courier New', Courier, monospace; /* 古いデジタルビデオ風のフォント */
-      text-shadow: 2px 2px 0px black; /* 影をつけて文字を見やすくする */
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 55; color: white;
+      font-family: 'Courier New', Courier, monospace;
+      text-shadow: 2px 2px 0px black;
     }
-    .cam-rec {
-      position: absolute;
-      top: 30px; left: 40px;
-      font-size: 28px;
-      font-weight: bold;
-    }
-    .cam-rec span {
-      color: red;
-      animation: blink 1s infinite;
-    }
-    .cam-battery {
-      position: absolute;
-      top: 30px; right: 40px;
-      font-size: 24px;
-      border: 2px solid white;
-      padding: 2px 8px;
-    }
-    .cam-timecode {
-      position: absolute;
-      bottom: 40px; left: 40px;
-      font-size: 28px;
-      letter-spacing: 2px;
-    }
-    .cam-date {
-      position: absolute;
-      bottom: 40px; right: 40px;
-      font-size: 28px;
-      letter-spacing: 2px;
-    }
-    .cam-center-cross {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 24px;
-      opacity: 0.5;
-    }
-    @keyframes blink {
-      0%, 49% { opacity: 1; }
-      50%, 100% { opacity: 0; }
-    }
+    .cam-rec { position: absolute; top: 30px; left: 40px; font-size: 28px; font-weight: bold; }
+    .cam-rec span { color: red; animation: blink 1s infinite; }
+    .cam-battery { position: absolute; top: 30px; right: 40px; font-size: 24px; border: 2px solid white; padding: 2px 8px; }
+    .cam-timecode { position: absolute; bottom: 40px; left: 40px; font-size: 28px; letter-spacing: 2px; }
+    .cam-date { position: absolute; bottom: 40px; right: 40px; font-size: 28px; letter-spacing: 2px; }
+    .cam-center-cross { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; opacity: 0.5; }
+    @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
   </style>
 
   <script>
@@ -94,51 +56,32 @@
     AFRAME.registerComponent('wall-collider', {
       init: function () {
         this.raycaster = new THREE.Raycaster();
-        this.directions = [
-          new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0),
-          new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1)
-        ];
+        this.directions = [ new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1) ];
         this.lastPos = new THREE.Vector3();
         this.el.object3D.getWorldPosition(this.lastPos);
       },
       tick: function () {
-        var el = this.el;
-        var pos = el.object3D.position;
+        var el = this.el; var pos = el.object3D.position;
         var wallEls = el.sceneEl.querySelectorAll('.collidable');
         var meshes = [];
-        wallEls.forEach(function (wall) {
-          if (wall.object3D) {
-            wall.object3D.traverse(function (node) { if (node.isMesh) meshes.push(node); });
-          }
-        });
-
+        wallEls.forEach(function (wall) { if (wall.object3D) { wall.object3D.traverse(function (node) { if (node.isMesh) meshes.push(node); }); } });
         if (meshes.length === 0) { this.lastPos.copy(pos); return; }
-
         var collision = false;
         for (var i = 0; i < this.directions.length; i++) {
            this.raycaster.set(pos, this.directions[i]);
            var intersects = this.raycaster.intersectObjects(meshes, true);
-           if (intersects.length > 0 && intersects[0].distance < 0.6) {
-             collision = true; break;
-           }
+           if (intersects.length > 0 && intersects[0].distance < 0.6) { collision = true; break; }
         }
-
-        if (collision) {
-           el.object3D.position.copy(this.lastPos);
-        } else {
-           this.lastPos.copy(pos);
-        }
+        if (collision) { el.object3D.position.copy(this.lastPos); } else { this.lastPos.copy(pos); }
       }
     });
 
     // 3. 近づくと消える影
     AFRAME.registerComponent('shadow-watcher', {
       tick: function () {
-        var player = document.getElementById('rig');
-        if (!player) return;
+        var player = document.getElementById('rig'); if (!player) return;
         var dist = this.el.object3D.position.distanceTo(player.object3D.position);
-        if (dist < 6) { this.el.setAttribute('visible', 'false'); } 
-        else { this.el.setAttribute('visible', 'true'); }
+        if (dist < 6) { this.el.setAttribute('visible', 'false'); } else { this.el.setAttribute('visible', 'true'); }
       }
     });
 
@@ -146,9 +89,7 @@
     AFRAME.registerComponent('jitter', {
       schema: { amount: {type: 'number', default: 0.05} },
       tick: function () {
-        if (!this.basePos) {
-           this.basePos = this.el.object3D.position.clone();
-        }
+        if (!this.basePos) { this.basePos = this.el.object3D.position.clone(); }
         this.el.object3D.position.set(
           this.basePos.x + (Math.random() - 0.5) * this.data.amount,
           this.basePos.y + (Math.random() - 0.5) * this.data.amount,
@@ -161,15 +102,9 @@
     AFRAME.registerComponent('clickable-link', {
       schema: { url: { type: 'string' } },
       init: function () {
-        this.el.addEventListener('click', () => {
-          window.location.href = this.data.url;
-        });
-        this.el.addEventListener('mouseenter', () => {
-          document.querySelector('a-cursor').setAttribute('color', '#00ff00');
-        });
-        this.el.addEventListener('mouseleave', () => {
-          document.querySelector('a-cursor').setAttribute('color', '#ff0000');
-        });
+        this.el.addEventListener('click', () => { window.location.href = this.data.url; });
+        this.el.addEventListener('mouseenter', () => { document.querySelector('a-cursor').setAttribute('color', '#00ff00'); });
+        this.el.addEventListener('mouseleave', () => { document.querySelector('a-cursor').setAttribute('color', '#ff0000'); });
       }
     });
   </script>
@@ -187,113 +122,3 @@
       <div class="cam-timecode" id="tc-display">00:00:00</div>
       <div class="cam-date">1996.07.14</div>
     </div>
-
-    <div class="level-doors" style="top: 80px;"> <p style="margin: 0 0 10px 0; color: #8b0000; font-weight: bold; font-size: 14px;">🚪 別の階層への扉</p>
-      <a href="../dreamcore/index.html" class="door-link">▶ Level 1: Dreamcore</a>
-      <a href="../vaporwave/index.html" class="door-link">▶ Level 2: Vaporwave</a>
-      <a href="../aero/index.html" class="door-link">▶ Level 3: Frutiger Aero</a>
-    </div>
-
-    <a href="../index.html" class="exit-sign" style="bottom: 90px;">EXIT ➔</a>
-    <img id="daisy-btn" src="../img/daisy%20bell.png" alt="Daisy Bell" style="bottom: 80px;">
-  </div>
-
-  <audio id="audio-buzz" src="../assets/sfx/backrooms-buzzing-sound-effect.mp3" loop></audio>
-  <audio id="audio-daisy" src="../assets/sfx/daisy-bell.mp3"></audio>
-  <audio id="audio-footstep" src="../assets/sfx/walking%20on%20the%20carpet.mp3" loop></audio>
-
-  <a-scene fog="type: exponential; color: #d1c7a3; density: 0.15">
-    
-    <a-assets>
-      <a-asset-item id="backrooms-model" src="../assets/models/original_backrooms.glb"></a-asset-item>
-      <a-asset-item id="car-model" src="../assets/models/destroyed_car_03__backrooms_car_gameready.glb"></a-asset-item>
-      <a-asset-item id="bacteria-model" src="../assets/models/bacteria_-_kane_pixels_backrooms.glb"></a-asset-item>
-      <a-asset-item id="sculpture-model" src="../assets/models/sculpture_bust_of_roza_loewenfeld.glb"></a-asset-item>
-    </a-assets>
-
-    <a-entity id="rig" position="0 1.0 0" movement-controls="speed: 0.18" wall-collider>
-      <a-entity camera position="0 0 0" look-controls="pointerLockEnabled: false" footstep-sound>
-        <a-cursor color="#ff0000" scale="0.6 0.6 0.6" raycaster="objects: .clickable"></a-cursor>
-      </a-entity>
-    </a-entity>
-
-    <a-gltf-model src="#backrooms-model" class="collidable" position="0 0 0" scale="1 1 1"></a-gltf-model>
-
-    <a-gltf-model src="#car-model" class="collidable" position="3 0 -3" rotation="0 -45 0" scale="1.6 1.6 1.6"></a-gltf-model>
-
-
-    <a-entity position="2.5 0 -2.5" jitter="amount: 0.04">
-      <a-gltf-model src="#bacteria-model" scale="0.4 0.4 0.4"></a-gltf-model>
-      <a-box class="clickable" visible="false" position="0 1 0" scale="0.8 2 0.8" 
-             clickable-link="url: https://backrooms.fandom.com/wiki/Backrooms_Wiki"></a-box>
-    </a-entity>
-
-    <a-entity position="0 1.8 -4"
-              animation__rot="property: rotation; to: 0 360 0; dur: 5000; loop: true; easing: linear"
-              animation__pos="property: position; to: 0 2.1 -4; dur: 2000; dir: alternate; loop: true; easing: easeInOutSine">
-      
-      <a-gltf-model src="#sculpture-model" position="0 -1.5 0" scale="0.003 0.003 0.003"></a-gltf-model>
-      
-      <a-box class="clickable" visible="false" position="0 -0.7 0" scale="1.5 1.5 1.5" 
-             clickable-link="url: ../vaporwave/index.html"></a-box>
-    </a-entity>
-
-
-    <a-entity position="-1 1.0 -12" shadow-watcher>
-      <a-cylinder color="#050505" height="1.8" radius="0.3"></a-cylinder>
-      <a-sphere color="#ff0000" radius="0.05" position="-0.1 0.7 0.25"></a-sphere>
-      <a-sphere color="#ff0000" radius="0.05" position="0.1 0.7 0.25"></a-sphere>
-    </a-entity>
-
-    <a-light type="ambient" color="#ffffff" intensity="0.3"></a-light>
-    <a-light type="point" color="#fffae6" position="0 2.5 0" intensity="0.8" distance="15" 
-             animation="property: intensity; from: 0.8; to: 0.3; dur: 120; dir: alternate; loop: true"></a-light>
-
-  </a-scene>
-
-  <script>
-    window.audioUnlocked = false;
-
-    document.addEventListener("DOMContentLoaded", () => {
-      // タイムコードのリアルタイム更新
-      const tcDisplay = document.getElementById("tc-display");
-      setInterval(() => {
-        const now = new Date();
-        const h = String(now.getHours()).padStart(2, '0');
-        const m = String(now.getMinutes()).padStart(2, '0');
-        const s = String(now.getSeconds()).padStart(2, '0');
-        tcDisplay.innerText = `${h}:${m}:${s}`;
-      }, 1000);
-
-      const buzz = document.getElementById("audio-buzz");
-      const daisy = document.getElementById("audio-daisy");
-      const footstep = document.getElementById("audio-footstep");
-      const daisyBtn = document.getElementById("daisy-btn");
-
-      buzz.volume = 0.3; 
-      daisy.volume = 0.8;
-      footstep.volume = 0.6; 
-
-      const startAmbiance = () => {
-        if (window.audioUnlocked) return;
-        window.audioUnlocked = true;
-        buzz.play().catch(console.error);
-        daisy.play().catch(console.error);
-      };
-
-      document.getElementById("ui-overlay").addEventListener("click", startAmbiance, { once: true });
-      document.getElementById("ui-overlay").addEventListener("touchstart", startAmbiance, { once: true });
-
-      daisyBtn.addEventListener("click", (e) => {
-        e.stopPropagation(); 
-        daisy.currentTime = 0;
-        daisy.play();
-        daisyBtn.style.filter = "invert(1) blur(1px)";
-        setTimeout(() => { 
-          daisyBtn.style.filter = "sepia(0.8) contrast(1.2) brightness(0.6)"; 
-        }, 100);
-      });
-    });
-  </script>
-</body>
-</html>
