@@ -4,50 +4,62 @@ html, body {
   margin: 0; padding: 0; width: 100vw; height: 100vh;
   overflow: hidden; background: #000;
   font-family: 'Comic Sans MS', 'Comic Neue', cursive, sans-serif;
+  cursor: crosshair; 
   user-select: none;
 }
 
 /* =========================================
-   フェーズ1: 2D Dreamcore
+   フェーズ1: 2D Dreamcore 空間
    ========================================= */
 #phase-2d {
   width: 100%; height: 100%; position: relative;
-  cursor: crosshair; 
 }
 
+/* 歪んだ世界 */
 .world-container { width: 100%; height: 100%; filter: url(#horror-warp) contrast(1.2) saturate(1.5); }
 .sky { height: 60%; background: linear-gradient(to bottom, #0047ff, #00e0ff); }
 .ground { height: 40%; background: #008100; background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.1) 0px, transparent 2px); border-top: 5px solid #fff; }
 
+/* 景色のオブジェクト */
 .dream-obj { position: absolute; filter: drop-shadow(0 0 20px rgba(255,255,255,0.5)); pointer-events: none; }
 .cloud-1 { top: 10%; left: 5%; width: 300px; opacity: 0.8; animation: drift 60s linear infinite;}
 .cloud-2 { top: 20%; right: -50px; width: 400px; opacity: 0.6; animation: drift 40s linear infinite reverse;}
 .rainbow-mirror { top: 0; left: 10%; width: 80%; transform: rotate(180deg); opacity: 0.4; mix-blend-mode: color-dodge; }
+.leaps { bottom: 30%; left: 20%; width: 150px; animation: jump 4s infinite; }
 
 @keyframes drift { from { transform: translateX(-200px); } to { transform: translateX(120vw); } }
+@keyframes jump { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-200px) rotate(20deg); } }
 
+/* フィルム粒子と画面効果 */
 .grain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://www.transparenttextures.com/patterns/stardust.png'); opacity: 0.3; z-index: 100; pointer-events: none; animation: grain-jump 0.1s steps(1) infinite; }
 @keyframes grain-jump { 0% { background-position: 0 0; } 50% { background-position: 10% 5%; } 100% { background-position: -5% 10%; } }
 
 .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.8) 100%); z-index: 101; pointer-events: none; }
 .vhs-lines { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%); background-size: 100% 4px; z-index: 99; pointer-events: none; }
 
-.main-title { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 10vw; color: #fff; text-transform: uppercase; -webkit-text-stroke: 2px #000; text-shadow: 10px 10px 0px #ff0000, 20px 20px 0px #0000ff; z-index: 50; pointer-events: none; white-space: nowrap;}
+/* メインテキスト (WordArt風) */
+.main-title { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 10vw; color: #fff; text-transform: uppercase; -webkit-text-stroke: 2px #000; text-shadow: 10px 10px 0px #ff0000, 20px 20px 0px #0000ff; z-index: 50; animation: title-shake 0.5s infinite; pointer-events: none; white-space: nowrap; }
+@keyframes title-shake { 0% { margin-left: -5px; } 50% { margin-left: 5px; } }
 
-/* 脱出ボタン（2D用） */
+/* 脱出ボタン (逃げるやつ) */
 .the-exit { position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%); padding: 20px 40px; background: #fff; border: 5px solid #000; font-size: 2rem; font-family: inherit; font-weight: bold; color: #000; text-decoration: none; box-shadow: 10px 10px 0 #ff0000; z-index: 200; cursor: pointer; transition: background 0.1s; }
 .the-exit:hover { background: #ff0000; color: #fff; }
 .dummy { opacity: 0.5; pointer-events: none; filter: grayscale(1); z-index: 199; transform: none !important;}
 
+/* デスクトップの不気味な散らかり */
+.eye-watcher { position: absolute; width: 100px; height: 60px; background: #eee; border-radius: 50%; border: 4px solid #333; overflow: hidden; box-shadow: inset 0 0 20px #000, 0 10px 30px rgba(0,0,0,0.5); z-index: 60; }
+.eye { width: 100%; height: 100%; position: relative; }
+.pupil { position: absolute; top: 10%; left: 35%; width: 30px; height: 30px; background: #000; border-radius: 50%; box-shadow: 0 0 10px #ff0000; }
+.loose-pic { position: absolute; z-index: 55; filter: drop-shadow(5px 5px 10px rgba(0,0,0,0.6)); pointer-events: none; }
+
 
 /* =========================================
-   フェーズ2: 3Dフェーズ用HUD (ヘッドアップディスプレイ)
+   フェーズ2: 3D 悪夢の迷路用 HUD
    ========================================= */
 #phase-3d {
   width: 100vw; height: 100vh; position: absolute; top: 0; left: 0;
 }
-/* A-Frameのキャンバスを全画面に */
-.a-canvas { width: 100% !important; height: 100% !important; }
+.a-canvas { width: 100% !important; height: 100% !important; } /* A-Frameの全画面化 */
 
 .hud-timer {
   position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
@@ -60,11 +72,12 @@ html, body {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%);
   z-index: 5; pointer-events: none;
-  transition: background 0.2s; /* 距離に応じて赤くなるのを滑らかに */
+  transition: background 0.2s; /* 怪物接近時の明滅を滑らかに */
 }
 
+
 /* =========================================
-   画面オーバーレイ (ゲームオーバー/クリア)
+   ゲームオーバー / クリア 画面
    ========================================= */
 .overlay-screen {
   position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -74,6 +87,6 @@ html, body {
   transition: opacity 1s;
   font-family: "Courier New", Courier, monospace;
 }
-.overlay-screen h1 { font-size: 5rem; text-shadow: 0 0 20px currentColor; margin: 0; animation: glitch 0.2s infinite;}
+.overlay-screen h1 { font-size: 5vw; text-shadow: 0 0 20px currentColor; margin: 0; animation: glitch 0.2s infinite;}
 
 @keyframes glitch { 0% { transform: translate(2px, 2px); } 50% { transform: translate(-2px, -2px); } 100% { transform: translate(2px, 2px); } }
