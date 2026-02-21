@@ -10,40 +10,21 @@
 <body>
 
   <div id="phase-2d">
-    <svg style="width:0; height:0; position:absolute;">
-      <filter id="horror-warp">
-        <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="5" seed="1">
-          <animate attributeName="baseFrequency" values="0.01;0.015;0.01" dur="5s" repeatCount="indefinite" />
-        </feTurbulence>
-        <feDisplacementMap in="SourceGraphic" scale="40" />
-      </filter>
-    </svg>
-
+    <svg style="width:0; height:0; position:absolute;"><filter id="horror-warp"><feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="5"><animate attributeName="baseFrequency" values="0.01;0.015;0.01" dur="5s" repeatCount="indefinite" /></feTurbulence><feDisplacementMap in="SourceGraphic" scale="40" /></filter></svg>
     <div class="world-container">
-      <div class="sky"></div>
-      <div class="ground"></div>
+      <div class="sky"></div><div class="ground"></div>
       <div class="scenery-overlay">
-        <img src="../img/cloud.jpg" class="dream-obj cloud-1">
-        <img src="../img/cloud.jpg" class="dream-obj cloud-2">
-        <img src="../img/rainbow.jpg" class="dream-obj rainbow-mirror">
-        <img src="../img/dolphin.jpg" class="dream-obj leaps">
+        <img src="../img/cloud.jpg" class="dream-obj cloud-1"><img src="../img/cloud.jpg" class="dream-obj cloud-2"><img src="../img/rainbow.jpg" class="dream-obj rainbow-mirror"><img src="../img/dolphin.jpg" class="dream-obj leaps">
       </div>
     </div>
-
-    <div class="vignette"></div>
-    <div class="grain"></div>
-    <div class="vhs-lines"></div>
-
+    <div class="vignette"></div><div class="grain"></div><div class="vhs-lines"></div>
     <div class="main-title">Wake up.</div>
     <div id="button-hell"></div>
-
     <button class="the-exit" id="real-exit">I want to wake up.</button>
-
     <div class="eye-watcher" style="top:10%; left:20%;"><div class="eye"><div class="pupil"></div></div></div>
     <img src="../img/beach.jpg" class="loose-pic" style="bottom:20%; left:5%; width:150px; rotate:-10deg;">
     <img src="../img/CD.jpg" class="loose-pic" style="top:30%; right:15%; width:80px; opacity:0.6;">
   </div>
-
 
   <div id="phase-3d" style="display: none;">
     <div class="hud-timer" id="timer-display">SURVIVE: 60s</div>
@@ -52,12 +33,12 @@
 
     <a-scene embedded fog="type: exponential; color: #000; density: 0.05;">
       <a-assets>
-        <a-asset-item id="concrete-model" src="../assets/models/concrete_material.glb"></a-asset-item>
+        <img id="concrete-tex" src="../img/image_6dd85c.jpg">
       </a-assets>
 
       <a-entity id="player" position="0 1.6 0">
         <a-camera id="main-cam" look-controls="pointerLockEnabled: true" wasd-controls="acceleration: 60"></a-camera>
-        <a-light type="point" color="#fff" intensity="1.2" distance="30" position="0 1.5 0"></a-light>
+        <a-light type="point" color="#fff" intensity="1.5" distance="40" position="0 2 0"></a-light>
       </a-entity>
 
       <a-entity id="monster" position="0 1.5 -30">
@@ -71,7 +52,7 @@
 
       <a-entity id="map-root"></a-entity>
 
-      <a-light type="ambient" color="#333"></a-light>
+      <a-light type="ambient" color="#444"></a-light>
     </a-scene>
   </div>
 
@@ -79,22 +60,17 @@
   <div class="overlay-screen" id="game-clear" style="background: #fff; color: #000;"><h1>AWAKE.</h1></div>
 
   <script>
-    // 2Dボタンワープ
+    // 2Dボタンギミック (変更なし)
     const exitBtn = document.getElementById('real-exit');
     const hell = document.getElementById('button-hell');
     exitBtn.addEventListener('mouseenter', function() {
       if (Math.random() < 0.98) {
-        const dummy = document.createElement('button');
-        dummy.className = 'the-exit dummy'; dummy.innerText = "I want to wake up.";
-        dummy.style.left = this.style.left || '50%'; dummy.style.top = this.style.top || '80%';
-        hell.appendChild(dummy);
-        this.style.left = (Math.random() * (window.innerWidth - 200)) + 'px';
-        this.style.top = (Math.random() * (window.innerHeight - 100)) + 'px';
-        this.style.position = 'fixed'; this.style.transform = 'none';
+        const dummy = document.createElement('button'); dummy.className = 'the-exit dummy'; dummy.innerText = "I want to wake up."; dummy.style.left = this.style.left || '50%'; dummy.style.top = this.style.top || '80%'; hell.appendChild(dummy);
+        this.style.left = (Math.random() * (window.innerWidth - 200)) + 'px'; this.style.top = (Math.random() * (window.innerHeight - 100)) + 'px'; this.style.position = 'fixed'; this.style.transform = 'none';
       }
     });
 
-    // マップ設計図 (通路を少し広めに設定)
+    // マップ設計図
     const mapData = [
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
       [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1],
@@ -109,39 +85,47 @@
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     ];
     
-    // ★ 1マスのサイズを 5 から 10 に倍増し、道を広くしました ★
     const UNIT = 10; 
 
     function generateMap() {
       const root = document.getElementById('map-root');
+      // 既存のマップをクリア（再生成時用）
+      while (root.firstChild) { root.removeChild(root.firstChild); }
+
       mapData.forEach((row, z) => {
         row.forEach((cell, x) => {
           const posX = x * UNIT; 
           const posZ = z * UNIT;
 
-          // 床
-          const floor = document.createElement('a-gltf-model');
-          floor.setAttribute('src', '#concrete-model');
+          // ★ 床の生成 (a-gltf-model から a-plane に変更) ★
+          // これにより、GLBの形状に依存せず、確実に平らな床になります。
+          const floor = document.createElement('a-plane');
           floor.setAttribute('position', `${posX} 0 ${posZ}`);
-          floor.setAttribute('scale', `${UNIT} 0.1 ${UNIT}`);
+          floor.setAttribute('rotation', '-90 0 0');
+          floor.setAttribute('width', UNIT);
+          floor.setAttribute('height', UNIT);
+          // コンクリートの画像をテクスチャとして貼り付け、並べる
+          floor.setAttribute('material', 'src: #concrete-tex; repeat: 2 2; roughness: 1;');
           root.appendChild(floor);
 
-          // 天井 (天井の高さも 4 から 6 に上げて閉塞感を少し和らげました)
+          // 天井 (変更なし)
           const ceil = document.createElement('a-plane');
           ceil.setAttribute('position', `${posX} 6 ${posZ}`);
           ceil.setAttribute('rotation', '90 0 0');
-          ceil.setAttribute('width', UNIT); 
-          ceil.setAttribute('height', UNIT);
+          ceil.setAttribute('width', UNIT); ceil.setAttribute('height', UNIT);
           ceil.setAttribute('color', '#0a0a0a'); 
           root.appendChild(ceil);
 
-          // 壁
+          // ★ 壁の生成 (a-gltf-model から a-box に変更) ★
           if (cell === 1) {
-            const wall = document.createElement('a-gltf-model');
-            wall.setAttribute('src', '#concrete-model');
-            // 高さを調整
+            const wall = document.createElement('a-box');
+            // 位置とサイズを正確に指定
             wall.setAttribute('position', `${posX} 3 ${posZ}`);
-            wall.setAttribute('scale', `${UNIT} 6 ${UNIT}`);
+            wall.setAttribute('width', UNIT);
+            wall.setAttribute('height', 6);
+            wall.setAttribute('depth', UNIT);
+            // コンクリートの画像をテクスチャとして貼り付ける
+            wall.setAttribute('material', 'src: #concrete-tex; repeat: 1 2; roughness: 1;');
             root.appendChild(wall);
           }
 
@@ -152,13 +136,13 @@
       });
     }
 
+    // ゲーム進行ロジック (変更なし)
     let isPlaying = false; let timeLeft = 60;
-
     exitBtn.addEventListener('click', () => {
       document.getElementById('phase-2d').style.display = 'none';
       document.getElementById('phase-3d').style.display = 'block';
       window.dispatchEvent(new Event('resize'));
-      generateMap();
+      generateMap(); // 3D画面に切り替わってからマップ生成（負荷分散）
       startSurvival();
     });
 
@@ -168,35 +152,20 @@
       const monster = document.getElementById('monster');
       const timerDisp = document.getElementById('timer-display');
       const hudVignette = document.getElementById('hud-vignette');
-
       const timerInterval = setInterval(() => {
         if(!isPlaying) return clearInterval(timerInterval);
         timeLeft--;
         timerDisp.innerText = `SURVIVE: ${timeLeft}s`;
         if(timeLeft <= 0) gameClear();
       }, 1000);
-
       function update() {
         if(!isPlaying) return;
         const pPos = player.getAttribute('position');
         const mPos = monster.getAttribute('position');
         const dx = pPos.x - mPos.x; const dz = pPos.z - mPos.z;
         const dist = Math.sqrt(dx*dx + dz*dz);
-        
-        // ★ 怪物の当たり判定もマップに合わせて少し調整 ★
-        if(dist < 3.0) {
-          gameOver();
-          return;
-        }
-
-        if (dist < 20) {
-          const danger = 1 - (dist / 20);
-          hudVignette.style.background = `radial-gradient(circle, transparent ${40 - danger*40}%, rgba(255,0,0,${danger}) 100%)`;
-        } else {
-          hudVignette.style.background = `radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%)`;
-        }
-
-        // 怪物の速度
+        if(dist < 3.0) { gameOver(); return; }
+        if (dist < 20) { const danger = 1 - (dist / 20); hudVignette.style.background = `radial-gradient(circle, transparent ${40 - danger*40}%, rgba(255,0,0,${danger}) 100%)`; } else { hudVignette.style.background = `radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%)`; }
         const speed = 0.08 + (60 - timeLeft) * 0.003;
         monster.setAttribute('position', { x: mPos.x + (dx/dist) * speed, y: mPos.y, z: mPos.z + (dz/dist) * speed });
         requestAnimationFrame(update);
@@ -206,14 +175,7 @@
 
     function gameOver() { isPlaying = false; document.getElementById('game-over').style.opacity = 1; setTimeout(() => location.href = '../liminal/index.html', 3000); }
     function gameClear() { isPlaying = false; document.getElementById('game-clear').style.opacity = 1; setTimeout(() => location.href = '../special/index.html', 3000); }
-
-    document.addEventListener('mousemove', (e) => {
-      document.querySelectorAll('.eye').forEach(eye => {
-        const rect = eye.getBoundingClientRect(); const x = rect.left + rect.width / 2; const y = rect.top + rect.height / 2;
-        const rot = (Math.atan2(e.clientX - x, e.clientY - y) * (180 / Math.PI) * -1) + 180;
-        eye.style.transform = `rotate(${rot}deg)`;
-      });
-    });
+    document.addEventListener('mousemove', (e) => { document.querySelectorAll('.eye').forEach(eye => { const rect = eye.getBoundingClientRect(); const x = rect.left + rect.width / 2; const y = rect.top + rect.height / 2; const rot = (Math.atan2(e.clientX - x, e.clientY - y) * (180 / Math.PI) * -1) + 180; eye.style.transform = `rotate(${rot}deg)`; }); });
   </script>
 </body>
 </html>
