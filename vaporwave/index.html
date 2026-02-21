@@ -2,11 +2,13 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ｖ Ｉ Ｒ Ｔ Ｕ Ａ Ｌ　Ｐ Ｌ Ａ Ｚ Ａ</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="sun"></div>
+  
   <div class="grid-container">
     <div class="grid"></div>
   </div>
@@ -19,19 +21,19 @@
   <div class="vhs-glitch"></div>
   <div class="scanlines"></div>
 
-  <marquee class="vapor-text" scrollamount="12">プラザへようこそ　//　消費社会の終焉　//　私たちは皆、仮想空間に生きている　//　ＭＡＣＩＮＴＯＳＨ　ＰＬＵＳ　//　すべてはシミュレーションです　//　ノスタルジーの喪失　//　あなたの心はアップロードされました</marquee>
+  <marquee class="vapor-text" scrollamount="10">プラザへようこそ　//　消費社会の終焉　//　私たちは皆、仮想空間に生きている　//　ＭＡＣＩＮＴＯＳＨ　ＰＬＵＳ　//　すべてはシミュレーションです　//　ノスタルジーの喪失</marquee>
 
-  <div class="window main-window">
+  <div class="window main-window" id="win-main">
     <div class="title-bar">
       <span>ＭＡＣＩＮＴＯＳＨ　ＰＬＵＳ.exe</span>
-      <span class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">X</span>
+      <span class="close-btn" onclick="document.getElementById('win-main').style.display='none'">X</span>
     </div>
     <div class="content">
       <h1 class="glitch" data-text="幻 想 郷">幻 想 郷</h1>
       <p>何も感じない。<br>未来は過去の中にあります。</p>
       
       <div class="player">
-        <span>▶ ＰＬＡＹＩＮＧ :  リサフランク420 / 現代のコンピュー</span>
+        <span>▶ ＰＬＡＹＩＮＧ : リサフランク420</span>
         <button id="play-btn" class="btn" style="background:#000; color:#05ffa1; border-color:#05ffa1;">再生 / ＰＬＡＹ</button>
       </div>
       
@@ -40,31 +42,29 @@
     </div>
   </div>
 
-  <div class="window error-window error-1">
-    <div class="title-bar"><span>警告</span><span class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">X</span></div>
+  <div class="window error-window error-1" id="win-err1">
+    <div class="title-bar"><span>警告</span><span class="close-btn" onclick="document.getElementById('win-err1').style.display='none'">X</span></div>
     <div class="content">
       <p style="margin-top: 0; font-weight: bold;">魂の接続が切れました。</p>
-      <button class="btn" onclick="this.parentElement.parentElement.style.display='none'">Ｏ Ｋ</button>
+      <button class="btn" onclick="document.getElementById('win-err1').style.display='none'">Ｏ Ｋ</button>
     </div>
   </div>
 
-  <div class="window error-window error-2">
-    <div class="title-bar"><span>System Error</span><span class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">X</span></div>
+  <div class="window error-window error-2" id="win-err2">
+    <div class="title-bar"><span>System Error</span><span class="close-btn" onclick="document.getElementById('win-err2').style.display='none'">X</span></div>
     <div class="content">
       <img src="https://media.giphy.com/media/xT9IgzoVuwqr8UzO1i/giphy.gif" width="100%" alt="anime gif" style="border: 2px inset #dfdfdf;">
-      <p style="font-size: 12px;">感情のロードに失敗しました</p>
+      <p style="font-size: 12px; margin-bottom: 0;">感情のロードに失敗しました</p>
     </div>
   </div>
 
   <audio id="vapor-audio" src="../assets/sfx/umahii.mp3" loop></audio>
 
   <script>
-    // 再生ボタンの処理
+    // 音楽再生（スローダウン）
     document.getElementById('play-btn').addEventListener('click', function() {
       const audio = document.getElementById('vapor-audio');
-      // 少しピッチを下げて（スローダウンして）Vaporwave感を出す
       audio.playbackRate = 0.85; 
-      
       if(audio.paused) {
         audio.play().catch(()=>{});
         this.innerText = '停止 / ＳＴＯＰ';
@@ -74,7 +74,7 @@
       }
     });
 
-    // ウィンドウをドラッグ可能にする簡易スクリプト
+    // ウィンドウのドラッグ処理（安定版）
     const windows = document.querySelectorAll('.window');
     let isDragging = false;
     let currentWindow = null;
@@ -83,21 +83,42 @@
     windows.forEach(win => {
       const titleBar = win.querySelector('.title-bar');
       titleBar.addEventListener('mousedown', (e) => {
+        if (e.target.classList.contains('close-btn')) return; // 閉じるボタンはドラッグ除外
         isDragging = true;
         currentWindow = win;
-        // 最前面に出す
+        
+        // Z-indexの管理（クリックしたものを最前面へ）
         windows.forEach(w => w.style.zIndex = 10);
         win.style.zIndex = 20;
         
         const rect = win.getBoundingClientRect();
         offsetX = e.clientX - rect.left;
         offsetY = e.clientY - rect.top;
-        // アニメーションを解除して固定位置へ
-        win.style.animation = 'none';
+        
+        // transformを解除して絶対座標に変換
         win.style.transform = 'none';
         win.style.left = rect.left + 'px';
         win.style.top = rect.top + 'px';
+        win.style.bottom = 'auto';
+        win.style.right = 'auto';
       });
+      
+      // スマホのタッチ対応
+      titleBar.addEventListener('touchstart', (e) => {
+        if (e.target.classList.contains('close-btn')) return;
+        isDragging = true;
+        currentWindow = win;
+        windows.forEach(w => w.style.zIndex = 10);
+        win.style.zIndex = 20;
+        const rect = win.getBoundingClientRect();
+        offsetX = e.touches[0].clientX - rect.left;
+        offsetY = e.touches[0].clientY - rect.top;
+        win.style.transform = 'none';
+        win.style.left = rect.left + 'px';
+        win.style.top = rect.top + 'px';
+        win.style.bottom = 'auto';
+        win.style.right = 'auto';
+      }, {passive: true});
     });
 
     document.addEventListener('mousemove', (e) => {
@@ -106,10 +127,14 @@
       currentWindow.style.top = (e.clientY - offsetY) + 'px';
     });
 
-    document.addEventListener('mouseup', () => {
-      isDragging = false;
-      currentWindow = null;
-    });
+    document.addEventListener('touchmove', (e) => {
+      if (!isDragging || !currentWindow) return;
+      currentWindow.style.left = (e.touches[0].clientX - offsetX) + 'px';
+      currentWindow.style.top = (e.touches[0].clientY - offsetY) + 'px';
+    }, {passive: true});
+
+    document.addEventListener('mouseup', () => { isDragging = false; currentWindow = null; });
+    document.addEventListener('touchend', () => { isDragging = false; currentWindow = null; });
   </script>
 </body>
 </html>
