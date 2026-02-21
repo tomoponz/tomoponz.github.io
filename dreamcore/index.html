@@ -82,7 +82,7 @@
         <a-light type="point" color="#fff" intensity="1.2" distance="60" position="0 2 0"></a-light>
       </a-entity>
 
-      <a-entity id="monster" position="10 1.5 80">
+      <a-entity id="monster" position="130 1.5 10">
         <a-sphere radius="2.0" color="#000" material="roughness: 1;">
           <a-sphere radius="0.8" position="0 0 1.8" color="#fff">
             <a-sphere radius="0.4" position="0 0 0.6" color="red" material="emissive:red; emissiveIntensity:10;"></a-sphere>
@@ -177,7 +177,6 @@
       document.getElementById('phase-3d').classList.add('active');
       window.dispatchEvent(new Event('resize'));
       
-      // ★ 敵とタイマーの処理を開始する ★
       startSurvival();
     });
 
