@@ -321,9 +321,89 @@
             .horror-glitch * {
               cursor: crosshair !important;
             }
+
+            /* --- fake terminal / hack overlay --- */
+            #hackOverlay{
+              position:fixed; inset:0;
+              background:rgba(0,0,0,.55);
+              z-index: 9000;
+              pointer-events:none;
+            }
+            #hackOverlay .cmd{
+              position:absolute; left:12px; right:12px; bottom:12px; top:12px;
+              border:1px solid rgba(255,255,255,.18);
+              border-radius:14px;
+              overflow:hidden;
+              box-shadow:0 18px 60px rgba(0,0,0,.55);
+            }
+            #hackOverlay .bar{
+              height:34px;
+              background:linear-gradient(to right, #111, #2a2a2a);
+              color:#eaeaea;
+              font: 12px/34px Tahoma, 'MS UI Gothic', sans-serif;
+              padding:0 10px;
+              display:flex; justify-content:space-between;
+              opacity:.95;
+            }
+            #hackOverlay .screen{
+              position:absolute; left:0; right:0; top:34px; bottom:0;
+              padding:10px 12px;
+              font: 12px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+              color:#67ff6b;
+              opacity:.55;
+              white-space:pre-wrap;
+              overflow:hidden;
+              text-shadow:0 0 10px rgba(80,255,80,.15);
+            }
+            #hackOverlay .cursor{display:inline-block; width:10px; animation:blink 1s infinite;}
+            @keyframes blink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
           `;
           document.head.appendChild(style);
           document.body.classList.add("horror-glitch");
+
+          // 0. 背後で勝手に入力される「それっぽい」画面（※実害なしの演出）
+          const hackOverlay = document.createElement('div');
+          hackOverlay.id = 'hackOverlay';
+          hackOverlay.innerHTML = `
+            <div class="cmd">
+              <div class="bar"><span>cmd.exe - SYSTEM</span><span>◻︎  ×</span></div>
+              <div class="screen" id="hackScreen"></div>
+            </div>
+          `;
+          document.body.appendChild(hackOverlay);
+
+          const hackScreen = hackOverlay.querySelector('#hackScreen');
+          const hackLines = [
+            "C:\\\\Windows\\\\System32> init.sys --force --silent",
+            "[+] collecting entropy... ok",
+            "[+] scanning memory pages... 0x00000000 -> 0x00FFFFFF",
+            "[!] signature mismatch: 0xDEAD BEEF (retry)",
+            "[+] patching hooks: ntoskrnl.exe ...",
+            "[+] dumping tokens: 12 found",
+            "[+] negotiating channel: AES-256-GCM",
+            "[+] uploading fragments: 1/9 2/9 3/9 4/9",
+            "[!] I SEE YOU",
+            "[+] writing...",
+            "\n",
+          ];
+
+          let hl = 0;
+          let hc = 0;
+          let current = "";
+          const typeTimer = setInterval(() => {
+            // 文字を少しずつ打つ
+            const line = hackLines[hl] ?? ("0x" + Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,'0').toUpperCase() + "  " + Math.random().toString(36).slice(2));
+            if (hc < line.length){
+              current += line[hc++];
+            } else {
+              current += "\n";
+              hl++;
+              hc = 0;
+            }
+            // 長すぎたら切る
+            if (current.length > 6000) current = current.slice(current.length - 6000);
+            hackScreen.innerHTML = current + "<span class=\"cursor\">█</span>";
+          }, 22);
 
           // 不気味なメッセージのリスト
           const creepyMessages = [
@@ -357,7 +437,7 @@
             div.style.position = "fixed";
             div.style.left = Math.random() * (window.innerWidth - 300) + "px";
             div.style.top = Math.random() * (window.innerHeight - 150) + "px";
-            div.style.width = "280px";
+            div.style.width = "320px";
             
             const isLateStage = errorCount > 20;
             div.style.backgroundColor = isLateStage ? "#4a0000" : "#ece9d8"; 
@@ -373,16 +453,25 @@
             if (errorCount > 5) msgText = creepyMessages[Math.floor(Math.random() * creepyMessages.length)];
             if (errorCount > 30) msgText = "死死死死死死死死死死死死死"; 
 
+            const title = isLateStage ? 'FATAL ERROR' : 'System Error';
+            const barBg = isLateStage ? 'linear-gradient(to right, #000, #2a0000)' : 'linear-gradient(to right, #0058e6, #3a93ff)';
             div.innerHTML = `
-              <div style="background: ${isLateStage ? 'black' : 'linear-gradient(to right, #0058e6, #3a93ff)'}; color: white; padding: 4px 8px; font-size: 13px; font-weight: bold; display: flex; justify-content: space-between; user-select: none;">
-                <span>${isLateStage ? 'FATAL' : 'System Error'}</span>
-                <span class="fake-close" style="background: #e04343; border-radius: 3px; padding: 0 5px; cursor: pointer;">×</span>
+              <div class="fake-bar" style="background:${barBg}; color:white; padding:4px 8px; font-size:13px; font-weight:bold; display:flex; justify-content:space-between; user-select:none;">
+                <span>${title}</span>
+                <span class="fake-close" style="background:#e04343; border-radius:3px; padding:0 6px; cursor:pointer;">×</span>
               </div>
-              <div style="padding: 20px; text-align: center;">
-                <p style="margin: 0 0 15px; font-size: ${isLateStage ? '18px' : '13px'}; font-weight: ${isLateStage ? 'bold' : 'normal'};">
-                  Fatal Error: 0x${errorCode}<br>${msgText}
-                </p>
-                <button class="fake-ok" style="padding: 4px 20px; cursor: pointer; color: black;">OK</button>
+              <div style="padding:14px 14px 16px; display:flex; gap:12px; align-items:flex-start;">
+                <div style="width:36px;height:36px;border-radius:8px;background:${isLateStage?'#ff0000':'#0055ea'};display:grid;place-items:center;color:white;font-weight:bold;">!</div>
+                <div style="flex:1;">
+                  <div style="font-size:${isLateStage?'16px':'13px'}; font-weight:${isLateStage?'bold':'normal'}; line-height:1.35;">
+                    ${isLateStage ? 'Fatal Error' : 'An exception has occurred.'}<br>
+                    0x${errorCode} — ${msgText}
+                  </div>
+                  <div style="margin-top:10px; font-size:11px; opacity:.8;">If this problem persists, contact your system administrator.</div>
+                  <div style="margin-top:12px; text-align:right;">
+                    <button class="fake-ok" style="min-width:88px; padding:5px 16px; cursor:pointer; color:black; border:1px solid rgba(0,0,0,.25); background:#f2f2f2;">OK</button>
+                  </div>
+                </div>
               </div>
             `;
             document.body.appendChild(div);
@@ -407,19 +496,26 @@
             if (initCount > 10) clearInterval(chaosInterval);
           }, 200);
 
-          setTimeout(() => {
-            window.open("horror.html", "_blank");
-          }, 1500);
+          // ★別タブを開かない（スマホで暴発しやすいので禁止）
           
           setTimeout(() => {
-            document.body.innerHTML = "<h1 style='color:red; text-align:center; margin-top:20%; font-size:50px; font-family:serif;'>逃 が さ な い</h1>";
-            document.body.style.animation = "none";
-            document.body.style.filter = "none";
-            document.body.style.backgroundColor = "black";
-            
+            // 最終演出（DOMを全消ししない：エラー増殖と背景タイピングを残す）
+            const finale = document.createElement('div');
+            finale.style.position = 'fixed';
+            finale.style.inset = '0';
+            finale.style.background = 'rgba(0,0,0,.92)';
+            finale.style.zIndex = '20000';
+            finale.style.display = 'grid';
+            finale.style.placeItems = 'center';
+            finale.style.fontFamily = 'serif';
+            finale.innerHTML = "<div style='text-align:center;'><div style='color:#ff2b2b; font-size:52px; letter-spacing:6px;'>逃 が さ な い</div><div style='margin-top:10px; color:#aaa; font-size:12px;'>SYSTEM OVERRIDE</div></div>";
+            document.body.appendChild(finale);
+
+            clearInterval(typeTimer);
+
             setTimeout(() => {
-              location.href = "horror.html"; 
-            }, 2000); 
+              location.href = "horror.html";
+            }, 1800);
           }, 6000);
 
         }, 100); // ← 0.1秒だけ待ってから警告ダイアログを出す
