@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>おめでとう</title>
+  <style>
+    /* エヴァ最終話特有の、あの「青い空間」 */
+    body {
+      margin: 0;
+      height: 100vh;
+      background-color: #3b82c4;
+      color: #fff;
+      font-family: "ＭＳ Ｐ明朝", "MS PMincho", "游明朝", serif;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      user-select: none;
+    }
+    
+    /* 画面を埋め尽くす「おめでとう」の文字 */
+    .msg {
+      position: absolute;
+      font-size: 3rem;
+      font-weight: bold;
+      opacity: 0;
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    /* 中央に表示されるメインメッセージ */
+    .main-text {
+      font-size: 4rem;
+      font-weight: bold;
+      opacity: 0;
+      text-align: center;
+      line-height: 1.5;
+      z-index: 10;
+    }
+
+    /* エヴァ特有の極太明朝体をCSSシャドウで再現 */
+    .eva-font {
+      text-shadow: 
+        1px 1px 0 #000, -1px -1px 0 #000, 
+        1px -1px 0 #000, -1px 1px 0 #000,
+        2px 2px 0 #000, 3px 3px 0 #000;
+      letter-spacing: 5px;
+    }
+
+    /* 現実（トップページ）へ帰還するボタン */
+    #return-btn {
+      opacity: 0;
+      margin-top: 50px;
+      padding: 10px 30px;
+      font-size: 1.2rem;
+      color: #000;
+      background: #fff;
+      border: 3px solid #000;
+      cursor: pointer;
+      font-family: "ＭＳ Ｐ明朝", "MS PMincho", serif;
+      font-weight: bold;
+      transition: background 0.3s, color 0.3s;
+      z-index: 20;
+      pointer-events: none; /* 透明な時は押せないようにする */
+    }
+    #return-btn:hover {
+      background: #000;
+      color: #fff;
+    }
+    
+    /* スマホ向け文字サイズ調整 */
+    @media (max-width: 600px) {
+      .main-text { font-size: 2.5rem; }
+      .msg { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="container" style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
+  
+  <div class="main-text eva-font" id="main-msg"></div>
+  
+  <button id="return-btn" onclick="location.href='../index.html'">現 実 へ 帰 還</button>
+
+  <script>
+    const container = document.getElementById('container');
+    const mainMsg = document.getElementById('main-msg');
+    const btn = document.getElementById('return-btn');
+
+    // エヴァ風のセリフ（Vaporwaveパロディ版）
+    const sequence = [
+      { text: "ダイヤルアップに、<br>ありがとう", delay: 1000 },
+      { text: "ブラウン管に、<br>さようなら", delay: 4000 },
+      { text: "そして、全ての", delay: 7000 },
+      { text: "仮想空間<br>（Ｖ Ｉ Ｒ Ｔ Ｕ Ａ Ｌ）に", delay: 9000 },
+    ];
+
+    // パッ、パッ、と切り替わる演出
+    sequence.forEach(item => {
+      setTimeout(() => {
+        mainMsg.style.opacity = 0; // 一瞬消す
+        setTimeout(() => {
+          mainMsg.innerHTML = item.text;
+          mainMsg.style.opacity = 1; // 表示する
+        }, 100);
+      }, item.delay);
+    });
+
+    // 最後に「おめでとう」が画面を埋め尽くす演出
+    setTimeout(() => {
+      mainMsg.style.opacity = 0;
+      
+      let count = 0;
+      const interval = setInterval(() => {
+        // 18回「おめでとう」を出したら終了
+        if (count > 18) {
+          clearInterval(interval);
+          
+          // 最後にドカンと中央に巨大な「おめでとう」
+          setTimeout(() => {
+            mainMsg.innerHTML = "おめでとう";
+            mainMsg.style.fontSize = "min(15vw, 6rem)";
+            mainMsg.style.color = "#ffeb3b"; // 最後だけ黄色っぽくするとよりエヴァ感が出ます
+            mainMsg.style.opacity = 1;
+            
+            // 少し遅れて帰還ボタンを表示
+            setTimeout(() => {
+              btn.style.opacity = 1;
+              btn.style.pointerEvents = 'auto'; // クリック可能に
+            }, 2500);
+            
+          }, 1000);
+          return;
+        }
+
+        // 周りに「おめでとう」を生成
+        const span = document.createElement('div');
+        span.className = 'msg eva-font';
+        span.innerText = "おめでとう";
+        
+        // ランダムな位置とサイズ（画面の端に行き過ぎないように10%〜90%の範囲）
+        const top = Math.random() * 80 + 10; 
+        const left = Math.random() * 80 + 10;
+        const scale = Math.random() * 1.5 + 0.5;
+        
+        span.style.top = top + '%';
+        span.style.left = left + '%';
+        span.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        
+        container.appendChild(span);
+        
+        // パッと表示させる
+        setTimeout(() => span.style.opacity = 1, 50);
+
+        count++;
+      }, 300); // 0.3秒間隔で次々に出現
+
+    }, 12000); // 最初のセリフが終わった12秒後から開始
+
+  </script>
+</body>
+</html>
