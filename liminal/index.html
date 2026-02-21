@@ -172,7 +172,7 @@
       <a-asset-item id="sculpture-model" src="../assets/models/sculpture_bust_of_roza_loewenfeld.glb"></a-asset-item>
     </a-assets>
 
-    <a-entity id="rig" position="0 1.0 0" fps-player wall-collider>
+    <a-entity id="rig" position="0 1.0 0" fps-player="jumpVelocity: 0.187" wall-collider>
       <a-entity camera position="0 0 0" footstep-sound>
         <a-cursor color="#ff0000" scale="0.6 0.6 0.6" raycaster="objects: .clickable"></a-cursor>
       </a-entity>
@@ -213,7 +213,7 @@
   <script>
     window.audioUnlocked = false;
     // このページのデフォルト（dreamcoreと操作を揃える）
-    window.__fpsSettings__ = window.__fpsSettings__ || { moveSpeed: 0.20, lookSpeed: 0.05, volume: 0.8 };
+    window.__fpsSettings__ = window.__fpsSettings__ || { moveSpeed: 0.08, lookSpeed: 0.05, volume: 0.8 };
 
     document.addEventListener("DOMContentLoaded", () => {
       const tcDisplay = document.getElementById("tc-display");
