@@ -1,42 +1,143 @@
-body {
-  margin: 0;
-  height: 100vh;
-  background: linear-gradient(to bottom, #4287f5 0%, #b3d4ff 60%, #5cdb5c 60%, #3bb83b 100%);
-  font-family: "Comic Sans MS", "ＭＳ Ｐゴシック", sans-serif;
+/* Comic Sans MS を強制し、不気味なポップさを出す */
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap');
+
+html, body {
+  margin: 0; padding: 0; width: 100vw; height: 100vh;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  background-color: #000;
+  font-family: 'Comic Sans MS', 'Comic Neue', cursive, sans-serif;
+  cursor: crosshair; /* カーソルを照準器にして不穏に */
+  user-select: none;
 }
-.eye {
-  font-size: 100px;
-  animation: float 4s ease-in-out infinite;
-  text-shadow: 0 0 20px rgba(255,255,255,0.8);
+
+/* =========================================
+   異常に鮮やかな空と草原 (Dreamcoreの定番)
+   ========================================= */
+.sky {
+  position: absolute; top: 0; left: 0; width: 100%; height: 65%;
+  background: linear-gradient(to bottom, #0011ff 0%, #88ccff 100%);
+  z-index: 1;
 }
-.message {
-  text-align: center;
-  background: rgba(255, 255, 255, 0.7);
-  padding: 30px;
-  border: 2px solid red;
-  box-shadow: 5px 5px 0px red;
-  margin-top: 20px;
+.ground {
+  position: absolute; bottom: 0; left: 0; width: 100%; height: 35%;
+  background: linear-gradient(to bottom, #00ff00 0%, #004400 100%);
+  z-index: 1;
+  border-top: 3px solid #fff;
 }
-h1 { color: red; font-size: 24px; letter-spacing: 2px; }
-p { color: #333; font-size: 18px; }
-.door {
-  display: inline-block;
-  margin-top: 20px;
-  padding: 10px 20px;
-  background: yellow;
-  color: black;
-  text-decoration: none;
-  font-weight: bold;
-  border: 2px solid black;
+
+/* オブジェクトの色味を異常にする */
+.weird-cloud {
+  position: absolute; z-index: 2; opacity: 0.9;
+  filter: saturate(2.5) contrast(1.5);
+  animation: drift linear infinite;
+  pointer-events: none;
 }
-.door:hover { background: black; color: yellow; }
-@keyframes float {
-  0% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(5deg); }
-  100% { transform: translateY(0px) rotate(0deg); }
+@keyframes drift {
+  from { transform: translateX(-200px); }
+  to { transform: translateX(120vw); }
+}
+
+.weird-rainbow {
+  position: absolute; top: 5%; left: 50%; transform: translateX(-50%);
+  width: 90vw; max-width: 900px; z-index: 2;
+  filter: saturate(3) hue-rotate(90deg) contrast(2);
+  mix-blend-mode: hard-light;
+  pointer-events: none;
+}
+
+/* =========================================
+   CRT走査線とノイズ
+   ========================================= */
+.crt-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+  background-size: 100% 4px;
+  z-index: 99; pointer-events: none;
+}
+.noise {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  /* SVGによる砂嵐ノイズ */
+  background-image: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+  opacity: 0.15; z-index: 98; pointer-events: none;
+  animation: noiseJitter 0.1s infinite;
+}
+@keyframes noiseJitter {
+  0% { background-position: 0 0; }
+  100% { background-position: 100% 100%; }
+}
+
+/* =========================================
+   メインテキストと増殖テキスト
+   ========================================= */
+.center-message {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  font-size: 12vw; font-weight: bold; color: yellow;
+  /* 色収差（赤と青のズレ）を表現 */
+  text-shadow: 6px 6px 0 red, -6px -6px 0 blue;
+  z-index: 10; pointer-events: none;
+  animation: glitch-anim 3s infinite;
+  white-space: nowrap;
+  transition: letter-spacing 0.1s, transform 0.1s;
+}
+@keyframes glitch-anim {
+  0% { transform: translate(-50%, -50%) skew(0deg); }
+  2% { transform: translate(-52%, -50%) skew(15deg); color: white; text-shadow: -6px 6px 0 red, 6px -6px 0 blue;}
+  4% { transform: translate(-50%, -50%) skew(0deg); color: yellow; text-shadow: 6px 6px 0 red, -6px -6px 0 blue;}
+  98% { transform: translate(-50%, -50%) skew(0deg); }
+  100% { transform: translate(-48%, -50%) skew(-15deg); }
+}
+
+.floating-text {
+  position: absolute; font-size: 40px; font-weight: bold;
+  text-shadow: 3px 3px 0 #000, -2px -2px 0 #fff;
+  z-index: 5; pointer-events: none;
+}
+
+/* =========================================
+   👁️ マウスを追従する目玉 👁️
+   ========================================= */
+.eye-container {
+  position: absolute; width: 90px; height: 50px; z-index: 15;
+  background: white; border-radius: 50%;
+  border: 4px solid #000;
+  box-shadow: 0 0 20px rgba(0,0,0,0.8), inset 0 0 15px red;
+  display: flex; justify-content: center; align-items: center;
+  overflow: hidden;
+  animation: blink 4s infinite;
+}
+.eye { width: 100%; height: 100%; position: relative; }
+.pupil {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 30px; height: 30px; background: #000; border-radius: 50%;
+  box-shadow: 0 0 0 6px #00aaff; /* 青い瞳孔 */
+}
+.pupil::after {
+  content: ''; position: absolute; top: 20%; left: 20%; width: 8px; height: 8px;
+  background: white; border-radius: 50%;
+}
+/* まばたきアニメーション */
+@keyframes blink {
+  0%, 96%, 100% { transform: scaleY(1); }
+  98% { transform: scaleY(0.1); }
+}
+
+/* =========================================
+   脱出ボタンとフラッシュ
+   ========================================= */
+.escape-btn {
+  position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%);
+  padding: 15px 30px; background: #fff; color: #000;
+  border: 4px solid #000; font-size: 24px; font-weight: bold;
+  text-decoration: none; z-index: 20;
+  box-shadow: 5px 5px 0 #000;
+  transition: transform 0.1s ease-out, background 0.1s;
+}
+.escape-btn:hover { background: red; color: white; cursor: pointer; box-shadow: 5px 5px 0 blue; }
+
+.flash-bang {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background: red; z-index: 9999;
+  display: flex; justify-content: center; align-items: center;
+  color: white; font-size: 15vw; font-weight: bold; font-family: Impact, sans-serif;
+  opacity: 0; pointer-events: none; transition: opacity 0.05s;
 }
