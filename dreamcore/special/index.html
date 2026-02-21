@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SYSTEM RESTORED</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <style>
+    /* =========================================
+       Vaporwave Aesthetic (ヴェイパーウェイヴの世界観)
+       ========================================= */
+    body, html {
+      margin: 0; padding: 0; width: 100vw; height: 100vh;
+      overflow: hidden;
+      background: linear-gradient(to bottom, #020024 0%, #090979 35%, #00d4ff 100%);
+      font-family: 'VT323', monospace;
+      color: #fff;
+    }
+
+    /* 輝く太陽 (Retro Sun) */
+    .retro-sun {
+      position: absolute;
+      bottom: 20%; left: 50%;
+      transform: translateX(-50%);
+      width: 300px; height: 300px;
+      background: linear-gradient(to bottom, #ff00cc, #ffcc00);
+      border-radius: 50%;
+      box-shadow: 0 0 50px #ff00cc;
+      z-index: 1;
+    }
+
+    /* 太陽の水平線スリット (Vaporwave特有のシマシマ) */
+    .sun-slits {
+      position: absolute; bottom: 0; left: 0; width: 100%; height: 50%;
+      background: repeating-linear-gradient(transparent, transparent 5px, #00d4ff 5px, #00d4ff 10px);
+      z-index: 2;
+    }
+
+    /* 動く3Dグリッド (Cyber Grid) */
+    .grid-container {
+      position: absolute; bottom: 0; left: 0; width: 100%; height: 40%;
+      perspective: 600px; z-index: 3;
+      background: #000;
+    }
+    .grid {
+      position: absolute; bottom: -50%; left: -50%; width: 200%; height: 200%;
+      background-image: 
+        linear-gradient(to right, #ff00ff 1px, transparent 1px),
+        linear-gradient(to bottom, #ff00ff 1px, transparent 1px);
+      background-size: 50px 50px;
+      transform: rotateX(75deg);
+      animation: grid-move 2s linear infinite;
+    }
+    @keyframes grid-move {
+      from { transform: rotateX(75deg) translateY(0); }
+      to { transform: rotateX(75deg) translateY(50px); }
+    }
+
+    /* =========================================
+       Windows 95風のメッセージウィンドウ
+       ========================================= */
+    .win-dialog {
+      position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
+      width: 400px; max-width: 90%;
+      background: #c0c0c0;
+      border-top: 2px solid #fff; border-left: 2px solid #fff;
+      border-right: 2px solid #000; border-bottom: 2px solid #000;
+      box-shadow: 5px 5px 0px rgba(0,0,0,0.5);
+      z-index: 10; color: #000;
+      display: none; /* 最初は非表示 */
+    }
+    .win-header {
+      background: #000080; color: #fff; padding: 5px 10px;
+      font-family: 'Press Start 2P', cursive; font-size: 10px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .win-close {
+      background: #c0c0c0; border-top: 1px solid #fff; border-left: 1px solid #fff;
+      border-right: 1px solid #000; border-bottom: 1px solid #000;
+      width: 16px; height: 16px; color: #000;
+      text-align: center; line-height: 16px; cursor: pointer;
+    }
+    .win-close:active {
+      border-top: 1px solid #000; border-left: 1px solid #000;
+      border-right: 1px solid #fff; border-bottom: 1px solid #fff;
+    }
+    .win-body {
+      padding: 20px; font-size: 24px; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+    }
+
+    /* タイプライター効果のテキスト */
+    #typewriter {
+      min-height: 60px;
+      line-height: 1.5;
+    }
+    
+    .ok-btn {
+      padding: 5px 20px; font-family: 'Press Start 2P', cursive; font-size: 12px;
+      background: #c0c0c0; cursor: pointer;
+      border-top: 2px solid #fff; border-left: 2px solid #fff;
+      border-right: 2px solid #000; border-bottom: 2px solid #000;
+    }
+    .ok-btn:active {
+      border-top: 2px solid #000; border-left: 2px solid #000;
+      border-right: 2px solid #fff; border-bottom: 2px solid #fff;
+    }
+
+    /* 画面切り替えのフェードイン */
+    .fade-in-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #fff; z-index: 9999;
+      animation: fadeOut 3s forwards; pointer-events: none;
+    }
+    @keyframes fadeOut { to { opacity: 0; } }
+
+  </style>
+</head>
+<body>
+
+  <div class="fade-in-overlay"></div>
+
+  <div class="retro-sun"><div class="sun-slits"></div></div>
+  <div class="grid-container"><div class="grid"></div></div>
+
+  <div class="win-dialog" id="dialog">
+    <div class="win-header">
+      <span>AWAKENING.exe</span>
+      <div class="win-close" onclick="closeWindow()">X</div>
+    </div>
+    <div class="win-body">
+      <div id="typewriter"></div>
+      <button class="ok-btn" onclick="goHome()">OK</button>
+    </div>
+  </div>
+
+  <script>
+    // --- タイプライター演出 ---
+    const textToType = "Congratulations.\nYou have survived the nightmare.\nReality restored.";
+    const typewriterElement = document.getElementById('typewriter');
+    const dialog = document.getElementById('dialog');
+    let index = 0;
+
+    // 白いフェードインが終わる頃(2秒後)にウィンドウを表示
+    setTimeout(() => {
+      dialog.style.display = 'block';
+      typeText();
+    }, 2000);
+
+    function typeText() {
+      if (index < textToType.length) {
+        if (textToType.charAt(index) === '\n') {
+          typewriterElement.innerHTML += '<br>';
+        } else {
+          typewriterElement.innerHTML += textToType.charAt(index);
+        }
+        index++;
+        // 打鍵のランダムな速度
+        setTimeout(typeText, Math.random() * 50 + 50);
+      }
+    }
+
+    // --- ボタンの動作 ---
+    function closeWindow() {
+      dialog.style.display = 'none';
+    }
+
+    function goHome() {
+      // あなたのサイトのトップページ（あるいは元の安全な場所）へ戻る
+      // ※パスはご自身の環境に合わせて修正してください
+      window.location.href = '../index.html'; 
+    }
+  </script>
+</body>
+</html>
