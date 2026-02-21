@@ -8,7 +8,7 @@
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   
   <script>
-    // --- 壁の当たり判定 ---
+    // --- プレイヤーの壁の当たり判定 ---
     AFRAME.registerComponent('grid-collider', {
       init: function () {
         this.lastLocalPos = new THREE.Vector3().copy(this.el.object3D.position);
@@ -33,31 +33,18 @@
   </script>
 
   <style>
-    #phase-3d {
-      position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-      opacity: 0; pointer-events: none; z-index: -10;
-    }
-    #phase-3d.active {
-      opacity: 1; pointer-events: auto; z-index: 1000;
-    }
+    #phase-3d { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; opacity: 0; pointer-events: none; z-index: -10; }
+    #phase-3d.active { opacity: 1; pointer-events: auto; z-index: 1000; }
   </style>
 </head>
 <body>
 
   <div id="phase-2d">
     <svg id="svg-filter" style="width:0; height:0; position:absolute;">
-      <filter id="horror-warp">
-        <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" seed="1">
-          <animate attributeName="baseFrequency" values="0.01;0.015;0.01" dur="5s" repeatCount="indefinite" />
-        </feTurbulence>
-        <feDisplacementMap in="SourceGraphic" scale="40" />
-      </filter>
+      <filter id="horror-warp"><feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" seed="1"><animate attributeName="baseFrequency" values="0.01;0.015;0.01" dur="5s" repeatCount="indefinite" /></feTurbulence><feDisplacementMap in="SourceGraphic" scale="40" /></filter>
     </svg>
-    <div class="world-container">
-      <div class="sky"></div><div class="ground"></div>
-      <div class="scenery-overlay">
-        <img src="../img/cloud.jpg" class="dream-obj cloud-1"><img src="../img/cloud.jpg" class="dream-obj cloud-2"><img src="../img/rainbow.jpg" class="dream-obj rainbow-mirror"><img src="../img/dolphin.jpg" class="dream-obj leaps">
-      </div>
+    <div class="world-container"><div class="sky"></div><div class="ground"></div>
+      <div class="scenery-overlay"><img src="../img/cloud.jpg" class="dream-obj cloud-1"><img src="../img/cloud.jpg" class="dream-obj cloud-2"><img src="../img/rainbow.jpg" class="dream-obj rainbow-mirror"><img src="../img/dolphin.jpg" class="dream-obj leaps"></div>
     </div>
     <div class="vignette"></div><div class="grain"></div><div class="vhs-lines"></div>
     <div class="main-title">Wake up.</div>
@@ -92,7 +79,6 @@
       </a-entity>
 
       <a-entity id="map-root"></a-entity>
-
       <a-light type="ambient" color="#ffffff" intensity="0.6"></a-light>
     </a-scene>
   </div>
@@ -166,14 +152,46 @@
 
     generateMap(); 
 
+    // ★ 敵のための経路探索アルゴリズム (幅優先探索: BFS) ★
+    function findPath(startX, startZ, goalX, goalZ) {
+      let queue = [{x: startX, z: startZ, path: []}];
+      let visited = Array(mapData.length).fill(0).map(() => Array(mapData[0].length).fill(false));
+      
+      // スタート位置がマップ外の場合はエラー回避
+      if(startZ < 0 || startZ >= mapData.length || startX < 0 || startX >= mapData[0].length) return [];
+      visited[startZ][startX] = true;
+
+      const dirs = [[0, -1], [0, 1], [-1, 0], [1, 0]]; // 上, 下, 左, 右
+
+      while(queue.length > 0) {
+        let curr = queue.shift();
+        
+        // ゴールに到達したら経路を返す
+        if(curr.x === goalX && curr.z === goalZ) {
+          return curr.path;
+        }
+
+        for(let d of dirs) {
+          let nx = curr.x + d[0];
+          let nz = curr.z + d[1];
+
+          if(nz >= 0 && nz < mapData.length && nx >= 0 && nx < mapData[0].length) {
+            if(mapData[nz][nx] === 0 && !visited[nz][nx]) { // 床(0)なら進める
+              visited[nz][nx] = true;
+              queue.push({x: nx, z: nz, path: curr.path.concat([{x: nx, z: nz}])});
+            }
+          }
+        }
+      }
+      return []; // 道が見つからなかった場合
+    }
+
     let isPlaying = false; let timeLeft = 60;
     
-    // ボタンを押した時の画面切り替え
     exitBtn.addEventListener('click', () => {
       document.getElementById('svg-filter').remove(); 
       document.getElementById('phase-2d').style.opacity = '0';
       setTimeout(() => { document.getElementById('phase-2d').style.display = 'none'; }, 500);
-      
       document.getElementById('phase-3d').classList.add('active');
       window.dispatchEvent(new Event('resize'));
       
@@ -187,7 +205,9 @@
       const timerDisp = document.getElementById('timer-display');
       const hudVignette = document.getElementById('hud-vignette');
       
-      // タイマー処理
+      let currentPath = [];
+      let pathUpdateTimer = 0; // 経路の再計算タイマー
+
       const timerInterval = setInterval(() => {
         if(!isPlaying) return clearInterval(timerInterval);
         timeLeft--;
@@ -195,7 +215,6 @@
         if(timeLeft <= 0) gameClear();
       }, 1000);
 
-      // 怪物の追跡処理
       function update() {
         if(!isPlaying) return;
         
@@ -203,26 +222,55 @@
         playerCam.object3D.getWorldPosition(pPos);
         const mPos = monster.object3D.position;
 
+        // 捕獲判定
         const dx = pPos.x - mPos.x; 
         const dz = pPos.z - mPos.z;
         const dist = Math.sqrt(dx*dx + dz*dz);
-        
-        // 捕まった判定（距離3.0以内）
         if(dist < 3.0) { gameOver(); return; }
         
-        // 近づくと画面が赤くなる
-        if (dist < 20) { 
-          const danger = 1 - (dist / 20); 
-          hudVignette.style.background = `radial-gradient(circle, transparent ${40 - danger*40}%, rgba(255,0,0,${danger}) 100%)`; 
+        // 近接エフェクト
+        if (dist < 30) { 
+          const danger = 1 - (dist / 30); 
+          hudVignette.style.background = `radial-gradient(circle, transparent ${50 - danger*50}%, rgba(255,0,0,${danger}) 100%)`; 
         } else { 
-          hudVignette.style.background = `radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%)`; 
+          hudVignette.style.background = `radial-gradient(circle, transparent 50%, rgba(0,0,0,0.8) 100%)`; 
         }
         
-        // 時間経過で怪物が早くなる
-        const speed = 0.08 + (60 - timeLeft) * 0.003;
-        
-        mPos.x += (dx/dist) * speed;
-        mPos.z += (dz/dist) * speed;
+        const speed = 0.15 + (60 - timeLeft) * 0.005; // 速度も少し上げました
+
+        // ★ 経路の更新 (0.5秒に1回、プレイヤーの最新位置に向けてルートを再計算) ★
+        pathUpdateTimer--;
+        if (pathUpdateTimer <= 0) {
+          let mgX = Math.max(0, Math.min(mapData[0].length - 1, Math.round(mPos.x / UNIT)));
+          let mgZ = Math.max(0, Math.min(mapData.length - 1, Math.round(mPos.z / UNIT)));
+          let pgX = Math.max(0, Math.min(mapData[0].length - 1, Math.round(pPos.x / UNIT)));
+          let pgZ = Math.max(0, Math.min(mapData.length - 1, Math.round(pPos.z / UNIT)));
+          
+          currentPath = findPath(mgX, mgZ, pgX, pgZ);
+          pathUpdateTimer = 30; 
+        }
+
+        // ★ 計算したルートに沿って移動する ★
+        if (currentPath.length > 0) {
+          let targetNode = currentPath[0];
+          let targetX = targetNode.x * UNIT;
+          let targetZ = targetNode.z * UNIT;
+
+          let tdx = targetX - mPos.x;
+          let tdz = targetZ - mPos.z;
+          let tDist = Math.sqrt(tdx*tdx + tdz*tdz);
+
+          if (tDist < speed) {
+            // 次のマスに到達したら、そのマスをパスから消す
+            mPos.x = targetX;
+            mPos.z = targetZ;
+            currentPath.shift();
+          } else {
+            // 次のマスへ向かって進む（壁に沿って動くようになる）
+            mPos.x += (tdx/tDist) * speed;
+            mPos.z += (tdz/tDist) * speed;
+          }
+        }
         
         requestAnimationFrame(update);
       }
