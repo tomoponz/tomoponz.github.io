@@ -8,24 +8,31 @@
 </head>
 <body>
 
+  <img src="../img/rainbow.png" class="bg-element rainbow" alt="Rainbow">
+  <div class="clouds">
+    <img src="../img/cloud.png" class="bg-element cloud cloud-1" alt="Cloud">
+    <img src="../img/cloud.png" class="bg-element cloud cloud-2" alt="Cloud">
+  </div>
+  <img src="../img/dolphin.png" class="bg-element dolphin" alt="Dolphin">
+
   <div class="aero-bg"></div>
 
-  <div class="bubbles">
+  <div class="bubbles-container">
     <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
     <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
   </div>
 
   <div class="desktop-icons">
     <div class="icon" ondblclick="document.getElementById('welcome-win').style.display='flex'" onclick="if(window.innerWidth<=600) document.getElementById('welcome-win').style.display='flex'">
-      <div class="glossy-icon earth-icon">🌍</div>
+      <div class="glossy-orb network-orb"></div>
       <span>ネットワーク</span>
     </div>
     <div class="icon" ondblclick="location.href='../liminal/index.html'" onclick="if(window.innerWidth<=600) location.href='../liminal/index.html'">
-      <div class="glossy-icon folder-icon">📁</div>
+      <div class="glossy-orb folder-orb"></div>
       <span>古い記録 (Level 0)</span>
     </div>
     <div class="icon" ondblclick="location.href='../vaporwave/index.html'" onclick="if(window.innerWidth<=600) location.href='../vaporwave/index.html'">
-      <div class="glossy-icon disk-icon">💿</div>
+      <div class="glossy-orb disk-orb"></div>
       <span>Ｖ Ｉ Ｒ Ｔ Ｕ Ａ Ｌ</span>
     </div>
   </div>
@@ -43,27 +50,23 @@
 
   <div class="aero-window" id="welcome-win">
     <div class="glass-highlight"></div>
-    
     <div class="title-bar">
-      <div class="title-text">
-        <span class="title-icon">✨</span> ウェルカム センター
-      </div>
+      <div class="title-text"><span class="title-icon">✨</span> ウェルカム センター</div>
       <div class="window-controls">
         <button class="ctrl-btn min-btn">—</button>
         <button class="ctrl-btn max-btn">□</button>
         <button class="ctrl-btn close-btn" onclick="document.getElementById('welcome-win').style.display='none'">✕</button>
       </div>
     </div>
-    
     <div class="window-content">
       <div class="content-header">
         <h2>Aero OS 2007 へようこそ</h2>
-        <p>未来のテクノロジーと自然が調和する、新しいクリアな体験。</p>
+        <p>自然とテクノロジーが融合した、理想郷（ユートピア）へ。</p>
       </div>
       <div class="content-body">
         <div class="feature-box">
-          <h3>💧 スキューモーフィズム</h3>
-          <p>現実世界の質感をそのままに。ツヤのあるアイコンと光沢感。</p>
+          <h3>🐬 Frutiger Aero</h3>
+          <p>澄み切った青空、透き通る水、そしてイルカ。2000年代の夢。</p>
         </div>
         <div class="feature-box">
           <h3>🪟 Aero Glass</h3>
@@ -96,15 +99,14 @@
 
   <div class="taskbar">
     <div class="taskbar-glass"></div>
-    <div class="start-orb" onclick="toggleStartMenu()" id="start-btn">
-      <div class="orb-highlight"></div>
-      <div class="orb-logo"></div>
+    
+    <div class="start-orb-real" onclick="toggleStartMenu()" id="start-btn">
+      <div class="orb-logo-real"></div>
     </div>
     
     <div class="taskbar-items">
       <div class="task-item active">ウェルカム センター</div>
     </div>
-    
     <div class="tray">
       <span>🌐</span>
       <span>🔊</span>
@@ -113,76 +115,17 @@
   </div>
 
   <script>
-    // スタートメニューの開閉
-    function toggleStartMenu() {
-      const menu = document.getElementById('start-menu');
-      menu.classList.toggle('active');
-    }
-
-    // デスクトップをクリックしたらスタートメニューを閉じる
-    document.addEventListener('click', function(e) {
-      const menu = document.getElementById('start-menu');
-      const btn = document.getElementById('start-btn');
-      if (!menu.contains(e.target) && !btn.contains(e.target)) {
-        menu.classList.remove('active');
-      }
-    });
-
-    // 時計の処理（タスクバー＆アナログ時計）
-    function updateClock() {
-      const now = new Date();
-      // タスクバー時計
-      let h = now.getHours();
-      const m = String(now.getMinutes()).padStart(2, '0');
-      document.getElementById('taskbar-time').innerText = `${h}:${m}`;
-
-      // アナログガジェット時計
-      const sec = now.getSeconds();
-      const min = now.getMinutes();
-      const hr = now.getHours();
-      document.getElementById('second-hand').style.transform = `translateX(-50%) rotate(${sec * 6}deg)`;
-      document.getElementById('minute-hand').style.transform = `translateX(-50%) rotate(${min * 6 + sec * 0.1}deg)`;
-      document.getElementById('hour-hand').style.transform = `translateX(-50%) rotate(${hr * 30 + min * 0.5}deg)`;
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    // ウィンドウのドラッグ処理
-    const windowEl = document.getElementById('welcome-win');
-    const titleBar = windowEl.querySelector('.title-bar');
-    let isDragging = false, offsetX, offsetY;
-
-    const startDrag = (clientX, clientY) => {
-      isDragging = true;
-      const rect = windowEl.getBoundingClientRect();
-      offsetX = clientX - rect.left;
-      offsetY = clientY - rect.top;
-      windowEl.style.transform = 'none';
-      windowEl.style.left = rect.left + 'px';
-      windowEl.style.top = rect.top + 'px';
-    };
-
-    titleBar.addEventListener('mousedown', (e) => {
-      if(e.target.closest('.ctrl-btn')) return;
-      startDrag(e.clientX, e.clientY);
-    });
-    titleBar.addEventListener('touchstart', (e) => {
-      if(e.target.closest('.ctrl-btn')) return;
-      startDrag(e.touches[0].clientX, e.touches[0].clientY);
-    }, {passive: true});
-
-    const moveDrag = (clientX, clientY) => {
-      if(!isDragging) return;
-      windowEl.style.left = (clientX - offsetX) + 'px';
-      windowEl.style.top = (clientY - offsetY) + 'px';
-    };
-
-    document.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY));
-    document.addEventListener('touchmove', (e) => moveDrag(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
-
-    const endDrag = () => { isDragging = false; };
-    document.addEventListener('mouseup', endDrag);
-    document.addEventListener('touchend', endDrag);
+    function toggleStartMenu() { const menu = document.getElementById('start-menu'); menu.classList.toggle('active'); }
+    document.addEventListener('click', function(e) { const menu = document.getElementById('start-menu'); const btn = document.getElementById('start-btn'); if (!menu.contains(e.target) && !btn.contains(e.target)) { menu.classList.remove('active'); } });
+    function updateClock() { const now = new Date(); let h = now.getHours(); const m = String(now.getMinutes()).padStart(2, '0'); document.getElementById('taskbar-time').innerText = `${h}:${m}`; const sec = now.getSeconds(); const min = now.getMinutes(); const hr = now.getHours(); document.getElementById('second-hand').style.transform = `translateX(-50%) rotate(${sec * 6}deg)`; document.getElementById('minute-hand').style.transform = `translateX(-50%) rotate(${min * 6 + sec * 0.1}deg)`; document.getElementById('hour-hand').style.transform = `translateX(-50%) rotate(${hr * 30 + min * 0.5}deg)`; }
+    setInterval(updateClock, 1000); updateClock();
+    const windowEl = document.getElementById('welcome-win'); const titleBar = windowEl.querySelector('.title-bar'); let isDragging = false, offsetX, offsetY;
+    const startDrag = (clientX, clientY) => { isDragging = true; const rect = windowEl.getBoundingClientRect(); offsetX = clientX - rect.left; offsetY = clientY - rect.top; windowEl.style.transform = 'none'; windowEl.style.left = rect.left + 'px'; windowEl.style.top = rect.top + 'px'; };
+    titleBar.addEventListener('mousedown', (e) => { if(e.target.closest('.ctrl-btn')) return; startDrag(e.clientX, e.clientY); });
+    titleBar.addEventListener('touchstart', (e) => { if(e.target.closest('.ctrl-btn')) return; startDrag(e.touches[0].clientX, e.touches[0].clientY); }, {passive: true});
+    const moveDrag = (clientX, clientY) => { if(!isDragging) return; windowEl.style.left = (clientX - offsetX) + 'px'; windowEl.style.top = (clientY - offsetY) + 'px'; };
+    document.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY)); document.addEventListener('touchmove', (e) => moveDrag(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
+    const endDrag = () => { isDragging = false; }; document.addEventListener('mouseup', endDrag); document.addEventListener('touchend', endDrag);
   </script>
 </body>
 </html>
