@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="style.css">
 
   <script>
-    // ★ 1. 足音再生プログラム ★
+    // 1. 足音再生
     AFRAME.registerComponent('footstep-sound', {
       init: function () {
         this.lastPos = new THREE.Vector3();
@@ -35,11 +35,10 @@
       }
     });
 
-    // ★ 2. 壁すり抜け防止プログラム（レイキャスター方式） ★
+    // 2. 壁すり抜け防止（レイキャスター方式）
     AFRAME.registerComponent('wall-collider', {
       init: function () {
         this.raycaster = new THREE.Raycaster();
-        // 前後左右の4方向にレーザーを飛ばして壁を検知
         this.directions = [
           new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0),
           new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1)
@@ -50,7 +49,6 @@
       tick: function () {
         var el = this.el;
         var pos = el.object3D.position;
-        // class="collidable" がついたモデルを壁として認識
         var wallEls = el.sceneEl.querySelectorAll('.collidable');
         var meshes = [];
         wallEls.forEach(function (wall) {
@@ -59,12 +57,9 @@
           }
         });
 
-        if (meshes.length === 0) {
-           this.lastPos.copy(pos); return;
-        }
+        if (meshes.length === 0) { this.lastPos.copy(pos); return; }
 
         var collision = false;
-        // 壁までの距離が0.6以下になったらブロック
         for (var i = 0; i < this.directions.length; i++) {
            this.raycaster.set(pos, this.directions[i]);
            var intersects = this.raycaster.intersectObjects(meshes, true);
@@ -74,25 +69,56 @@
         }
 
         if (collision) {
-           el.object3D.position.copy(this.lastPos); // 壁にぶつかったら一歩前の位置に戻す
+           el.object3D.position.copy(this.lastPos);
         } else {
            this.lastPos.copy(pos);
         }
       }
     });
 
-    // ★ 3. 近づくと消える「謎の影」プログラム ★
+    // 3. 近づくと消える影
     AFRAME.registerComponent('shadow-watcher', {
       tick: function () {
         var player = document.getElementById('rig');
         if (!player) return;
         var dist = this.el.object3D.position.distanceTo(player.object3D.position);
-        // プレイヤーが6m以内に近づいたらフッと消える
-        if (dist < 6) {
-          this.el.setAttribute('visible', 'false');
-        } else {
-          this.el.setAttribute('visible', 'true');
+        if (dist < 6) { this.el.setAttribute('visible', 'false'); } 
+        else { this.el.setAttribute('visible', 'true'); }
+      }
+    });
+
+    // ★ 4. バグって激しく振動する演出（Bacteria用） ★
+    AFRAME.registerComponent('jitter', {
+      schema: { amount: {type: 'number', default: 0.05} },
+      tick: function () {
+        if (!this.basePos) {
+           this.basePos = this.el.object3D.position.clone();
         }
+        // 毎フレーム乱数で位置を微小にズラし続ける
+        this.el.object3D.position.set(
+          this.basePos.x + (Math.random() - 0.5) * this.data.amount,
+          this.basePos.y + (Math.random() - 0.5) * this.data.amount,
+          this.basePos.z + (Math.random() - 0.5) * this.data.amount
+        );
+      }
+    });
+
+    // ★ 5. 3Dオブジェクトをクリックして別ページへ飛ぶ機能 ★
+    AFRAME.registerComponent('clickable-link', {
+      schema: { url: { type: 'string' } },
+      init: function () {
+        // クリックされたらURLへ遷移
+        this.el.addEventListener('click', () => {
+          window.location.href = this.data.url;
+        });
+        
+        // 視点（カーソル）が合った時にカーソルの色を緑に変える
+        this.el.addEventListener('mouseenter', () => {
+          document.querySelector('a-cursor').setAttribute('color', '#00ff00');
+        });
+        this.el.addEventListener('mouseleave', () => {
+          document.querySelector('a-cursor').setAttribute('color', '#ff0000');
+        });
       }
     });
   </script>
@@ -103,7 +129,7 @@
     <div class="scanlines"></div>
     <div class="vignette"></div>
 
-    <div class="instructions">WASDキーで移動 / マウスドラッグで視点移動</div>
+    <div class="instructions">WASDキーで移動 / 視点を合わせてクリック</div>
 
     <div class="level-doors">
       <p style="margin: 0 0 10px 0; color: #8b0000; font-weight: bold; font-size: 14px;">🚪 別の階層への扉</p>
@@ -125,26 +151,35 @@
     <a-assets>
       <a-asset-item id="backrooms-model" src="../assets/models/original_backrooms.glb"></a-asset-item>
       <a-asset-item id="car-model" src="../assets/models/destroyed_car_03__backrooms_car_gameready.glb"></a-asset-item>
+      <a-asset-item id="bacteria-model" src="../assets/models/bacteria_-_kane_pixels_backrooms.glb"></a-asset-item>
+      <a-asset-item id="sculpture-model" src="../assets/models/sculpture_bust_of_roza_loewenfeld.glb"></a-asset-item>
     </a-assets>
 
     <a-entity id="rig" position="0 1.0 0" movement-controls="speed: 0.18" wall-collider>
-      <a-entity camera position="0 0 0" look-controls="pointerLockEnabled: false" footstep-sound></a-entity>
+      <a-entity camera position="0 0 0" look-controls="pointerLockEnabled: false" footstep-sound>
+        <a-cursor color="#ff0000" scale="0.6 0.6 0.6" raycaster="objects: .clickable"></a-cursor>
+      </a-entity>
     </a-entity>
 
     <a-gltf-model src="#backrooms-model" class="collidable" position="0 0 0" scale="1 1 1"></a-gltf-model>
 
     <a-gltf-model src="#car-model" class="collidable" position="3 0 -3" rotation="0 -45 0" scale="1.6 1.6 1.6"></a-gltf-model>
 
+    <a-gltf-model src="#bacteria-model" class="clickable collidable" position="-2 0 2" scale="1 1 1" 
+                  jitter="amount: 0.04" 
+                  clickable-link="url: https://backrooms.fandom.com/wiki/Backrooms_Wiki"></a-gltf-model>
+
+    <a-gltf-model src="#sculpture-model" class="clickable collidable" position="-4 1.5 -5" scale="1.5 1.5 1.5"
+                  animation__rot="property: rotation; to: 0 360 0; dur: 5000; loop: true; easing: linear"
+                  animation__pos="property: position; to: -4 1.8 -5; dur: 2000; dir: alternate; loop: true; easing: easeInOutSine"
+                  clickable-link="url: ../vaporwave/index.html"></a-gltf-model>
+
+
     <a-entity position="0 1.0 -12" shadow-watcher>
       <a-cylinder color="#050505" height="1.8" radius="0.3"></a-cylinder>
       <a-sphere color="#ff0000" radius="0.05" position="-0.1 0.7 0.25"></a-sphere>
       <a-sphere color="#ff0000" radius="0.05" position="0.1 0.7 0.25"></a-sphere>
     </a-entity>
-
-    <a-box color="#111" position="-5 1.5 -8" scale="0.5 0.5 0.5" 
-           animation="property: position; to: -5 2.0 -8; dur: 2000; dir: alternate; loop: true"></a-box>
-    <a-box color="#111" position="8 1.0 5" scale="0.3 0.3 0.3" 
-           animation="property: position; to: 8 1.2 5; dur: 1500; dir: alternate; loop: true"></a-box>
 
     <a-light type="ambient" color="#ffffff" intensity="0.3"></a-light>
     <a-light type="point" color="#fffae6" position="0 2.5 0" intensity="0.8" distance="15" 
