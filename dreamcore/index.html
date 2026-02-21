@@ -161,7 +161,7 @@
     const mapWidth = mapData[0].length * UNIT;
     const mapDepth = mapData.length * UNIT;
 
-    // マップ生成 (画像なし・色のみ)
+    // マップ生成
     function generateMap() {
       const root = document.getElementById('map-root');
 
@@ -279,7 +279,7 @@
           hudVignette.style.background = `radial-gradient(circle, transparent 50%, rgba(0,0,0,0.8) 100%)`; 
         }
         
-        // 怪物のスピード (時間経過で速くなる)
+        // 怪物のスピード
         const speed = 0.15 + (60 - timeLeft) * 0.005; 
 
         // 経路の定期更新
@@ -294,7 +294,7 @@
           pathUpdateTimer = 30; 
         }
 
-        // 怪物の移動実行 (壁を避けて通路を進む)
+        // 怪物の移動実行
         if (currentPath.length > 0) {
           let targetNode = currentPath[0];
           let targetX = targetNode.x * UNIT;
@@ -319,8 +319,19 @@
       update();
     }
 
-    function gameOver() { window.isPlaying = false; document.getElementById('game-over').style.opacity = 1; setTimeout(() => location.href = '../liminal/index.html', 3000); }
-    function gameClear() { window.isPlaying = false; document.getElementById('game-clear').style.opacity = 1; setTimeout(() => location.href = '../special/index.html', 3000); }
+    // ★ ここが修正されたポイントです ★
+    function gameOver() { 
+      window.isPlaying = false; 
+      document.getElementById('game-over').style.opacity = 1; 
+      setTimeout(() => location.href = '../liminal/index.html', 3000); 
+    }
+    
+    function gameClear() { 
+      window.isPlaying = false; 
+      document.getElementById('game-clear').style.opacity = 1; 
+      // dreamcoreフォルダから見て、同じフォルダ内のspecial/index.htmlへ飛ぶように修正
+      setTimeout(() => location.href = 'special/index.html', 3000); 
+    }
     
     // 2D画面の目玉ギミック
     document.addEventListener('mousemove', (e) => { 
