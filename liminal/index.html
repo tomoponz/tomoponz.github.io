@@ -9,6 +9,61 @@
   
   <link rel="stylesheet" href="style.css">
 
+  <style>
+    /* ===============================
+       ビデオカメラ風UIのスタイル
+       =============================== */
+    #camcorder-ui {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 55;
+      color: white;
+      font-family: 'Courier New', Courier, monospace; /* 古いデジタルビデオ風のフォント */
+      text-shadow: 2px 2px 0px black; /* 影をつけて文字を見やすくする */
+    }
+    .cam-rec {
+      position: absolute;
+      top: 30px; left: 40px;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .cam-rec span {
+      color: red;
+      animation: blink 1s infinite;
+    }
+    .cam-battery {
+      position: absolute;
+      top: 30px; right: 40px;
+      font-size: 24px;
+      border: 2px solid white;
+      padding: 2px 8px;
+    }
+    .cam-timecode {
+      position: absolute;
+      bottom: 40px; left: 40px;
+      font-size: 28px;
+      letter-spacing: 2px;
+    }
+    .cam-date {
+      position: absolute;
+      bottom: 40px; right: 40px;
+      font-size: 28px;
+      letter-spacing: 2px;
+    }
+    .cam-center-cross {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      opacity: 0.5;
+    }
+    @keyframes blink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+  </style>
+
   <script>
     // 1. 足音再生
     AFRAME.registerComponent('footstep-sound', {
@@ -125,17 +180,22 @@
     <div class="scanlines"></div>
     <div class="vignette"></div>
 
-    <div class="instructions">WASDキーで移動 / 視点を合わせてクリック</div>
+    <div id="camcorder-ui">
+      <div class="cam-rec"><span>●</span> REC</div>
+      <div class="cam-battery">■■■</div>
+      <div class="cam-center-cross">[ &nbsp; &nbsp; &nbsp; ]</div>
+      <div class="cam-timecode" id="tc-display">00:00:00</div>
+      <div class="cam-date">1996.07.14</div>
+    </div>
 
-    <div class="level-doors">
-      <p style="margin: 0 0 10px 0; color: #8b0000; font-weight: bold; font-size: 14px;">🚪 別の階層への扉</p>
+    <div class="level-doors" style="top: 80px;"> <p style="margin: 0 0 10px 0; color: #8b0000; font-weight: bold; font-size: 14px;">🚪 別の階層への扉</p>
       <a href="../dreamcore/index.html" class="door-link">▶ Level 1: Dreamcore</a>
       <a href="../vaporwave/index.html" class="door-link">▶ Level 2: Vaporwave</a>
       <a href="../aero/index.html" class="door-link">▶ Level 3: Frutiger Aero</a>
     </div>
 
-    <a href="../index.html" class="exit-sign">EXIT ➔</a>
-    <img id="daisy-btn" src="../img/daisy%20bell.png" alt="Daisy Bell">
+    <a href="../index.html" class="exit-sign" style="bottom: 90px;">EXIT ➔</a>
+    <img id="daisy-btn" src="../img/daisy%20bell.png" alt="Daisy Bell" style="bottom: 80px;">
   </div>
 
   <audio id="audio-buzz" src="../assets/sfx/backrooms-buzzing-sound-effect.mp3" loop></audio>
@@ -161,6 +221,7 @@
 
     <a-gltf-model src="#car-model" class="collidable" position="3 0 -3" rotation="0 -45 0" scale="1.6 1.6 1.6"></a-gltf-model>
 
+
     <a-entity position="2.5 0 -2.5" jitter="amount: 0.04">
       <a-gltf-model src="#bacteria-model" scale="0.4 0.4 0.4"></a-gltf-model>
       <a-box class="clickable" visible="false" position="0 1 0" scale="0.8 2 0.8" 
@@ -171,11 +232,12 @@
               animation__rot="property: rotation; to: 0 360 0; dur: 5000; loop: true; easing: linear"
               animation__pos="property: position; to: 0 2.1 -4; dur: 2000; dir: alternate; loop: true; easing: easeInOutSine">
       
-      <a-gltf-model src="#sculpture-model" position="-0.5 -1.2 -0.8" scale="0.003 0.003 0.003"></a-gltf-model>
+      <a-gltf-model src="#sculpture-model" position="0 -1.5 0" scale="0.003 0.003 0.003"></a-gltf-model>
       
-      <a-box class="clickable" visible="false" position="0 -0.6 0" scale="1.5 1.5 1.5" 
+      <a-box class="clickable" visible="false" position="0 -0.7 0" scale="1.5 1.5 1.5" 
              clickable-link="url: ../vaporwave/index.html"></a-box>
     </a-entity>
+
 
     <a-entity position="-1 1.0 -12" shadow-watcher>
       <a-cylinder color="#050505" height="1.8" radius="0.3"></a-cylinder>
@@ -193,6 +255,16 @@
     window.audioUnlocked = false;
 
     document.addEventListener("DOMContentLoaded", () => {
+      // タイムコードのリアルタイム更新
+      const tcDisplay = document.getElementById("tc-display");
+      setInterval(() => {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        tcDisplay.innerText = `${h}:${m}:${s}`;
+      }, 1000);
+
       const buzz = document.getElementById("audio-buzz");
       const daisy = document.getElementById("audio-daisy");
       const footstep = document.getElementById("audio-footstep");
