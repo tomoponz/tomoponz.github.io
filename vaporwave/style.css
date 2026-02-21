@@ -1,10 +1,7 @@
-/* ★画面と背景を絶対に白にさせないためのベース設定★ */
 html, body {
   margin: 0; padding: 0;
   width: 100vw; height: 100vh;
-  /* レトロPCのティール色（青緑）を強制適用 */
   background-color: #008080 !important;
-  /* その上にVaporwaveのグラデーションを重ねる */
   background-image: linear-gradient(to bottom, #010a26 0%, #ff71ce 50%, #01cdfe 100%) !important;
   font-family: 'MS UI Gothic', "ＭＳ Ｐゴシック", sans-serif;
   color: #fff;
@@ -13,7 +10,6 @@ html, body {
   -webkit-user-select: none;
 }
 
-/* 太陽 */
 .sun {
   position: absolute; top: 10%; left: 50%; transform: translateX(-50%);
   width: 200px; height: 200px; border-radius: 50%;
@@ -24,50 +20,62 @@ html, body {
   z-index: 1;
 }
 
-/* 3Dチェッカーボードの床 */
+/* ★ 修正: PCで床が見切れないように、コンテナの高さと配置を調整 ★ */
 .grid-container {
-  position: absolute; bottom: 35px; left: 0; right: 0; /* タスクバーの分(35px)だけ上げる */
-  height: 40vh; perspective: 400px; overflow: hidden; z-index: 2;
+  position: absolute; 
+  bottom: 35px; /* タスクバーの高さ */
+  left: 0; 
+  right: 0; 
+  height: 50vh; /* PCでも十分に見えるように高さを確保 */
+  perspective: 400px; 
+  overflow: hidden; 
+  z-index: 2;
 }
 .grid {
-  position: absolute; top: 0; left: -50%; right: -50%; height: 200%;
+  position: absolute; 
+  top: 0; 
+  left: -100vw; /* 左右にはみ出させて画面幅カバー */
+  right: -100vw; 
+  height: 200%; /* 床を奥まで伸ばす */
   background-image: linear-gradient(#ff71ce 2px, transparent 2px), linear-gradient(90deg, #01cdfe 2px, transparent 2px);
-  background-size: 40px 40px; transform: rotateX(70deg); transform-origin: top center;
-  animation: gridMove 2s linear infinite; background-color: rgba(0, 0, 0, 0.85);
+  background-size: 40px 40px; 
+  transform: rotateX(75deg); /* 奥に寝かせる角度を調整 */
+  transform-origin: top center;
+  animation: gridMove 2s linear infinite; 
+  background-color: rgba(0, 0, 0, 0.85);
 }
 @keyframes gridMove {
-  0% { transform: rotateX(70deg) translateY(0); }
-  100% { transform: rotateX(70deg) translateY(40px); }
+  0% { transform: rotateX(75deg) translateY(0); }
+  100% { transform: rotateX(75deg) translateY(40px); }
 }
 
-/* ★追加：ネオンパームツリー★ */
 .neon-palm {
   position: absolute;
-  bottom: 35px; /* タスクバーの上に乗せる */
-  height: 65vh; /* 画面の65%の高さ */
-  max-width: 40vw; /* スマホで巨大化するのを防ぐ */
+  bottom: 35px;
+  height: 65vh;
+  max-width: 40vw;
   object-fit: contain;
   z-index: 3;
   pointer-events: none;
-  /* 画像自体が光っているように見せるエフェクト */
   filter: drop-shadow(0 0 15px #ff71ce) drop-shadow(0 0 5px #01cdfe);
 }
 .palm-left { left: 0; }
-.palm-right { right: 0; transform: scaleX(-1); } /* 右側は反転させて内側に向ける */
+.palm-right { right: 0; transform: scaleX(-1); }
 
-/* A-Frame 3Dレイヤー */
 .aframe-overlay {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   z-index: 4; pointer-events: none;
 }
 
-/* ★追加：デスクトップアイコン★ */
+/* デスクトップアイコン */
 .desktop-icons {
   position: absolute; top: 20px; left: 20px;
   display: flex; flex-direction: column; gap: 25px; z-index: 5;
 }
 .icon {
   display: flex; flex-direction: column; align-items: center; width: 75px; cursor: pointer;
+  /* アイコンがクリッカブルであることを明確にする */
+  pointer-events: auto;
 }
 .icon img {
   width: 32px; height: 32px; margin-bottom: 5px; image-rendering: pixelated;
@@ -79,17 +87,15 @@ html, body {
   background: #000080; border: 1px dotted #fff; text-shadow: none;
 }
 
-/* ★改修：Windows 95 ウィンドウ本体★ */
 .window {
   position: absolute;
-  background: #c0c0c0; /* 確実なレトログレー */
+  background: #c0c0c0;
   border-top: 2px solid #dfdfdf; border-left: 2px solid #dfdfdf;
   border-right: 2px solid #000; border-bottom: 2px solid #000;
   box-shadow: inset -1px -1px #808080, inset 1px 1px #fff, 4px 4px 0px rgba(0,0,0,0.5);
   z-index: 10; color: #000; box-sizing: border-box;
 }
 
-/* タイトルバー */
 .title-bar {
   background: linear-gradient(to right, #000080, #1084d0); color: white;
   padding: 3px 5px; margin: 2px 2px 0 2px;
@@ -98,7 +104,6 @@ html, body {
 }
 .title-bar:active { cursor: grabbing; }
 
-/* 閉じるボタン */
 .close-btn { 
   background: #c0c0c0; color: black; padding: 1px 5px; 
   border-top: 2px solid #dfdfdf; border-left: 2px solid #dfdfdf;
@@ -112,17 +117,15 @@ html, body {
   box-shadow: inset 1px 1px #808080, inset -1px -1px #fff;
 }
 
-/* ウィンドウボディ */
 .window-body { padding: 10px; background: #c0c0c0; }
 
-/* ★追加：パソコンのタブ表現★ */
 .tabs {
   display: flex; margin: 0; padding: 0 5px; position: relative; z-index: 1;
 }
 .tab {
   background: #c0c0c0;
   border-top: 2px solid #dfdfdf; border-left: 2px solid #dfdfdf;
-  border-right: 2px solid #000; border-bottom: 2px solid #c0c0c0; /* 下線を開ける */
+  border-right: 2px solid #000; border-bottom: 2px solid #c0c0c0;
   box-shadow: inset -1px 0 #808080, inset 1px 1px #fff;
   padding: 4px 12px; margin-right: 2px; cursor: pointer;
   font-family: 'MS UI Gothic', sans-serif; font-size: 13px; color: #000;
@@ -137,7 +140,6 @@ html, body {
   padding: 15px; background: #c0c0c0; position: relative; z-index: 2; margin-top: -2px; text-align: center;
 }
 
-/* ウィンドウ配置とサイズ */
 .main-window {
   top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 400px;
 }
@@ -145,7 +147,6 @@ html, body {
 .error-1 { top: 10%; left: 20%; }
 .error-2 { bottom: 15%; right: 5%; }
 
-/* ★追加：Windows95風タスクバー★ */
 .taskbar {
   position: fixed; bottom: 0; left: 0; right: 0; height: 35px;
   background: #c0c0c0; border-top: 2px solid #dfdfdf;
@@ -170,7 +171,6 @@ html, body {
   padding: 4px 10px; font-size: 12px; display: flex; align-items: center; gap: 10px; font-family: sans-serif;
 }
 
-/* 汎用ボタン・その他 */
 .btn {
   display: inline-block; padding: 4px 15px; margin-top: 5px;
   background: #c0c0c0; border-top: 2px solid #dfdfdf; border-left: 2px solid #dfdfdf;
@@ -190,11 +190,5 @@ html, body {
 .glitch { 
   font-size: 2em; color: #01cdfe; text-shadow: 2px 2px 0px #ff71ce; margin: 0 0 10px 0; font-family: "ＭＳ Ｐ明朝", serif; letter-spacing: 2px;
 }
-.marquee-container {
-  position: absolute; top: 5%; left: 0; width: 100%; overflow: hidden; z-index: 20; pointer-events: none;
-}
-.vapor-text { font-size: 20px; color: #05ffa1; text-shadow: 2px 2px #000; letter-spacing: 5px; }
-
-/* ノイズエフェクト */
 .vhs-glitch { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient(transparent, transparent 2px, rgba(0,0,0,0.1) 3px); pointer-events: none; z-index: 99; }
 .scanlines { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 4px 100%; pointer-events: none; z-index: 98; }
