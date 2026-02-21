@@ -9,26 +9,25 @@
   
   <script>
     // ==========================================
-    // ★ カスタム操作コントローラー (WASD移動 + 矢印視点) ★
+    // ★ カスタム操作コントローラー (FPS完全準拠) ★
     // ==========================================
     AFRAME.registerComponent('custom-controls', {
       schema: {
-        moveSpeed: {type: 'number', default: 0.15}, // 歩く速さ
-        lookSpeed: {type: 'number', default: 0.05}  // 首を振る速さ
+        moveSpeed: {type: 'number', default: 0.15}, // 歩行速度
+        lookSpeed: {type: 'number', default: 0.05}  // 視点移動速度
       },
       init: function () {
         this.keys = {};
-        this.yaw = 0;   // 左右の角度
-        this.pitch = 0; // 上下の角度
+        this.yaw = 0;   // 左右の角度 (Y軸回転)
+        this.pitch = 0; // 上下の角度 (X軸回転)
 
-        // キーボードの入力を記録
         window.addEventListener('keydown', (e) => { this.keys[e.code] = true; });
         window.addEventListener('keyup', (e) => { this.keys[e.code] = false; });
       },
       tick: function (time, timeDelta) {
-        if (!window.isPlaying) return; // ゲーム中のみ操作可能
+        if (!window.isPlaying) return;
 
-        const delta = Math.min(timeDelta / 16.6, 2); // フレームレートのブレを補正
+        const delta = Math.min(timeDelta / 16.6, 2);
 
         // --- 1. 視点移動 (矢印キー) ---
         if (this.keys['ArrowLeft']) this.yaw += this.data.lookSpeed * delta;
@@ -36,31 +35,50 @@
         if (this.keys['ArrowUp']) this.pitch += this.data.lookSpeed * delta;
         if (this.keys['ArrowDown']) this.pitch -= this.data.lookSpeed * delta;
 
-        // 上下を見すぎないように制限 (真上・真下でひっくり返るのを防ぐ)
+        // 上下を見すぎないように制限
         const limit = Math.PI / 2.2;
         this.pitch = Math.max(-limit, Math.min(limit, this.pitch));
 
-        // カメラに角度を適用
+        // カメラに角度を適用 (YXZの順序が重要)
         this.el.object3D.rotation.set(this.pitch, this.yaw, 0, 'YXZ');
 
         // --- 2. 移動 (WASDキー) ---
-        const moveVec = new THREE.Vector3(0, 0, 0);
-        if (this.keys['KeyW']) moveVec.z -= 1; // 前
-        if (this.keys['KeyS']) moveVec.z += 1; // 後ろ
-        if (this.keys['KeyA']) moveVec.x -= 1; // 左
-        if (this.keys['KeyD']) moveVec.x += 1; // 右
+        // ★ ここがFPS準拠の移動計算のキモ ★
+        let moveX = 0;
+        let moveZ = 0;
 
-        if (moveVec.lengthSq() > 0) {
-          moveVec.normalize(); // 斜め移動が速くならないように正規化
-          moveVec.multiplyScalar(this.data.moveSpeed * delta);
-          // 「自分が向いている方向(yaw)」に合わせて移動ベクトルを回転させる
-          moveVec.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.yaw);
-          this.el.object3D.position.add(moveVec);
+        // 入力方向の決定 (Z: 前後, X: 左右)
+        if (this.keys['KeyW']) moveZ -= 1; 
+        if (this.keys['KeyS']) moveZ += 1; 
+        if (this.keys['KeyA']) moveX -= 1; 
+        if (this.keys['KeyD']) moveX += 1; 
+
+        if (moveX !== 0 || moveZ !== 0) {
+          // 斜め移動時の速度補正 (ピタゴラスの定理)
+          const length = Math.sqrt(moveX * moveX + moveZ * moveZ);
+          moveX /= length;
+          moveZ /= length;
+
+          // 実際の移動ベクトルに速度を掛ける
+          moveX *= this.data.moveSpeed * delta;
+          moveZ *= this.data.moveSpeed * delta;
+
+          // ★ 現在向いている角度(yaw)を使って、前後左右を「ワールド座標」に変換 ★
+          const s = Math.sin(this.yaw);
+          const c = Math.cos(this.yaw);
+
+          // 行列の回転計算を適用して、自分が向いている方向へ進ませる
+          const finalX = moveX * c + moveZ * s;
+          const finalZ = -moveX * s + moveZ * c;
+
+          // 座標を更新
+          this.el.object3D.position.x += finalX;
+          this.el.object3D.position.z += finalZ;
         }
       }
     });
 
-    // --- 壁の当たり判定 ---
+    // --- 壁の当たり判定 (すり抜け防止) ---
     AFRAME.registerComponent('grid-collider', {
       init: function () {
         this.lastLocalPos = new THREE.Vector3().copy(this.el.object3D.position);
@@ -74,9 +92,9 @@
         
         if (gZ >= 0 && gZ < mapData.length && gX >= 0 && gX < mapData[0].length) {
           if (mapData[gZ][gX] === 1) {
-            this.el.object3D.position.copy(this.lastLocalPos); // 壁にめり込んだら戻す
+            this.el.object3D.position.copy(this.lastLocalPos); 
           } else {
-            this.lastLocalPos.copy(this.el.object3D.position); // 安全な位置を記録
+            this.lastLocalPos.copy(this.el.object3D.position); 
           }
         } else {
           this.el.object3D.position.copy(this.lastLocalPos);
@@ -133,7 +151,7 @@
   <div class="overlay-screen" id="game-clear" style="background: #fff; color: #000;"><h1>AWAKE.</h1></div>
 
   <script>
-    // グローバル変数でゲーム状態を管理
+    // ゲーム進行用フラグ
     window.isPlaying = false; 
     let timeLeft = 60;
 
@@ -229,6 +247,7 @@
       return []; 
     }
     
+    // ゲームスタート
     exitBtn.addEventListener('click', () => {
       document.getElementById('svg-filter').remove(); 
       document.getElementById('phase-2d').style.opacity = '0';
