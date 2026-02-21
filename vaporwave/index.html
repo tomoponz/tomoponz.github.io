@@ -39,15 +39,17 @@
   <div class="scanlines"></div>
 
   <div class="desktop-icons">
-    <div class="icon" ondblclick="document.getElementById('win-main').style.display='block'">
+    <div class="icon" ondblclick="location.href='../liminal/index.html'" onclick="if(window.innerWidth<=600) location.href='../liminal/index.html'">
       <img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-5.png" alt="My Computer">
       <span>マイ 仮想空間</span>
     </div>
-    <div class="icon">
+    
+    <div class="icon" ondblclick="location.href='../dreamcore/index.html'" onclick="if(window.innerWidth<=600) location.href='../dreamcore/index.html'">
       <img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-4.png" alt="Recycle Bin">
       <span>ごみ箱</span>
     </div>
-    <div class="icon" ondblclick="document.getElementById('win-err1').style.display='block'">
+    
+    <div class="icon" ondblclick="document.getElementById('win-err1').style.display='block'" onclick="if(window.innerWidth<=600) document.getElementById('win-err1').style.display='block'">
       <img src="https://win98icons.alexmeub.com/icons/png/msg_warning-0.png" alt="Warning">
       <span>警告.txt</span>
     </div>
@@ -97,14 +99,14 @@
 
   <div class="window error-window error-2" id="win-err2">
     <div class="title-bar"><span>System Error</span><button class="close-btn" onclick="closeWin('win-err2')">X</button></div>
-    <div class="content" style="padding: 10px;">
+    <div class="window-body" style="padding: 10px;">
       <img src="https://media.giphy.com/media/xT9IgzoVuwqr8UzO1i/giphy.gif" alt="anime gif" style="width: 100%; border: 2px inset #dfdfdf;">
       <p style="font-size: 12px; margin: 5px 0 0 0;">感情のロードに失敗しました</p>
     </div>
   </div>
 
   <div class="taskbar">
-    <button class="start-btn">
+    <button class="start-btn" onclick="location.href='../aero/index.html'">
       <img src="https://win98icons.alexmeub.com/icons/png/windows_slanted-1.png" alt="start">
       <b>ＳＴＡＲＴ</b>
     </button>
@@ -120,25 +122,20 @@
   <audio id="escalator-audio" src="../assets/sfx/461745__15fpanskabostlova_veronika__10_on-the-escalator-ambient.wav" loop></audio>
 
   <script>
-    // ★ 隠しギミック：ウィンドウを閉じた時の判定 ★
     function closeWin(winId) {
-      // 押されたウィンドウを非表示にする
       document.getElementById(winId).style.display = 'none';
       
-      // 3つのウィンドウがすべて非表示になったかチェック
       const m = document.getElementById('win-main').style.display;
       const e1 = document.getElementById('win-err1').style.display;
       const e2 = document.getElementById('win-err2').style.display;
       
       if (m === 'none' && e1 === 'none' && e2 === 'none') {
-        // すべて閉じられたら、少し間を置いてからエヴァ風ページへ遷移
         setTimeout(() => {
           window.location.href = 'eva.html';
         }, 1200);
       }
     }
 
-    // タブ切り替えプログラム
     function openTab(evt, tabId) {
       const win = evt.target.closest('.window-body');
       const contents = win.querySelectorAll('.tab-content');
@@ -149,7 +146,6 @@
       evt.currentTarget.classList.add('active');
     }
 
-    // 時計の更新
     setInterval(() => {
       const now = new Date();
       let h = now.getHours();
@@ -159,7 +155,6 @@
       document.getElementById('tc-display').innerText = `${h}:${m} ${ampm}`;
     }, 1000);
 
-    // 音楽再生
     const vaporAudio = document.getElementById('vapor-audio');
     const mallAudio = document.getElementById('mall-audio');
     const fountainAudio = document.getElementById('fountain-audio');
@@ -179,7 +174,6 @@
       }
     });
 
-    // ウィンドウのドラッグ処理
     const windows = document.querySelectorAll('.window');
     let isDragging = false; let currentWindow = null; let offsetX, offsetY;
 
