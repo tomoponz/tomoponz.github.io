@@ -428,7 +428,10 @@
         if(domain === "localhost" || domain === "127.0.0.1" || domain === ""){
           domain = "tomoponz.github.io";
         }
-        const url = `https://www.google.com/search?q=site:${domain}+${encodeURIComponent(query)}`;
+        // ★黒歴史/裏ページはサイト内検索に出さない（通常ワード検索時の漏れ防止）
+        const exclude = " -inurl:kuro -inurl:deep";
+        const q = query + exclude;
+        const url = `https://www.google.com/search?q=site:${domain}+${encodeURIComponent(q)}`;
         window.open(url, "_blank");
       }
     };
@@ -481,12 +484,14 @@
 
   function getAudio(src){
     if(!src) return null;
-    if(sfxCache.has(src)) return sfxCache.get(src);
+    // スペース等を含むパスでも確実に読めるように URL エンコード（%20 などは二重化しない）
+    const safeSrc = encodeURI(src);
+    if(sfxCache.has(safeSrc)) return sfxCache.get(safeSrc);
     try{
-      const a = new Audio(src);
+      const a = new Audio(safeSrc);
       a.preload = "auto";
       a.volume = 0.95;
-      sfxCache.set(src, a);
+      sfxCache.set(safeSrc, a);
       return a;
     }catch(e){
       return null;

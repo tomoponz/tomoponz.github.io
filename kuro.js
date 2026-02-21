@@ -16,7 +16,7 @@
             src="img/kuro/ginsan.JPG"
             alt="銀さんコスプレ写真"
             style="max-width:100%;height:auto;border-radius:14px;border:1px solid rgba(255,255,255,.12)"
-            onerror="this.onerror=null; this.src='img/kuro/ginsan.jpg';"
+            onerror="this.onerror=null; this.src='img/logo.png';"
             loading="lazy"
           >
           <figcaption class="note" style="margin-top:8px">

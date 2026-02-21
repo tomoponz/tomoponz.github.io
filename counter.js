@@ -21,13 +21,24 @@
   function showCount(count) {
     const footer = ensureFooter();
 
-    // 既に表示があれば更新、無ければ追加
+    // 既に表示があれば更新、無ければ追加（innerHTML でフッターを壊さない）
     let span = document.getElementById("access-count");
     if (!span) {
-      footer.innerHTML += ` | <span id="access-count">Access: ${count}</span>`;
-    } else {
-      span.textContent = `Access: ${count}`;
+      // 既に " | " を追加済みかチェック
+      const hasSep = footer.querySelector("#access-count-sep");
+      if (!hasSep) {
+        const sep = document.createElement("span");
+        sep.id = "access-count-sep";
+        sep.textContent = " | ";
+        footer.appendChild(sep);
+      }
+      span = document.createElement("span");
+      span.id = "access-count";
+      footer.appendChild(span);
     }
+    span.textContent = `Access: ${count}`;
+  }
+
   }
 
   function triggerKiribanEvent(num) {
