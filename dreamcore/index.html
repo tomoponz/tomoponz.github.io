@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>RUN.</title>
+  <title>WAKE UP.</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 </head>
@@ -23,9 +23,10 @@
       <div class="sky"></div>
       <div class="ground"></div>
       <div class="scenery-overlay">
-        <img src="../img/cloud.png" class="dream-obj cloud-1">
-        <img src="../img/cloud.png" class="dream-obj cloud-2">
-        <img src="../img/rainbow.png" class="dream-obj rainbow-mirror">
+        <img src="../img/cloud.jpg" class="dream-obj cloud-1">
+        <img src="../img/cloud.jpg" class="dream-obj cloud-2">
+        <img src="../img/rainbow.jpg" class="dream-obj rainbow-mirror">
+        <img src="../img/dolphin.jpg" class="dream-obj leaps">
       </div>
     </div>
 
@@ -33,52 +34,44 @@
     <div class="grain"></div>
     <div class="vhs-lines"></div>
 
-    <div class="main-title" id="text-primary">Wake up.</div>
+    <div class="main-title">Wake up.</div>
     <div id="button-hell"></div>
 
     <button class="the-exit" id="real-exit">I want to wake up.</button>
+
+    <div class="eye-watcher" style="top:10%; left:20%;"><div class="eye"><div class="pupil"></div></div></div>
+    <img src="../img/beach.jpg" class="loose-pic" style="bottom:20%; left:5%; width:150px; rotate:-10deg;">
+    <img src="../img/CD.jpg" class="loose-pic" style="top:30%; right:15%; width:80px; opacity:0.6;">
   </div>
 
 
   <div id="phase-3d" style="display: none;">
     <div class="hud-timer" id="timer-display">SURVIVE: 60s</div>
-    <div class="hud-vignette"></div>
-    <div class="grain" style="z-index: 10;"></div>
+    <div class="hud-vignette" id="hud-vignette"></div>
+    <div class="grain" style="z-index: 1000;"></div>
 
-    <a-scene embedded physics="debug: false">
+    <a-scene embedded fog="type: exponential; color: #000; density: 0.15;">
       <a-assets>
-        <img id="wall-tex" src="https://www.transparenttextures.com/patterns/black-scales.png">
-        <img id="floor-tex" src="https://www.transparenttextures.com/patterns/cubes.png">
+        <a-asset-item id="concrete-model" src="../assets/models/concrete_material.glb"></a-asset-item>
       </a-assets>
 
       <a-entity id="player" position="0 1.6 0">
-        <a-camera look-controls="pointerLockEnabled: true" wasd-controls="acceleration: 15"></a-camera>
+        <a-camera id="main-cam" look-controls="pointerLockEnabled: true" wasd-controls="acceleration: 25"></a-camera>
+        <a-light type="spot" color="#fff" intensity="1" distance="20" angle="40" position="0 0 0"></a-light>
       </a-entity>
 
-      <a-entity id="monster" position="0 1.5 -15">
-        <a-sphere radius="1.5" color="#000" material="roughness: 1;"></a-sphere>
-        <a-sphere radius="0.3" position="0 0 1.4" color="#f00" material="emissive: #f00; emissiveIntensity: 2;"></a-sphere>
-        <a-light type="point" color="#f00" intensity="2" distance="10"></a-light>
+      <a-entity id="monster" position="0 1.5 -25">
+        <a-sphere radius="1.3" color="#000" material="roughness: 1;">
+          <a-sphere radius="0.5" position="0 0 1.2" color="#fff">
+            <a-sphere radius="0.2" position="0 0 0.4" color="red" material="emissive:red; emissiveIntensity:10;"></a-sphere>
+          </a-sphere>
+        </a-sphere>
+        <a-light type="point" color="red" intensity="3" distance="20"></a-light>
       </a-entity>
 
-      <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#222" material="src: #floor-tex; repeat: 50 50;"></a-plane>
-      <a-plane position="0 4 0" rotation="90 0 0" width="100" height="100" color="#111"></a-plane>
+      <a-entity id="map-root"></a-entity>
 
-      <a-entity id="walls">
-        <a-box position="5 2 -5" width="2" height="4" depth="10" color="#444" material="src: #wall-tex; repeat: 2 10;"></a-box>
-        <a-box position="-5 2 -10" width="2" height="4" depth="10" color="#444" material="src: #wall-tex; repeat: 2 10;"></a-box>
-        <a-box position="0 2 -15" width="15" height="4" depth="2" color="#444" material="src: #wall-tex; repeat: 15 4;"></a-box>
-        <a-box position="10 2 5" width="2" height="4" depth="20" color="#444" material="src: #wall-tex; repeat: 2 20;"></a-box>
-        <a-box position="-10 2 0" width="2" height="4" depth="20" color="#444" material="src: #wall-tex; repeat: 2 20;"></a-box>
-        <a-box position="0 2 -25" width="50" height="4" depth="1" color="#111"></a-box>
-        <a-box position="0 2 25" width="50" height="4" depth="1" color="#111"></a-box>
-        <a-box position="-25 2 0" width="1" height="4" depth="50" color="#111"></a-box>
-        <a-box position="25 2 0" width="1" height="4" depth="50" color="#111"></a-box>
-      </a-entity>
-
-      <a-light type="ambient" color="#222"></a-light>
-      <a-light type="point" position="0 2 0" intensity="0.5" distance="15"></a-light>
-      <a-scene fog="type: exponential; color: #000; density: 0.1;"></a-scene>
+      <a-light type="ambient" color="#111"></a-light>
     </a-scene>
   </div>
 
@@ -97,9 +90,10 @@
     const exitBtn = document.getElementById('real-exit');
     const hell = document.getElementById('button-hell');
     
-    // 95%の確率で逃げる (5%の確率で押せる)
+    // 98%の確率で逃げる
     exitBtn.addEventListener('mouseenter', function() {
-      if (Math.random() < 0.95) {
+      if (Math.random() < 0.98) {
+        // ダミーを残す
         const dummy = document.createElement('button');
         dummy.className = 'the-exit dummy';
         dummy.innerText = "I want to wake up.";
@@ -107,6 +101,7 @@
         dummy.style.top = this.style.top || '80%';
         hell.appendChild(dummy);
 
+        // テレポート
         const x = Math.random() * (window.innerWidth - 200);
         const y = Math.random() * (window.innerHeight - 100);
         this.style.left = x + 'px';
@@ -117,105 +112,164 @@
     });
 
     // ==========================================
-    // ボタン押下時: 3Dフェーズへ移行
+    // 3Dフェーズ: マップの自動生成
     // ==========================================
+    // 0: 床のみ, 1: 床＋壁, 9: プレイヤー初期位置
+    const mapData = [
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
+      [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1],
+      [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+      [1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1],
+      [1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1],
+      [1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1],
+      [1, 9, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1],
+      [1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1],
+      [1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    ];
+    
+    const UNIT = 5; // 1マスのサイズ
+
+    function generateMap() {
+      const root = document.getElementById('map-root');
+      mapData.forEach((row, z) => {
+        row.forEach((cell, x) => {
+          const posX = x * UNIT; 
+          const posZ = z * UNIT;
+
+          // --- 1. 床の生成 (全マス) ---
+          const floor = document.createElement('a-gltf-model');
+          floor.setAttribute('src', '#concrete-model');
+          floor.setAttribute('position', `${posX} 0 ${posZ}`);
+          // モデルを平べったくして床にする
+          floor.setAttribute('scale', `${UNIT} 0.1 ${UNIT}`);
+          root.appendChild(floor);
+
+          // --- 2. 天井の生成 (全マス・閉塞感用) ---
+          const ceil = document.createElement('a-plane');
+          ceil.setAttribute('position', `${posX} 4 ${posZ}`);
+          ceil.setAttribute('rotation', '90 0 0');
+          ceil.setAttribute('width', UNIT); 
+          ceil.setAttribute('height', UNIT);
+          ceil.setAttribute('color', '#111'); // 天井は暗い色で蓋をする
+          root.appendChild(ceil);
+
+          // --- 3. 壁の生成 (cell === 1 の場合) ---
+          if (cell === 1) {
+            const wall = document.createElement('a-gltf-model');
+            wall.setAttribute('src', '#concrete-model');
+            // 壁っぽく見せるために上にずらし、縦長にスケールする
+            wall.setAttribute('position', `${posX} 2 ${posZ}`);
+            wall.setAttribute('scale', `${UNIT} 4 ${UNIT}`);
+            root.appendChild(wall);
+          }
+
+          // --- 4. プレイヤーの初期位置 ---
+          if (cell === 9) { 
+            document.getElementById('player').setAttribute('position', `${posX} 1.6 ${posZ}`); 
+          }
+        });
+      });
+    }
+
+    // ==========================================
+    // 3Dフェーズ: ゲーム進行ロジック
+    // ==========================================
+    let isPlaying = false; 
+    let timeLeft = 60;
+
+    // ボタンを押したら3Dの世界へ移行
     exitBtn.addEventListener('click', () => {
       document.getElementById('phase-2d').style.display = 'none';
-      const phase3d = document.getElementById('phase-3d');
-      phase3d.style.display = 'block';
-      
+      document.getElementById('phase-3d').style.display = 'block';
       // A-Frameの描画をリサイズに合わせて更新
       window.dispatchEvent(new Event('resize'));
       
-      startGame();
+      generateMap();
+      startSurvival();
     });
 
-    // ==========================================
-    // 3Dフェーズ: 追跡とタイマーのロジック
-    // ==========================================
-    let isPlaying = false;
-    let timeLeft = 60;
-    
-    function startGame() {
+    function startSurvival() {
       isPlaying = true;
       const player = document.getElementById('player');
       const monster = document.getElementById('monster');
-      const timerDisplay = document.getElementById('timer-display');
-      
-      // 1秒ごとのタイマー処理
+      const timerDisp = document.getElementById('timer-display');
+      const hudVignette = document.getElementById('hud-vignette');
+
+      // タイマー処理
       const timerInterval = setInterval(() => {
-        if(!isPlaying) {
-          clearInterval(timerInterval);
-          return;
-        }
+        if(!isPlaying) return clearInterval(timerInterval);
         timeLeft--;
-        timerDisplay.innerText = `SURVIVE: ${timeLeft}s`;
-        
-        // 60秒生き残ったらクリア
-        if (timeLeft <= 0) {
-          gameClear();
-        }
+        timerDisp.innerText = `SURVIVE: ${timeLeft}s`;
+        if(timeLeft <= 0) gameClear();
       }, 1000);
 
       // フレームごとの追跡処理
       function update() {
-        if (!isPlaying) return;
-
+        if(!isPlaying) return;
         const pPos = player.getAttribute('position');
         const mPos = monster.getAttribute('position');
-
-        // プレイヤーと怪物の距離を計算（XとZ座標のみで平面距離を測る）
-        const dx = pPos.x - mPos.x;
+        
+        // 平面(X, Z)での距離を計算
+        const dx = pPos.x - mPos.x; 
         const dz = pPos.z - mPos.z;
-        const distance = Math.sqrt(dx * dx + dz * dz);
-
-        // 距離が1.8未満になったら捕まったと判定
-        if (distance < 1.8) {
+        const dist = Math.sqrt(dx*dx + dz*dz);
+        
+        // 捕まった判定
+        if(dist < 1.8) {
           gameOver();
           return;
         }
 
-        // 怪物をプレイヤーの方向に少しずつ移動させる (速度調整)
-        // 時間が経つにつれて徐々に速くなる仕様
-        const speed = 0.05 + ((60 - timeLeft) * 0.0015);
-        
-        const newMx = mPos.x + (dx / distance) * speed;
-        const newMz = mPos.z + (dz / distance) * speed;
-        
-        monster.setAttribute('position', {x: newMx, y: mPos.y, z: newMz});
-
-        // 距離が近いほど画面の心音が激しくなる（HUDの赤みが増す）
-        const hud = document.querySelector('.hud-vignette');
-        if (distance < 10) {
-          const danger = 1 - (distance / 10); // 0〜1
-          hud.style.background = `radial-gradient(circle, transparent ${40 - danger*40}%, rgba(255,0,0,${danger}) 100%)`;
+        // 怪物が近づくと画面の赤み(鼓動感)が増す
+        if (dist < 12) {
+          const danger = 1 - (dist / 12);
+          hudVignette.style.background = `radial-gradient(circle, transparent ${40 - danger*40}%, rgba(255,0,0,${danger}) 100%)`;
         } else {
-          hud.style.background = `radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%)`;
+          hudVignette.style.background = `radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%)`;
         }
 
+        // 怪物の速度 (時間が経つほど加速する恐怖)
+        const speed = 0.05 + (60 - timeLeft) * 0.002;
+        
+        // プレイヤーの方向へ移動
+        monster.setAttribute('position', { 
+          x: mPos.x + (dx/dist) * speed, 
+          y: mPos.y, 
+          z: mPos.z + (dz/dist) * speed 
+        });
+        
         requestAnimationFrame(update);
       }
-      
-      requestAnimationFrame(update);
+      update();
     }
 
-    function gameOver() {
-      isPlaying = false;
-      document.getElementById('game-over').style.opacity = 1;
-      // 3秒後に元のAero OS（あるいはBackrooms）へ強制送還
-      setTimeout(() => {
-        window.location.href = '../liminal/index.html'; 
-      }, 3000);
+    function gameOver() { 
+      isPlaying = false; 
+      document.getElementById('game-over').style.opacity = 1; 
+      // 3秒後にBackroomsへ強制送還
+      setTimeout(() => location.href = '../liminal/index.html', 3000); 
+    }
+    
+    function gameClear() { 
+      isPlaying = false; 
+      document.getElementById('game-clear').style.opacity = 1; 
+      // 3秒後に特別なページへ移行（適宜パスを変更してください）
+      setTimeout(() => location.href = '../special/index.html', 3000); 
     }
 
-    function gameClear() {
-      isPlaying = false;
-      document.getElementById('game-clear').style.opacity = 1;
-      // ★ ここに特別なページへのリンクを指定してください
-      setTimeout(() => {
-        window.location.href = '../special/index.html'; 
-      }, 3000);
-    }
+    // 目玉の追従 (2D画面用)
+    document.addEventListener('mousemove', (e) => {
+      document.querySelectorAll('.eye').forEach(eye => {
+        const rect = eye.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        const rad = Math.atan2(e.clientX - x, e.clientY - y);
+        const rot = (rad * (180 / Math.PI) * -1) + 180;
+        eye.style.transform = `rotate(${rot}deg)`;
+      });
+    });
   </script>
 </body>
 </html>
