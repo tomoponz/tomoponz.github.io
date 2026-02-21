@@ -97,6 +97,9 @@ a:hover{opacity:.92}
   display:inline-flex;
   align-items:center;
   justify-content:center;
+  /* モバイルで文字が縦に潰れるのを防ぐ */
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 .chip:hover{background:rgba(255,255,255,.08); color:var(--tx); transform: translateY(-1px)}
 .chip.active{
@@ -106,18 +109,39 @@ a:hover{opacity:.92}
   background:rgba(124,203,255,.08);
 }
 
-/* モバイル：横スクロールで崩れない */
+/* モバイル：縦画面で崩れない（チップ縦潰れ/検索ボックス肥大を防止） */
 @media (max-width:780px){
-  .nav{flex-direction:column;align-items:flex-start}
+  .nav{flex-direction:column; align-items:stretch; padding: 12px 14px;}
+  .brand{min-width: unset;}
   .navlinks{
     width:100%;
-    flex-wrap:nowrap;
-    overflow-x:auto;
-    padding-bottom:6px;
-    -webkit-overflow-scrolling: touch;
+    flex-wrap:wrap;
+    overflow:visible;
+    justify-content:flex-start;
   }
-  .navlinks::-webkit-scrollbar{height:6px}
-  .navlinks::-webkit-scrollbar-thumb{background: rgba(255,255,255,.12); border-radius:999px}
+
+  /* 検索は1段下に回して見た目を整える */
+  .nav-search{
+    width:100%;
+    margin:10px 0 0;
+    border-radius:14px;
+    border:1px solid rgba(255,255,255,.14);
+    background: rgba(255,255,255,.06);
+    overflow:hidden;
+  }
+  .nav-search input{
+    width:100%;
+    font-size:16px;
+    padding:10px 12px;
+    color: rgba(234,241,255,.92);
+  }
+  .nav-search input::placeholder{color: rgba(234,241,255,.55);}
+  .nav-search button{
+    padding:10px 14px;
+    font-size:14px;
+    background: rgba(255,255,255,.12);
+    color: rgba(234,241,255,.92);
+  }
 }
 
 .hero{

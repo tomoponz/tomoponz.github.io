@@ -33,6 +33,30 @@
       link: ""
     },
 
+    {
+      id: "k-conf-001",
+      title: "機密データ：世界観ログ／プロット／ステータス（PDF）",
+      date: "2026-02-22",
+      tags: ["機密", "設定", "プロット", "PDF"],
+      level: 3,
+      summary: "世界観の根幹資料。公開してるけど、いちおう封印庫に保管。",
+      body: `
+        <p>
+          いわゆる“機密データ”。（※現実の個人情報・住所などは入れない）
+        </p>
+        <ul>
+          <li><a class="btn" href="kuro_data/plot16_7000.pdf" target="_blank" rel="noopener">16章×各50話：細目プロット（PDF）</a></li>
+          <li><a class="btn" href="kuro_data/scenario.pdf" target="_blank" rel="noopener">シナリオ（PDF）</a></li>
+          <li><a class="btn" href="kuro_data/status_sample.pdf" target="_blank" rel="noopener">ステータス表示（完全統合サンプル）（PDF）</a></li>
+          <li><a class="btn" href="kuro_data/lumen_log_excerpt.pdf" target="_blank" rel="noopener">ルーメン結論記録（抄）（PDF）</a></li>
+        </ul>
+        <p class="note">
+          追加したいPDFが増えたら <code>kuro_data/</code> に置いて、このエントリにリンクを足せばOK。
+        </p>
+      `,
+      link: ""
+    },
+
     // ---- 以下はサンプル（消してもOK） ----
     {
       id: "k2026-001",
