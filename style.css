@@ -224,7 +224,7 @@ code{
 .rows{display:grid;gap:10px}
 .row2{display:grid;grid-template-columns:70px 1fr;gap:10px;align-items:center}
 .bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);overflow:hidden}
-.bar > i{display:block;height:100%}
+.bar > i{display:block;height:100%;background:var(--sky)}
 .bar.hp > i{background:var(--good);width:85%}
 .bar.mp > i{background:var(--warn);width:18%}
 .bar.exp > i{background:var(--sky);width:42%}

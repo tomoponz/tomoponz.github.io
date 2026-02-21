@@ -367,6 +367,10 @@
     const file = (location.pathname.split("/").pop() || "index.html").toLowerCase();
     if(file === "index.html") return;
 
+    // data-search-mode="page" が付いている場合は「ページ内検索」専用なので、共通サイト内検索は付けない
+    const searchMode = String(searchInput.dataset.searchMode || searchBtn.dataset.searchMode || "").toLowerCase();
+    if(searchMode === "page") return;
+
     // サイト内の簡易辞書（増やしてOK）
     // ★黒歴史は入れない（ヒットさせない）
     const siteIndex = [

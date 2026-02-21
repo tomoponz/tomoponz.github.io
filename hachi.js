@@ -319,11 +319,15 @@
     const oldBtn = el("searchBtn");
     if(!oldInp || !oldBtn) return;
 
-    // app.js のサイト内検索リスナーを消すため clone して差し替え
-    const inp = oldInp.cloneNode(true);
-    const btn = oldBtn.cloneNode(true);
-    oldInp.parentNode.replaceChild(inp, oldInp);
-    oldBtn.parentNode.replaceChild(btn, oldBtn);
+    const pageMode = String(oldInp.dataset.searchMode || oldBtn.dataset.searchMode || "").toLowerCase() === "page";
+
+    // app.js のサイト内検索リスナーを消すため clone して差し替え（ただし page モードなら app.js 側が付かないので不要）
+    const inp = pageMode ? oldInp : oldInp.cloneNode(true);
+    const btn = pageMode ? oldBtn : oldBtn.cloneNode(true);
+    if(!pageMode){
+      oldInp.parentNode.replaceChild(inp, oldInp);
+      oldBtn.parentNode.replaceChild(btn, oldBtn);
+    }
 
     inp.placeholder = "本文内検索（このページだけ）";
     btn.textContent = "探す";

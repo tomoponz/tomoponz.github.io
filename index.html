@@ -28,47 +28,6 @@
     }
     .grid3{ display:grid; gap:14px; grid-template-columns: repeat(3, minmax(0,1fr)); }
     @media (max-width: 900px){ .grid3{ grid-template-columns: 1fr; } }
-
-    /* ▼ かがみの特殊少年更生施設風の検索ボックス ▼ */
-    .nav-search {
-      display: inline-flex;
-      align-items: center;
-      margin-left: 12px;
-      background: #ffffff;
-      border: 1px solid #dcdcdc;
-      border-radius: 2px;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-    .nav-search input {
-      padding: 8px 12px;
-      border: none;
-      background: transparent;
-      color: #333333;
-      font-size: 13px;
-      width: 220px;
-      outline: none;
-      font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif;
-    }
-    .nav-search input::placeholder {
-      color: #999999;
-    }
-    .nav-search button {
-      padding: 8px 16px;
-      border: none;
-      background: #32373c; /* かがみのサイトで使われているようなお堅いグレー */
-      color: #ffffff;
-      font-size: 13px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.2s;
-    }
-    .nav-search button:hover {
-      background: #111111;
-    }
-    @media (max-width: 768px){
-      .nav-search input { width: 140px; }
-    }
   </style>
 </head>
 
@@ -100,7 +59,7 @@
 
   <main class="wrap">
     
-    <button id="dangerBtn" data-sfx="osuna" data-sfx-volume="1" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: rgba(255,0,0,0.1); border: 2px solid #ff4444; color: #ff8888; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 0 15px rgba(255,0,0,0.3); letter-spacing: 0.1em; transition: 0.2s; opacity: 0.6;">
+    <button id="dangerBtn" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: rgba(255,0,0,0.1); border: 2px solid #ff4444; color: #ff8888; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 0 15px rgba(255,0,0,0.3); letter-spacing: 0.1em; transition: 0.2s; opacity: 0.6;">
       ⚠️ 押すな
     </button>
     <div id="voidClick" style="position: absolute; bottom: 0; left: 0; width: 20px; height: 20px; cursor: default; z-index: 9999;"></div>
@@ -363,11 +322,15 @@
     if (dangerBtn) {
       dangerBtn.addEventListener("click", () => {
         
-        // ★ クリックした瞬間に「nanikore」の音声を鳴らす ★
-        // ※ファイルの拡張子（.mp3 や .m4a）は、用意したファイルに合わせて変更してください
-        const nanikoreSound = new Audio("assets/sfx/nanikore.mp3");
-        nanikoreSound.volume = 1.0;
-        nanikoreSound.play().catch(() => {}); // ブラウザのブロック対策
+        // ★ クリックした瞬間に音声（osuna）を鳴らす ★
+        // app.js の playSfx が使えるならそれを優先
+        if (window.playSfx) {
+          window.playSfx("osuna", 1.0);
+        } else {
+          const nanikoreSound = new Audio("assets/sfx/nanikore.wav");
+          nanikoreSound.volume = 1.0;
+          nanikoreSound.play().catch(() => {});
+        }
 
         // 音が鳴るのと同時にダイアログが出ると音が消える場合があるため、0.1秒(100ミリ秒)だけ遅らせて警告を出す
         setTimeout(() => {
