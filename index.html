@@ -120,6 +120,7 @@
   <script src="app.js?v=20260220"></script>
   <script src="quotes_base.js?v=20260220"></script>
   <script src="user_quotes.js?v=20260220"></script>
+  <script src="counter.js?v=20260222"></script>
 
   <script>
     const BASE = Array.isArray(window.BASE_QUOTES) ? window.BASE_QUOTES : [];
@@ -184,49 +185,6 @@
       document.getElementById("copyQuoteBtn")?.addEventListener("click", copyCurrent);
     });
   </script>
-
-  <script>
-    const WORKSPACE = "tomoponzs-workspace";
-    const COUNTER = "first-counter";
-
-    async function updateCounter() {
-      try {
-        const res = await fetch(`https://api.counterapi.dev/v1/${WORKSPACE}/${COUNTER}/up`);
-        const data = await res.json();
-        const count = parseInt(data.count, 10);
-
-        const accessEl = document.getElementById("access-count");
-        if (accessEl) accessEl.textContent = `Access: ${count}`;
-
-        const luckyNumbers = [7, 10, 22, 50, 77, 100, 123, 777, 1000];
-        if (luckyNumbers.includes(count)) triggerKiribanEvent(count);
-
-      } catch (e) {
-        console.log("カウンターの取得に失敗しました。秘密基地はオフラインのようです。");
-        const accessEl = document.getElementById("access-count");
-        if (accessEl) accessEl.textContent = "Access: (offline)";
-      }
-    }
-
-    function triggerKiribanEvent(num) {
-      alert(
-        `【🎊 祝・キリ番達成 🎊】\n` +
-        `おめでとうございます！あなたは ${num} 番目の訪問者です！\n` +
-        `この画面をスクリーンショットして店主に報告してください。`
-      );
-      document.body.style.transition = "all 2s ease";
-      document.body.style.background = "linear-gradient(45deg, #ffd700, #ff8c00)";
-      document.body.style.color = "#000";
-      const bars = document.querySelectorAll(".bar i");
-      bars.forEach(bar => {
-        bar.style.background = "linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet)";
-        bar.style.width = "100%";
-      });
-    }
-
-    window.addEventListener("load", updateCounter);
-  </script>
-
   <script>
     // 1. F12 コンソールへの語りかけ（パスコードのヒント）
     console.log("%c[SYSTEM] 端末からのアクセスを検知。監視プロトコルを開始します。", "color: #888; font-size: 11px;");
@@ -384,7 +342,7 @@
 
           // 増殖するエラーの音（前回設定した Windowsエラー音 m4a）
           const playDistortedSound = () => {
-            const se = new Audio("assets/sfx/windows error sound.m4a"); 
+            const se = new Audio(encodeURI("assets/sfx/windows error sound.m4a")); 
             se.volume = 0.6;
             se.playbackRate = Math.max(0.2, 1.0 - (errorCount * 0.02) + (Math.random() * 0.2 - 0.1));
             se.play().catch(() => {});
