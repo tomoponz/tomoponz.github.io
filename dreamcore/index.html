@@ -6,56 +6,9 @@
   <title>WAKE UP.</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="../assets/js/fps-player.js"></script>
   
   <script>
-    // ==========================================
-    // ★ カスタム操作コントローラー (FPS完全準拠)
-    // ==========================================
-    AFRAME.registerComponent('custom-controls', {
-      schema: {
-        moveSpeed: {type: 'number', default: 0.15},
-        lookSpeed: {type: 'number', default: 0.05}
-      },
-      init: function () {
-        this.keys = {};
-        this.yaw = 0;   
-        this.pitch = 0; 
-
-        window.addEventListener('keydown', (e) => { this.keys[e.code] = true; });
-        window.addEventListener('keyup', (e) => { this.keys[e.code] = false; });
-      },
-      tick: function (time, timeDelta) {
-        if (!window.isPlaying) return;
-
-        const delta = Math.min(timeDelta / 16.6, 2);
-
-        // 視点移動 (矢印キー)
-        if (this.keys['ArrowLeft']) this.yaw += this.data.lookSpeed * delta;
-        if (this.keys['ArrowRight']) this.yaw -= this.data.lookSpeed * delta;
-        if (this.keys['ArrowUp']) this.pitch += this.data.lookSpeed * delta;
-        if (this.keys['ArrowDown']) this.pitch -= this.data.lookSpeed * delta;
-
-        const limit = Math.PI / 2.2;
-        this.pitch = Math.max(-limit, Math.min(limit, this.pitch));
-        this.el.object3D.rotation.set(this.pitch, this.yaw, 0, 'YXZ');
-
-        // 移動 (WASDキー)
-        let moveX = 0; let moveZ = 0;
-        if (this.keys['KeyW']) moveZ -= 1; 
-        if (this.keys['KeyS']) moveZ += 1; 
-        if (this.keys['KeyA']) moveX -= 1; 
-        if (this.keys['KeyD']) moveX += 1; 
-
-        if (moveX !== 0 || moveZ !== 0) {
-          let moveVec = new THREE.Vector3(moveX, 0, moveZ);
-          moveVec.normalize(); 
-          moveVec.multiplyScalar(this.data.moveSpeed * delta);
-          moveVec.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.yaw);
-          this.el.object3D.position.add(moveVec);
-        }
-      }
-    });
-
     // ==========================================
     // ★ 壁の当たり判定
     // ==========================================
@@ -65,20 +18,33 @@
       },
       tick: function () {
         if (!window.isPlaying) return;
+        const CELL = 10;
+        const R = 1.2; // プレイヤー当たり半径（ゆるめ）
         const worldPos = new THREE.Vector3();
         this.el.object3D.getWorldPosition(worldPos);
-        const gX = Math.round(worldPos.x / 10);
-        const gZ = Math.round(worldPos.z / 10);
-        
-        if (gZ >= 0 && gZ < mapData.length && gX >= 0 && gX < mapData[0].length) {
-          if (mapData[gZ][gX] === 1) {
-            this.el.object3D.position.copy(this.lastLocalPos); 
-          } else {
-            this.lastLocalPos.copy(this.el.object3D.position); 
-          }
-        } else {
-          this.el.object3D.position.copy(this.lastLocalPos);
+
+        // セル中心(0,10,20,...)の "境界" を基準にセル番号を決める
+        const toCell = (x, z) => ({
+          x: Math.floor((x + CELL/2) / CELL),
+          z: Math.floor((z + CELL/2) / CELL)
+        });
+
+        // 円(半径R)で4点チェックして壁にめり込みにくくする
+        const pts = [
+          toCell(worldPos.x + R, worldPos.z + R),
+          toCell(worldPos.x + R, worldPos.z - R),
+          toCell(worldPos.x - R, worldPos.z + R),
+          toCell(worldPos.x - R, worldPos.z - R),
+        ];
+
+        let hitWall = false;
+        for (const p of pts){
+          if (p.z < 0 || p.z >= mapData.length || p.x < 0 || p.x >= mapData[0].length) { hitWall = true; break; }
+          if (mapData[p.z][p.x] === 1) { hitWall = true; break; }
         }
+        
+        if (hitWall) this.el.object3D.position.copy(this.lastLocalPos);
+        else this.lastLocalPos.copy(this.el.object3D.position);
       }
     });
   </script>
@@ -86,6 +52,9 @@
   <style>
     #phase-3d { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; opacity: 0; pointer-events: none; z-index: -10; }
     #phase-3d.active { opacity: 1; pointer-events: auto; z-index: 1000; }
+
+    /* 3D開始前はFPS UIを隠す（演出を壊さない） */
+    #phase-3d:not(.active) ~ #fps-ui { display: none; }
   </style>
 </head>
 <body>
@@ -107,7 +76,7 @@
 
     <a-scene embedded fog="type: exponential; color: #000; density: 0.01;">
       
-      <a-entity id="main-cam" camera position="10 1.6 70" custom-controls grid-collider>
+      <a-entity id="main-cam" camera position="10 1.6 70" fps-player grid-collider>
         <a-cursor color="#fff" scale="0.5 0.5 0.5"></a-cursor>
         <a-light type="point" color="#fff" intensity="1.2" distance="60" position="0 0 0"></a-light>
       </a-entity>
@@ -133,6 +102,9 @@
     window.isPlaying = false; 
     let timeLeft = 60;
 
+    // このページのデフォルト（プレイヤーが敵より少し速い）
+    window.__fpsSettings__ = window.__fpsSettings__ || { moveSpeed: 0.22, lookSpeed: 0.05, volume: 1.0 };
+
     // ボタンギミック
     const exitBtn = document.getElementById('real-exit');
     const hell = document.getElementById('button-hell');
@@ -142,6 +114,23 @@
         this.style.left = (Math.random() * (window.innerWidth - 200)) + 'px'; this.style.top = (Math.random() * (window.innerHeight - 100)) + 'px'; this.style.position = 'fixed'; this.style.transform = 'none';
       }
     });
+
+    // モバイルでも同じ「逃げる」挙動にする（タップでもほぼ逃げる）
+    exitBtn.addEventListener('touchstart', function(e) {
+      if (Math.random() < 0.98) {
+        e.preventDefault();
+        const dummy = document.createElement('button');
+        dummy.className = 'the-exit dummy';
+        dummy.innerText = "I want to wake up.";
+        dummy.style.left = this.style.left || '50%';
+        dummy.style.top = this.style.top || '80%';
+        hell.appendChild(dummy);
+        this.style.left = (Math.random() * (window.innerWidth - 200)) + 'px';
+        this.style.top = (Math.random() * (window.innerHeight - 100)) + 'px';
+        this.style.position = 'fixed';
+        this.style.transform = 'none';
+      }
+    }, {passive:false});
 
     const mapData = [
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -265,11 +254,27 @@
         playerCam.object3D.getWorldPosition(pPos);
         const mPos = monster.object3D.position;
 
-        // 捕獲判定
-        const dx = pPos.x - mPos.x; 
+        // モンスターは常にプレイヤーを見る（水平回転のみ）
+        {
+          const yaw = Math.atan2((pPos.x - mPos.x), (pPos.z - mPos.z));
+          monster.object3D.rotation.set(0, yaw, 0);
+        }
+
+        // 捕獲判定（角待ちで抜けないように少し堅めに）
+        const dx = pPos.x - mPos.x;
         const dz = pPos.z - mPos.z;
         const dist = Math.sqrt(dx*dx + dz*dz);
-        if(dist < 3.0) { gameOver(); return; }
+
+        const toCell = (x, z) => ({
+          x: Math.floor((x + UNIT/2) / UNIT),
+          z: Math.floor((z + UNIT/2) / UNIT)
+        });
+        const pc = toCell(pPos.x, pPos.z);
+        const mc = toCell(mPos.x, mPos.z);
+        const manhattan = Math.abs(pc.x - mc.x) + Math.abs(pc.z - mc.z);
+
+        // 距離 or 同/隣セルなら捕獲（隅の当たり抜け対策）
+        if (dist < 3.4 || (manhattan <= 1 && dist < 6.0)) { gameOver(); return; }
         
         // 怪物が近づくと画面が赤くなる
         if (dist < 30) { 
@@ -279,19 +284,47 @@
           hudVignette.style.background = `radial-gradient(circle, transparent 50%, rgba(0,0,0,0.8) 100%)`; 
         }
         
-        // 怪物のスピード
-        const speed = 0.15 + (60 - timeLeft) * 0.005; 
+        // 怪物のスピード（上限つき：プレイヤーが少しだけ速い）
+        const speed = Math.min(0.205, 0.185 + (60 - timeLeft) * 0.0012);
 
         // 経路の定期更新
         pathUpdateTimer--;
         if (pathUpdateTimer <= 0) {
-          let mgX = Math.max(0, Math.min(mapData[0].length - 1, Math.round(mPos.x / UNIT)));
-          let mgZ = Math.max(0, Math.min(mapData.length - 1, Math.round(mPos.z / UNIT)));
-          let pgX = Math.max(0, Math.min(mapData[0].length - 1, Math.round(pPos.x / UNIT)));
-          let pgZ = Math.max(0, Math.min(mapData.length - 1, Math.round(pPos.z / UNIT)));
-          
-          currentPath = findPath(mgX, mgZ, pgX, pgZ);
-          pathUpdateTimer = 30; 
+          // セル番号の決め方を統一（隅で壁セルを goal にしない）
+          const clampCell = (gx, gz) => ({
+            x: Math.max(0, Math.min(mapData[0].length - 1, gx)),
+            z: Math.max(0, Math.min(mapData.length - 1, gz))
+          });
+
+          const nearestOpen = (gx, gz) => {
+            let c = clampCell(gx, gz);
+            if (mapData[c.z][c.x] === 0) return c;
+            // 周辺リング探索（最大5）
+            for (let r = 1; r <= 5; r++) {
+              for (let dx = -r; dx <= r; dx++) {
+                for (let dz = -r; dz <= r; dz++) {
+                  if (Math.abs(dx) + Math.abs(dz) !== r) continue;
+                  const nx = c.x + dx;
+                  const nz = c.z + dz;
+                  if (nz < 0 || nz >= mapData.length || nx < 0 || nx >= mapData[0].length) continue;
+                  if (mapData[nz][nx] === 0) return {x: nx, z: nz};
+                }
+              }
+            }
+            // 最後の保険：全探索で最初の通路
+            for (let z = 0; z < mapData.length; z++) {
+              for (let x = 0; x < mapData[0].length; x++) {
+                if (mapData[z][x] === 0) return {x, z};
+              }
+            }
+            return c;
+          };
+
+          const mg = clampCell(Math.floor((mPos.x + UNIT/2)/UNIT), Math.floor((mPos.z + UNIT/2)/UNIT));
+          const pg = nearestOpen(Math.floor((pPos.x + UNIT/2)/UNIT), Math.floor((pPos.z + UNIT/2)/UNIT));
+
+          currentPath = findPath(mg.x, mg.z, pg.x, pg.z);
+          pathUpdateTimer = 18;
         }
 
         // 怪物の移動実行
