@@ -50,42 +50,49 @@
       50% { opacity: 0.3; }
     }
 
-    /* 背景の月（アップロード画像を使用）と水面 */
+    /* ★修正：月を「上部が見切れる」ほど巨大化 ★ */
     .moon {
       position: absolute;
-      top: 15%;
+      top: -15vh; /* 画面の上にはみ出させる */
       left: 50%;
       transform: translateX(-50%);
-      width: 150px;
-      height: 150px;
+      width: 80vw; /* 画面幅の80%の特大サイズ */
+      height: 80vw;
+      max-width: 900px; /* 大きくなりすぎるのを防ぐ上限 */
+      max-height: 900px;
       background-image: url('../img/moon.png');
       background-size: contain;
       background-position: center;
       background-repeat: no-repeat;
-      /* 月の周囲がぼんやり光るエフェクト */
-      filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.4));
+      filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.3));
       opacity: 0;
       transition: opacity 3s ease 1s;
+      z-index: 1; /* 水面の奥に配置 */
     }
+
+    /* 水面 */
     .water {
       position: absolute;
       bottom: 0;
       width: 100%;
-      height: 30vh;
+      height: 35vh;
       background: linear-gradient(0deg, #021a3b, #030508);
       border-top: 1px solid rgba(255,255,255,0.1);
       opacity: 0;
       transition: opacity 3s ease 1s;
+      z-index: 2; /* 巨大化した月の手前に被せる */
     }
 
     /* 中央のテキスト */
     .eva-text {
       position: absolute;
-      top: 40%;
-      font-size: 2rem;
+      top: 45%;
+      font-size: 2.5rem;
       letter-spacing: 15px;
       opacity: 0;
       transition: opacity 4s ease 2s;
+      z-index: 3;
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
     }
 
     /* =========================================
@@ -149,14 +156,15 @@
       bottom: 30px;
       left: 30px;
       font-size: 1.2rem;
-      color: #555;
-      border: 1px solid #555;
+      color: #777;
+      border: 1px solid #777;
       padding: 10px 20px;
       background: transparent;
       font-family: "ＭＳ Ｐ明朝", "MS PMincho", serif;
       text-decoration: none;
       opacity: 0;
       transition: all 1s ease 5s;
+      z-index: 100;
     }
     .return-btn:hover {
       background: #fff;
@@ -167,7 +175,8 @@
     /* スマホ向け調整 */
     @media (max-width: 600px) {
       .title-card { font-size: 4rem; }
-      .eva-text { font-size: 1.2rem; top: 35%; }
+      .eva-text { font-size: 1.5rem; top: 40%; }
+      .moon { width: 120vw; height: 120vw; top: -5vh; }
       .crt-tv {
         bottom: 100px; right: 50%; transform: translateX(50%) translateY(20px);
         width: 260px; height: 195px;
@@ -208,9 +217,9 @@
       startScreen.style.opacity = '0';
       setTimeout(() => { startScreen.style.display = 'none'; }, 2000);
       
-      // 指定いただいた新しいYouTube動画IDに変更
       const ytId = "w2xi6Qjv8mw";
-      const iframeHtml = `<iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&controls=0&disablekb=1&modestbranding=1&loop=1&playlist=${ytId}&fs=0&playsinline=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+      // youtube-nocookie.com に変更し、トラッキングや広告を多少マイルドに（※Braveで開けば完全に広告0になります）
+      const iframeHtml = `<iframe src="https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&controls=0&disablekb=1&modestbranding=1&loop=1&playlist=${ytId}&fs=0&playsinline=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
       document.getElementById('yt-placeholder').innerHTML = iframeHtml;
       
       document.getElementById('moon').style.opacity = '1';
