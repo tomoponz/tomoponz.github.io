@@ -8,12 +8,65 @@
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   
   <script>
-    // --- プレイヤーの壁の当たり判定 ---
+    // ==========================================
+    // ★ カスタム操作コントローラー (WASD移動 + 矢印視点) ★
+    // ==========================================
+    AFRAME.registerComponent('custom-controls', {
+      schema: {
+        moveSpeed: {type: 'number', default: 0.15}, // 歩く速さ
+        lookSpeed: {type: 'number', default: 0.05}  // 首を振る速さ
+      },
+      init: function () {
+        this.keys = {};
+        this.yaw = 0;   // 左右の角度
+        this.pitch = 0; // 上下の角度
+
+        // キーボードの入力を記録
+        window.addEventListener('keydown', (e) => { this.keys[e.code] = true; });
+        window.addEventListener('keyup', (e) => { this.keys[e.code] = false; });
+      },
+      tick: function (time, timeDelta) {
+        if (!window.isPlaying) return; // ゲーム中のみ操作可能
+
+        const delta = Math.min(timeDelta / 16.6, 2); // フレームレートのブレを補正
+
+        // --- 1. 視点移動 (矢印キー) ---
+        if (this.keys['ArrowLeft']) this.yaw += this.data.lookSpeed * delta;
+        if (this.keys['ArrowRight']) this.yaw -= this.data.lookSpeed * delta;
+        if (this.keys['ArrowUp']) this.pitch += this.data.lookSpeed * delta;
+        if (this.keys['ArrowDown']) this.pitch -= this.data.lookSpeed * delta;
+
+        // 上下を見すぎないように制限 (真上・真下でひっくり返るのを防ぐ)
+        const limit = Math.PI / 2.2;
+        this.pitch = Math.max(-limit, Math.min(limit, this.pitch));
+
+        // カメラに角度を適用
+        this.el.object3D.rotation.set(this.pitch, this.yaw, 0, 'YXZ');
+
+        // --- 2. 移動 (WASDキー) ---
+        const moveVec = new THREE.Vector3(0, 0, 0);
+        if (this.keys['KeyW']) moveVec.z -= 1; // 前
+        if (this.keys['KeyS']) moveVec.z += 1; // 後ろ
+        if (this.keys['KeyA']) moveVec.x -= 1; // 左
+        if (this.keys['KeyD']) moveVec.x += 1; // 右
+
+        if (moveVec.lengthSq() > 0) {
+          moveVec.normalize(); // 斜め移動が速くならないように正規化
+          moveVec.multiplyScalar(this.data.moveSpeed * delta);
+          // 「自分が向いている方向(yaw)」に合わせて移動ベクトルを回転させる
+          moveVec.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.yaw);
+          this.el.object3D.position.add(moveVec);
+        }
+      }
+    });
+
+    // --- 壁の当たり判定 ---
     AFRAME.registerComponent('grid-collider', {
       init: function () {
         this.lastLocalPos = new THREE.Vector3().copy(this.el.object3D.position);
       },
       tick: function () {
+        if (!window.isPlaying) return;
         const worldPos = new THREE.Vector3();
         this.el.object3D.getWorldPosition(worldPos);
         const gX = Math.round(worldPos.x / 10);
@@ -21,9 +74,9 @@
         
         if (gZ >= 0 && gZ < mapData.length && gX >= 0 && gX < mapData[0].length) {
           if (mapData[gZ][gX] === 1) {
-            this.el.object3D.position.copy(this.lastLocalPos); 
+            this.el.object3D.position.copy(this.lastLocalPos); // 壁にめり込んだら戻す
           } else {
-            this.lastLocalPos.copy(this.el.object3D.position); 
+            this.lastLocalPos.copy(this.el.object3D.position); // 安全な位置を記録
           }
         } else {
           this.el.object3D.position.copy(this.lastLocalPos);
@@ -40,15 +93,10 @@
 <body>
 
   <div id="phase-2d">
-    <svg id="svg-filter" style="width:0; height:0; position:absolute;">
-      <filter id="horror-warp"><feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" seed="1"><animate attributeName="baseFrequency" values="0.01;0.015;0.01" dur="5s" repeatCount="indefinite" /></feTurbulence><feDisplacementMap in="SourceGraphic" scale="40" /></filter>
-    </svg>
-    <div class="world-container"><div class="sky"></div><div class="ground"></div>
-      <div class="scenery-overlay"><img src="../img/cloud.jpg" class="dream-obj cloud-1"><img src="../img/cloud.jpg" class="dream-obj cloud-2"><img src="../img/rainbow.jpg" class="dream-obj rainbow-mirror"><img src="../img/dolphin.jpg" class="dream-obj leaps"></div>
-    </div>
+    <svg id="svg-filter" style="width:0; height:0; position:absolute;"><filter id="horror-warp"><feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" seed="1"><animate attributeName="baseFrequency" values="0.01;0.015;0.01" dur="5s" repeatCount="indefinite" /></feTurbulence><feDisplacementMap in="SourceGraphic" scale="40" /></filter></svg>
+    <div class="world-container"><div class="sky"></div><div class="ground"></div><div class="scenery-overlay"><img src="../img/cloud.jpg" class="dream-obj cloud-1"><img src="../img/cloud.jpg" class="dream-obj cloud-2"><img src="../img/rainbow.jpg" class="dream-obj rainbow-mirror"><img src="../img/dolphin.jpg" class="dream-obj leaps"></div></div>
     <div class="vignette"></div><div class="grain"></div><div class="vhs-lines"></div>
-    <div class="main-title">Wake up.</div>
-    <div id="button-hell"></div>
+    <div class="main-title">Wake up.</div><div id="button-hell"></div>
     <button class="the-exit" id="real-exit">I want to wake up.</button>
     <div class="eye-watcher" style="top:10%; left:20%;"><div class="eye"><div class="pupil"></div></div></div>
     <img src="../img/beach.jpg" class="loose-pic" style="bottom:20%; left:5%; width:150px; rotate:-10deg;">
@@ -63,9 +111,7 @@
     <a-scene embedded fog="type: exponential; color: #000; density: 0.01;">
       
       <a-entity id="player" position="10 1.6 70">
-        <a-camera id="main-cam" look-controls="pointerLockEnabled: true" wasd-controls="acceleration: 60" grid-collider>
-          <a-cursor color="#fff" scale="0.5 0.5 0.5"></a-cursor>
-        </a-camera>
+        <a-camera id="main-cam" custom-controls grid-collider></a-camera>
         <a-light type="point" color="#fff" intensity="1.2" distance="60" position="0 2 0"></a-light>
       </a-entity>
 
@@ -87,6 +133,10 @@
   <div class="overlay-screen" id="game-clear" style="background: #fff; color: #000;"><h1>AWAKE.</h1></div>
 
   <script>
+    // グローバル変数でゲーム状態を管理
+    window.isPlaying = false; 
+    let timeLeft = 60;
+
     const exitBtn = document.getElementById('real-exit');
     const hell = document.getElementById('button-hell');
     exitBtn.addEventListener('mouseenter', function() {
@@ -152,41 +202,32 @@
 
     generateMap(); 
 
-    // ★ 敵のための経路探索アルゴリズム (幅優先探索: BFS) ★
+    // 経路探索アルゴリズム (BFS)
     function findPath(startX, startZ, goalX, goalZ) {
       let queue = [{x: startX, z: startZ, path: []}];
       let visited = Array(mapData.length).fill(0).map(() => Array(mapData[0].length).fill(false));
       
-      // スタート位置がマップ外の場合はエラー回避
       if(startZ < 0 || startZ >= mapData.length || startX < 0 || startX >= mapData[0].length) return [];
       visited[startZ][startX] = true;
 
-      const dirs = [[0, -1], [0, 1], [-1, 0], [1, 0]]; // 上, 下, 左, 右
+      const dirs = [[0, -1], [0, 1], [-1, 0], [1, 0]]; 
 
       while(queue.length > 0) {
         let curr = queue.shift();
-        
-        // ゴールに到達したら経路を返す
-        if(curr.x === goalX && curr.z === goalZ) {
-          return curr.path;
-        }
+        if(curr.x === goalX && curr.z === goalZ) { return curr.path; }
 
         for(let d of dirs) {
-          let nx = curr.x + d[0];
-          let nz = curr.z + d[1];
-
+          let nx = curr.x + d[0]; let nz = curr.z + d[1];
           if(nz >= 0 && nz < mapData.length && nx >= 0 && nx < mapData[0].length) {
-            if(mapData[nz][nx] === 0 && !visited[nz][nx]) { // 床(0)なら進める
+            if(mapData[nz][nx] === 0 && !visited[nz][nx]) { 
               visited[nz][nx] = true;
               queue.push({x: nx, z: nz, path: curr.path.concat([{x: nx, z: nz}])});
             }
           }
         }
       }
-      return []; // 道が見つからなかった場合
+      return []; 
     }
-
-    let isPlaying = false; let timeLeft = 60;
     
     exitBtn.addEventListener('click', () => {
       document.getElementById('svg-filter').remove(); 
@@ -199,24 +240,24 @@
     });
 
     function startSurvival() {
-      isPlaying = true;
+      window.isPlaying = true;
       const playerCam = document.getElementById('main-cam');
       const monster = document.getElementById('monster');
       const timerDisp = document.getElementById('timer-display');
       const hudVignette = document.getElementById('hud-vignette');
       
       let currentPath = [];
-      let pathUpdateTimer = 0; // 経路の再計算タイマー
+      let pathUpdateTimer = 0; 
 
       const timerInterval = setInterval(() => {
-        if(!isPlaying) return clearInterval(timerInterval);
+        if(!window.isPlaying) return clearInterval(timerInterval);
         timeLeft--;
         timerDisp.innerText = `SURVIVE: ${timeLeft}s`;
         if(timeLeft <= 0) gameClear();
       }, 1000);
 
       function update() {
-        if(!isPlaying) return;
+        if(!window.isPlaying) return;
         
         const pPos = new THREE.Vector3();
         playerCam.object3D.getWorldPosition(pPos);
@@ -228,7 +269,7 @@
         const dist = Math.sqrt(dx*dx + dz*dz);
         if(dist < 3.0) { gameOver(); return; }
         
-        // 近接エフェクト
+        // 接近時の画面の赤み
         if (dist < 30) { 
           const danger = 1 - (dist / 30); 
           hudVignette.style.background = `radial-gradient(circle, transparent ${50 - danger*50}%, rgba(255,0,0,${danger}) 100%)`; 
@@ -236,9 +277,9 @@
           hudVignette.style.background = `radial-gradient(circle, transparent 50%, rgba(0,0,0,0.8) 100%)`; 
         }
         
-        const speed = 0.15 + (60 - timeLeft) * 0.005; // 速度も少し上げました
+        const speed = 0.15 + (60 - timeLeft) * 0.005; 
 
-        // ★ 経路の更新 (0.5秒に1回、プレイヤーの最新位置に向けてルートを再計算) ★
+        // 経路の更新
         pathUpdateTimer--;
         if (pathUpdateTimer <= 0) {
           let mgX = Math.max(0, Math.min(mapData[0].length - 1, Math.round(mPos.x / UNIT)));
@@ -250,7 +291,7 @@
           pathUpdateTimer = 30; 
         }
 
-        // ★ 計算したルートに沿って移動する ★
+        // 怪物の移動
         if (currentPath.length > 0) {
           let targetNode = currentPath[0];
           let targetX = targetNode.x * UNIT;
@@ -261,12 +302,10 @@
           let tDist = Math.sqrt(tdx*tdx + tdz*tdz);
 
           if (tDist < speed) {
-            // 次のマスに到達したら、そのマスをパスから消す
             mPos.x = targetX;
             mPos.z = targetZ;
             currentPath.shift();
           } else {
-            // 次のマスへ向かって進む（壁に沿って動くようになる）
             mPos.x += (tdx/tDist) * speed;
             mPos.z += (tdz/tDist) * speed;
           }
@@ -277,8 +316,8 @@
       update();
     }
 
-    function gameOver() { isPlaying = false; document.getElementById('game-over').style.opacity = 1; setTimeout(() => location.href = '../liminal/index.html', 3000); }
-    function gameClear() { isPlaying = false; document.getElementById('game-clear').style.opacity = 1; setTimeout(() => location.href = '../special/index.html', 3000); }
+    function gameOver() { window.isPlaying = false; document.getElementById('game-over').style.opacity = 1; setTimeout(() => location.href = '../liminal/index.html', 3000); }
+    function gameClear() { window.isPlaying = false; document.getElementById('game-clear').style.opacity = 1; setTimeout(() => location.href = '../special/index.html', 3000); }
     
     document.addEventListener('mousemove', (e) => { 
       document.querySelectorAll('.eye').forEach(eye => { 
