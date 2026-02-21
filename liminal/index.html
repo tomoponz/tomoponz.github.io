@@ -161,21 +161,21 @@
 
     <a-gltf-model src="#car-model" class="collidable" position="3 0 -3" rotation="0 -45 0" scale="1.6 1.6 1.6"></a-gltf-model>
 
-
     <a-entity position="2.5 0 -2.5" jitter="amount: 0.04">
       <a-gltf-model src="#bacteria-model" scale="0.4 0.4 0.4"></a-gltf-model>
       <a-box class="clickable" visible="false" position="0 1 0" scale="0.8 2 0.8" 
              clickable-link="url: https://backrooms.fandom.com/wiki/Backrooms_Wiki"></a-box>
     </a-entity>
 
-    <a-entity position="0 0.5 -4"
+    <a-entity position="0 1.8 -4"
               animation__rot="property: rotation; to: 0 360 0; dur: 5000; loop: true; easing: linear"
-              animation__pos="property: position; to: 0 0.8 -4; dur: 2000; dir: alternate; loop: true; easing: easeInOutSine">
-      <a-gltf-model src="#sculpture-model" position="-0.5 0 -0.8" scale="0.003 0.003 0.003"></a-gltf-model>
-      <a-box class="clickable" visible="false" position="0 0.5 0" scale="1.5 1.5 1.5" 
+              animation__pos="property: position; to: 0 2.1 -4; dur: 2000; dir: alternate; loop: true; easing: easeInOutSine">
+      
+      <a-gltf-model src="#sculpture-model" position="-0.5 -1.2 -0.8" scale="0.003 0.003 0.003"></a-gltf-model>
+      
+      <a-box class="clickable" visible="false" position="0 -0.6 0" scale="1.5 1.5 1.5" 
              clickable-link="url: ../vaporwave/index.html"></a-box>
     </a-entity>
-
 
     <a-entity position="-1 1.0 -12" shadow-watcher>
       <a-cylinder color="#050505" height="1.8" radius="0.3"></a-cylinder>
