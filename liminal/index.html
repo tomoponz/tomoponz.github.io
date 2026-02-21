@@ -2,10 +2,11 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Level 0 - The Backrooms</title>
   
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
+  <script src="../assets/js/fps-player.js"></script>
   
   <link rel="stylesheet" href="style.css">
 
@@ -59,12 +60,36 @@
         this.directions = [ new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1) ];
         this.lastPos = new THREE.Vector3();
         this.el.object3D.getWorldPosition(this.lastPos);
+
+        // ★最適化：毎tickで全mesh探索しない（model-loaded時にキャッシュ）
+        this.meshes = [];
+        this.refreshMeshes = () => {
+          const wallEls = this.el.sceneEl.querySelectorAll('.collidable');
+          const meshes = [];
+          wallEls.forEach(wall => {
+            if (!wall.object3D) return;
+            wall.object3D.traverse(node => { if (node && node.isMesh) meshes.push(node); });
+          });
+          this.meshes = meshes;
+        };
+
+        // 既存 & これから読み込まれるモデルの両方に対応
+        const hook = () => {
+          const wallEls = this.el.sceneEl.querySelectorAll('.collidable');
+          wallEls.forEach(wall => {
+            wall.addEventListener('model-loaded', this.refreshMeshes);
+          });
+        };
+        // scene ready後にhook
+        if (this.el.sceneEl.hasLoaded) hook();
+        else this.el.sceneEl.addEventListener('loaded', hook);
+
+        setTimeout(this.refreshMeshes, 800);
+        setTimeout(this.refreshMeshes, 2500);
       },
       tick: function () {
         var el = this.el; var pos = el.object3D.position;
-        var wallEls = el.sceneEl.querySelectorAll('.collidable');
-        var meshes = [];
-        wallEls.forEach(function (wall) { if (wall.object3D) { wall.object3D.traverse(function (node) { if (node.isMesh) meshes.push(node); }); } });
+        var meshes = this.meshes || [];
         if (meshes.length === 0) { this.lastPos.copy(pos); return; }
         var collision = false;
         for (var i = 0; i < this.directions.length; i++) {
@@ -147,8 +172,8 @@
       <a-asset-item id="sculpture-model" src="../assets/models/sculpture_bust_of_roza_loewenfeld.glb"></a-asset-item>
     </a-assets>
 
-    <a-entity id="rig" position="0 1.0 0" movement-controls="speed: 0.18" wall-collider>
-      <a-entity camera position="0 0 0" look-controls="pointerLockEnabled: false" footstep-sound>
+    <a-entity id="rig" position="0 1.0 0" fps-player wall-collider>
+      <a-entity camera position="0 0 0" footstep-sound>
         <a-cursor color="#ff0000" scale="0.6 0.6 0.6" raycaster="objects: .clickable"></a-cursor>
       </a-entity>
     </a-entity>
@@ -187,6 +212,9 @@
 
   <script>
     window.audioUnlocked = false;
+    // このページのデフォルト（dreamcoreと操作を揃える）
+    window.__fpsSettings__ = window.__fpsSettings__ || { moveSpeed: 0.20, lookSpeed: 0.05, volume: 0.8 };
+
     document.addEventListener("DOMContentLoaded", () => {
       const tcDisplay = document.getElementById("tc-display");
       setInterval(() => {
@@ -201,12 +229,18 @@
       const footstep = document.getElementById("audio-footstep");
       const daisyBtn = document.getElementById("daisy-btn");
       buzz.volume = 0.3; daisy.volume = 0.8; footstep.volume = 0.6; 
+
+      // ★ master volume スライダーで相対関係を保てるように basevol を保存
+      [buzz, daisy, footstep].forEach(a => { if (a && !a.dataset.basevol) a.dataset.basevol = String(a.volume); });
+
       const startAmbiance = () => {
         if (window.audioUnlocked) return; window.audioUnlocked = true;
         buzz.play().catch(console.error); daisy.play().catch(console.error);
       };
-      document.getElementById("ui-overlay").addEventListener("click", startAmbiance, { once: true });
-      document.getElementById("ui-overlay").addEventListener("touchstart", startAmbiance, { once: true });
+
+      // ★ ui-overlay は pointer-events:none なので、document で拾う
+      document.addEventListener("pointerdown", startAmbiance, { once: true, capture: true });
+      document.addEventListener("touchstart", startAmbiance, { once: true, capture: true, passive: true });
       daisyBtn.addEventListener("click", (e) => {
         e.stopPropagation(); daisy.currentTime = 0; daisy.play();
         // CSSでホバー時の濃さを1.0にするため、フィルターは削除します
