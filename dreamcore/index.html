@@ -8,9 +8,7 @@
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   
   <script>
-    // ==========================================
-    // ★ 壁の当たり判定（すり抜け防止）スクリプト
-    // ==========================================
+    // 当たり判定スクリプト
     AFRAME.registerComponent('grid-collider', {
       init: function () {
         this.lastLocalPos = new THREE.Vector3().copy(this.el.object3D.position);
@@ -24,19 +22,27 @@
         
         if (gZ >= 0 && gZ < mapData.length && gX >= 0 && gX < mapData[0].length) {
           if (mapData[gZ][gX] === 1) {
-            // 壁にめり込んだら直前の安全な位置に戻す
-            this.el.object3D.position.copy(this.lastLocalPos);
+            this.el.object3D.position.copy(this.lastLocalPos); // 壁にめり込んだら戻す
           } else {
-            // 安全な位置を記録
-            this.lastLocalPos.copy(this.el.object3D.position);
+            this.lastLocalPos.copy(this.el.object3D.position); // 安全な位置を記録
           }
         } else {
-          // マップ外判定
           this.el.object3D.position.copy(this.lastLocalPos);
         }
       }
     });
   </script>
+
+  <style>
+    /* 3D画面をdisplay:noneにするとバグるため、透明にして裏に隠しておく方式に変更 */
+    #phase-3d {
+      position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+      opacity: 0; pointer-events: none; z-index: -10;
+    }
+    #phase-3d.active {
+      opacity: 1; pointer-events: auto; z-index: 1000;
+    }
+  </style>
 </head>
 <body>
 
@@ -65,24 +71,26 @@
   </div>
 
 
-  <div id="phase-3d" style="display: none;">
-    <div class="hud-timer" id="timer-display">EXPLORE MODE (NO ENEMY)</div>
+  <div id="phase-3d">
+    <div class="hud-timer" id="timer-display">EXPLORE MODE</div>
     <div class="hud-vignette" id="hud-vignette"></div>
     <div class="grain" style="z-index: 1000;"></div>
 
-    <a-scene embedded fog="type: exponential; color: #000; density: 0.02;">
+    <a-scene embedded fog="type: exponential; color: #000; density: 0.01;">
       <a-assets>
         <img id="concrete-tex" src="../img/image_6dd85c.jpg">
       </a-assets>
 
       <a-entity id="player" position="10 1.6 70">
-        <a-camera id="main-cam" look-controls="pointerLockEnabled: true" wasd-controls="acceleration: 60" grid-collider></a-camera>
-        <a-light type="point" color="#fff" intensity="1.2" distance="50" position="0 1 0"></a-light>
+        <a-camera id="main-cam" look-controls="pointerLockEnabled: true" wasd-controls="acceleration: 60" grid-collider>
+          <a-cursor color="#fff" scale="0.5 0.5 0.5"></a-cursor>
+        </a-camera>
+        <a-light type="point" color="#fff" intensity="1.5" distance="60" position="0 2 0"></a-light>
       </a-entity>
 
       <a-entity id="map-root"></a-entity>
 
-      <a-light type="ambient" color="#888"></a-light>
+      <a-light type="ambient" color="#ffffff" intensity="0.5"></a-light>
     </a-scene>
   </div>
 
@@ -96,7 +104,6 @@
       }
     });
 
-    // 0: 床, 1: 壁
     const mapData = [
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
       [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1],
@@ -105,7 +112,7 @@
       [1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1],
       [1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1],
       [1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1],
-      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1], // 初期位置の9を0に変更（視点固定はHTML側で行うため）
+      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1], // Z=7, X=1 がスタート地点
       [1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1],
       [1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1],
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
@@ -115,55 +122,55 @@
     const mapWidth = mapData[0].length * UNIT;
     const mapDepth = mapData.length * UNIT;
 
+    // ページの読み込みと同時にマップを作っておく（真っ暗バグ防止）
     function generateMap() {
       const root = document.getElementById('map-root');
-      while (root.firstChild) { root.removeChild(root.firstChild); }
 
-      // 巨大な床
+      // ★ テクスチャが読み込めない環境でもグレー色が表示されるように color を追加 ★
       const floor = document.createElement('a-plane');
       floor.setAttribute('position', `${(mapWidth/2) - (UNIT/2)} 0 ${(mapDepth/2) - (UNIT/2)}`);
       floor.setAttribute('rotation', '-90 0 0');
       floor.setAttribute('width', mapWidth);
       floor.setAttribute('height', mapDepth);
-      floor.setAttribute('material', `src: #concrete-tex; repeat: ${mapData[0].length * 2} ${mapData.length * 2}; roughness: 1;`);
+      floor.setAttribute('material', `color: #555555; src: #concrete-tex; repeat: ${mapData[0].length * 2} ${mapData.length * 2}; roughness: 1;`);
       root.appendChild(floor);
 
-      // 巨大な天井
       const ceil = document.createElement('a-plane');
       ceil.setAttribute('position', `${(mapWidth/2) - (UNIT/2)} 6 ${(mapDepth/2) - (UNIT/2)}`);
       ceil.setAttribute('rotation', '90 0 0');
       ceil.setAttribute('width', mapWidth); 
       ceil.setAttribute('height', mapDepth);
-      ceil.setAttribute('color', '#050505'); 
+      ceil.setAttribute('color', '#111111'); 
       root.appendChild(ceil);
 
-      // 壁の生成
       mapData.forEach((row, z) => {
         row.forEach((cell, x) => {
-          const posX = x * UNIT; 
-          const posZ = z * UNIT;
-
           if (cell === 1) {
+            const posX = x * UNIT; 
+            const posZ = z * UNIT;
             const wall = document.createElement('a-box');
             wall.setAttribute('position', `${posX} 3 ${posZ}`);
             wall.setAttribute('width', UNIT);
             wall.setAttribute('height', 6);
             wall.setAttribute('depth', UNIT);
-            wall.setAttribute('material', 'src: #concrete-tex; repeat: 1 2; roughness: 1;');
+            wall.setAttribute('material', 'color: #888888; src: #concrete-tex; repeat: 1 2; roughness: 1;');
             root.appendChild(wall);
           }
         });
       });
     }
 
+    generateMap(); // 最初からマップを作っておく
+
+    // ボタンを押した時の画面切り替え
     exitBtn.addEventListener('click', () => {
-      document.getElementById('svg-filter').remove(); 
-      document.getElementById('phase-2d').style.display = 'none';
-      document.getElementById('phase-3d').style.display = 'block';
-      window.dispatchEvent(new Event('resize'));
+      document.getElementById('svg-filter').remove(); // 2Dの重い処理を消す
+      document.getElementById('phase-2d').style.opacity = '0';
+      setTimeout(() => { document.getElementById('phase-2d').style.display = 'none'; }, 500);
       
-      generateMap();
-      // ★ 敵がいないので startSurvival() は呼び出さない ★
+      // 3D画面をアクティブにする
+      document.getElementById('phase-3d').classList.add('active');
+      window.dispatchEvent(new Event('resize'));
     });
     
     document.addEventListener('mousemove', (e) => { 
