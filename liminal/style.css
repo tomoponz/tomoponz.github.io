@@ -1,19 +1,17 @@
 body {
   margin: 0;
-  overflow: hidden; /* スクロールバーを消す */
-  background-color: #d1c7a3; /* モデルロード前の背景色 */
+  overflow: hidden;
+  background-color: #d1c7a3;
   font-family: "游明朝", serif;
 }
 
-/* 3D空間の前面に被せるUIレイヤー */
 #ui-overlay {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  pointer-events: none; /* 基本的にマウスクリックを下の3D空間に貫通させる */
+  pointer-events: none;
   z-index: 100;
 }
 
-/* 視界のケラレ（四隅の暗がり） */
 .vignette {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -21,7 +19,6 @@ body {
   pointer-events: none;
 }
 
-/* ビデオカメラ特有の走査線 */
 .scanlines {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -29,7 +26,6 @@ body {
   pointer-events: none;
 }
 
-/* 操作説明テキスト */
 .instructions {
   position: absolute;
   top: 15px; left: 50%;
@@ -41,14 +37,13 @@ body {
   pointer-events: none;
 }
 
-/* ★ 他の階層へのドア（左上に配置） */
 .level-doors {
   position: absolute;
   top: 20px; left: 20px;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(0, 0, 0, 0.2);
   padding: 15px;
-  pointer-events: auto; /* ここだけクリック可能に */
+  pointer-events: auto;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -66,10 +61,9 @@ body {
 .door-link:hover {
   color: #cc0000;
   background: rgba(0, 0, 0, 0.1);
-  padding-left: 10px; /* ホバーで少し右に動く */
+  padding-left: 10px;
 }
 
-/* 現実へのEXITボタン */
 .exit-sign {
   position: absolute;
   bottom: 40px; right: 40px;
@@ -82,28 +76,34 @@ body {
   text-decoration: none;
   border-radius: 4px;
   box-shadow: 0 0 15px rgba(204, 0, 0, 0.8);
-  pointer-events: auto; /* クリック可能 */
+  pointer-events: auto;
   transition: transform 0.2s;
 }
 .exit-sign:hover {
   transform: scale(1.05);
 }
 
-/* Daisy Bell画像 */
+/* ★修正3: Daisy Bell画像の濃さを調整 */
 #daisy-btn {
   position: absolute;
   bottom: 20px; left: 20px;
   width: 60px;
   height: auto;
   cursor: pointer;
-  pointer-events: auto; /* クリック可能 */
-  opacity: 0.45;
-  mix-blend-mode: multiply;
-  filter: sepia(0.8) contrast(1.2) brightness(0.6);
+  pointer-events: auto;
+  
+  /* 透明度を 0.45 から 0.8 に変更して濃くする */
+  opacity: 0.8;
+  /* 壁のシミではなく写真のように見せるため、blend-modeとfilterを削除 */
+  /* mix-blend-mode: multiply; */
+  /* filter: sepia(0.8) contrast(1.2) brightness(0.6); */
+  
   transition: all 0.3s ease;
 }
+
 #daisy-btn:hover {
-  opacity: 0.9;
+  /* ホバー時は完全に不透明にする */
+  opacity: 1.0;
   transform: scale(1.1);
-  filter: sepia(0.2) contrast(1.1) brightness(0.9);
+  /* filter: sepia(0.2) contrast(1.1) brightness(0.9); */
 }
