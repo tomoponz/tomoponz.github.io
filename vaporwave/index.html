@@ -3,40 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Ｖ Ｉ Ｒ Ｔ Ｕ Ａ Ｌ　Ｐ Ｌ Ａ Ｚ Ａ</title>
+  <title>Ｖ Ｉ Ｒ Ｔ Ｕ Ａ Ｌ　Ｄ Ｅ Ｓ Ｋ Ｔ Ｏ Ｐ</title>
   
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-  
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   
-  <div class="sun"></div>
+  <div class="desktop-bg"></div>
   
-  <div class="grid-container">
-    <div class="grid"></div>
-  </div>
+  <div class="sun"></div>
+  <div class="grid-container"><div class="grid"></div></div>
 
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Silhouette_of_palm_trees.png/800px-Silhouette_of_palm_trees.png" class="palm palm-left" alt="palm">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Silhouette_of_palm_trees.png/800px-Silhouette_of_palm_trees.png" class="palm palm-right" alt="palm">
+  <img src="../img/Palm%20tree%20neon.png" class="neon-palm palm-left" alt="Neon Palm Left">
+  <img src="../img/Palm%20tree%20neon.png" class="neon-palm palm-right" alt="Neon Palm Right">
 
   <a-scene embedded renderer="alpha: true" vr-mode-ui="enabled: false" class="aframe-overlay">
     <a-assets>
       <a-asset-item id="statue-glb" src="../assets/models/white_mesh.glb"></a-asset-item>
       <img id="marble-tex" src="../img/Marble001_2K-JPG_Color.jpg">
     </a-assets>
-
     <a-entity camera position="0 1.6 4" look-controls="enabled: false" wasd-controls="enabled: false"></a-entity>
-
     <a-entity position="0 0.5 0" 
               animation="property: rotation; to: 0 360 0; dur: 10000; loop: true; easing: linear" 
               animation__float="property: position; to: 0 0.8 0; dur: 4000; dir: alternate; loop: true; easing: easeInOutSine">
-              
       <a-cylinder src="#marble-tex" radius="0.6" height="1.5" position="0 0 0" repeat="2 1"></a-cylinder>
-      
       <a-gltf-model src="#statue-glb" position="0 1.6 0" scale="1.2 1.2 1.2"></a-gltf-model>
     </a-entity>
-
     <a-light type="ambient" color="#2b2b2b"></a-light>
     <a-light type="directional" color="#ff71ce" intensity="2.0" position="2 1 1"></a-light>
     <a-light type="directional" color="#01cdfe" intensity="2.0" position="-2 1 1"></a-light>
@@ -45,41 +38,71 @@
   <div class="vhs-glitch"></div>
   <div class="scanlines"></div>
 
-  <div class="marquee-container">
-    <marquee class="vapor-text" scrollamount="10">プラザへようこそ　//　消費社会の終焉　//　私たちは皆、仮想空間に生きている　//　ＭＡＣＩＮＴＯＳＨ　ＰＬＵＳ　//　すべてはシミュレーションです　//　ノスタルジーの喪失</marquee>
+  <div class="desktop-icons">
+    <div class="icon" ondblclick="document.getElementById('win-main').style.display='block'">
+      <img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-5.png" alt="My Computer">
+      <span>マイ 仮想空間</span>
+    </div>
+    <div class="icon">
+      <img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-4.png" alt="Recycle Bin">
+      <span>ごみ箱</span>
+    </div>
+    <div class="icon" ondblclick="document.getElementById('win-err1').style.display='block'">
+      <img src="https://win98icons.alexmeub.com/icons/png/msg_warning-0.png" alt="Warning">
+      <span>警告.txt</span>
+    </div>
   </div>
 
   <div class="window main-window" id="win-main">
     <div class="title-bar">
       <span>ＭＡＣＩＮＴＯＳＨ　ＰＬＵＳ.exe</span>
-      <span class="close-btn" onclick="document.getElementById('win-main').style.display='none'">X</span>
+      <button class="close-btn" onclick="document.getElementById('win-main').style.display='none'">X</button>
     </div>
-    <div class="content">
-      <h1 class="glitch" data-text="幻 想 郷">幻 想 郷</h1>
-      <p>何も感じない。<br>未来は過去の中にあります。</p>
-      
-      <div class="player">
-        <span>▶ ＰＬＡＹＩＮＧ : M a l l s o f t</span>
-        <button id="play-btn" class="btn" style="background:#000; color:#05ffa1; border-color:#05ffa1;">再生 / ＰＬＡＹ</button>
+    
+    <div class="window-body">
+      <div class="tabs">
+        <div class="tab active" onclick="openTab(event, 'tab-home')">ＨＯＭＥ</div>
+        <div class="tab" onclick="openTab(event, 'tab-audio')">ＡＵＤＩＯ</div>
+        <div class="tab" onclick="openTab(event, 'tab-system')">ＳＹＳＴＥＭ</div>
       </div>
       
-      <a href="../index.html" class="btn return-btn">Ｒ Ｅ Ｔ Ｕ Ｒ Ｎ</a>
+      <div class="tab-content" id="tab-home" style="display:block;">
+        <h1 class="glitch" data-text="幻 想 郷">幻 想 郷</h1>
+        <p>ここは仮想空間のプラザです。<br>あなたの心はアップロードされました。</p>
+        <a href="../index.html" class="btn return-btn">Ｒ Ｅ Ｔ Ｕ Ｒ Ｎ</a>
+      </div>
+
+      <div class="tab-content" id="tab-audio" style="display:none;">
+        <div class="player">
+          <p style="margin:0 0 10px 0;">▶ ＰＬＡＹＩＮＧ : M a l l s o f t</p>
+          <button id="play-btn" class="btn play-action-btn">再生 / ＰＬＡＹ</button>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-system" style="display:none;">
+        <p style="margin:0 0 5px 0;">メモリ: 640KB OK</p>
+        <p style="margin:0 0 10px 0;">ステータス: 異常なし</p>
+        <img src="https://media.giphy.com/media/xT9IgzoVuwqr8UzO1i/giphy.gif" alt="anime gif" style="width: 100%; border: 2px inset #dfdfdf;">
+      </div>
     </div>
   </div>
 
   <div class="window error-window error-1" id="win-err1">
-    <div class="title-bar"><span>警告</span><span class="close-btn" onclick="document.getElementById('win-err1').style.display='none'">X</span></div>
-    <div class="content">
+    <div class="title-bar"><span>警告</span><button class="close-btn" onclick="document.getElementById('win-err1').style.display='none'">X</button></div>
+    <div class="window-body">
       <p style="margin: 0; font-weight: bold; font-size: 14px;">魂の接続が切れました。</p>
-      <button class="btn" onclick="document.getElementById('win-err1').style.display='none'" style="margin-top: 15px;">Ｏ Ｋ</button>
+      <button class="btn" onclick="document.getElementById('win-err1').style.display='none'" style="margin-top: 15px; width: 100%;">Ｏ Ｋ</button>
     </div>
   </div>
 
-  <div class="window error-window error-2" id="win-err2">
-    <div class="title-bar"><span>System Error</span><span class="close-btn" onclick="document.getElementById('win-err2').style.display='none'">X</span></div>
-    <div class="content" style="padding: 10px;">
-      <img src="https://media.giphy.com/media/xT9IgzoVuwqr8UzO1i/giphy.gif" alt="anime gif" style="width: 100%; border: 2px inset #dfdfdf;">
-      <p style="font-size: 12px; margin: 5px 0 0 0;">感情のロードに失敗しました</p>
+  <div class="taskbar">
+    <button class="start-btn">
+      <img src="https://win98icons.alexmeub.com/icons/png/windows_slanted-1.png" alt="start">
+      <b>ＳＴＡＲＴ</b>
+    </button>
+    <div class="tray">
+      <span>🔊</span>
+      <span id="tc-display">12:00 PM</span>
     </div>
   </div>
 
@@ -89,62 +112,61 @@
   <audio id="escalator-audio" src="../assets/sfx/461745__15fpanskabostlova_veronika__10_on-the-escalator-ambient.wav" loop></audio>
 
   <script>
-    // 音声オブジェクトの取得
+    // タブ切り替えプログラム
+    function openTab(evt, tabId) {
+      const win = evt.target.closest('.window-body');
+      const contents = win.querySelectorAll('.tab-content');
+      contents.forEach(c => c.style.display = 'none');
+      const tabs = win.querySelectorAll('.tab');
+      tabs.forEach(t => t.classList.remove('active'));
+      win.querySelector('#' + tabId).style.display = 'block';
+      evt.currentTarget.classList.add('active');
+    }
+
+    // 時計の更新
+    setInterval(() => {
+      const now = new Date();
+      let h = now.getHours();
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12; h = h ? h : 12;
+      document.getElementById('tc-display').innerText = `${h}:${m} ${ampm}`;
+    }, 1000);
+
+    // 音楽再生
     const vaporAudio = document.getElementById('vapor-audio');
     const mallAudio = document.getElementById('mall-audio');
     const fountainAudio = document.getElementById('fountain-audio');
     const escalatorAudio = document.getElementById('escalator-audio');
 
-    // ★ 音量と速度の調整 ★
-    // メイン曲はスローダウンして不気味に
-    vaporAudio.playbackRate = 0.85; 
-    vaporAudio.volume = 0.8;
-    
-    // 環境音は「遠くで鳴っている感」を出すために音量を小さく設定
-    mallAudio.volume = 0.4;        // ショッピングモールのガヤガヤ
-    fountainAudio.volume = 0.3;    // 噴水
-    escalatorAudio.volume = 0.25;  // エスカレーター
+    vaporAudio.playbackRate = 0.85; vaporAudio.volume = 0.8;
+    mallAudio.volume = 0.4; fountainAudio.volume = 0.3; escalatorAudio.volume = 0.25;
 
-    // 再生ボタンの処理（すべての音を同時に再生・停止）
     document.getElementById('play-btn').addEventListener('click', function() {
       if(vaporAudio.paused) {
-        vaporAudio.play().catch(()=>{});
-        mallAudio.play().catch(()=>{});
-        fountainAudio.play().catch(()=>{});
-        escalatorAudio.play().catch(()=>{});
+        vaporAudio.play().catch(()=>{}); mallAudio.play().catch(()=>{});
+        fountainAudio.play().catch(()=>{}); escalatorAudio.play().catch(()=>{});
         this.innerText = '停止 / ＳＴＯＰ';
       } else {
-        vaporAudio.pause();
-        mallAudio.pause();
-        fountainAudio.pause();
-        escalatorAudio.pause();
+        vaporAudio.pause(); mallAudio.pause(); fountainAudio.pause(); escalatorAudio.pause();
         this.innerText = '再生 / ＰＬＡＹ';
       }
     });
 
     // ウィンドウのドラッグ処理
     const windows = document.querySelectorAll('.window');
-    let isDragging = false;
-    let currentWindow = null;
-    let offsetX, offsetY;
+    let isDragging = false; let currentWindow = null; let offsetX, offsetY;
 
     windows.forEach(win => {
       const titleBar = win.querySelector('.title-bar');
       const startDrag = (clientX, clientY) => {
-        isDragging = true;
-        currentWindow = win;
-        windows.forEach(w => w.style.zIndex = 10);
-        win.style.zIndex = 20;
+        isDragging = true; currentWindow = win;
+        windows.forEach(w => w.style.zIndex = 10); win.style.zIndex = 20;
         const rect = win.getBoundingClientRect();
-        offsetX = clientX - rect.left;
-        offsetY = clientY - rect.top;
-        win.style.transform = 'none';
-        win.style.left = rect.left + 'px';
-        win.style.top = rect.top + 'px';
-        win.style.bottom = 'auto';
-        win.style.right = 'auto';
+        offsetX = clientX - rect.left; offsetY = clientY - rect.top;
+        win.style.transform = 'none'; win.style.left = rect.left + 'px'; win.style.top = rect.top + 'px';
+        win.style.bottom = 'auto'; win.style.right = 'auto';
       };
-
       titleBar.addEventListener('mousedown', (e) => {
         if (e.target.classList.contains('close-btn')) return;
         startDrag(e.clientX, e.clientY);
@@ -163,7 +185,6 @@
 
     document.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY));
     document.addEventListener('touchmove', (e) => moveDrag(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
-
     const endDrag = () => { isDragging = false; currentWindow = null; };
     document.addEventListener('mouseup', endDrag);
     document.addEventListener('touchend', endDrag);
