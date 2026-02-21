@@ -64,21 +64,13 @@ body {
 .palm-left { left: -10%; }
 .palm-right { right: -10%; transform: scaleX(-1); }
 
-/* 彫刻 */
-.statue {
+/* ★ 3Dモデルを表示するA-Frameキャンバスのレイヤー設定 ★ */
+.aframe-overlay {
   position: absolute;
-  bottom: 25%; left: 50%;
-  transform: translateX(-50%);
-  width: 200px; max-width: 50vw;
-  z-index: 4;
-  filter: drop-shadow(5px 5px 0px rgba(1, 205, 254, 0.7)) drop-shadow(-5px -5px 0px rgba(255, 113, 206, 0.7)) contrast(1.2) grayscale(0.8) hue-rotate(200deg);
-  animation: floatStatue 5s ease-in-out infinite;
-  mix-blend-mode: screen;
-  pointer-events: none;
-}
-@keyframes floatStatue {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(-20px); }
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 4; /* ヤシの木(3)とウィンドウ(10)の間に挟む */
+  pointer-events: none; /* マウス操作を貫通させてウィンドウをドラッグできるようにする */
 }
 
 /* Windowsウィンドウ共通 */
@@ -105,7 +97,7 @@ body {
 }
 .content { padding: 15px; text-align: center; }
 
-/* 各ウィンドウの配置（スマホでも絶対にはみ出さないように調整） */
+/* 各ウィンドウの配置 */
 .main-window {
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
@@ -138,7 +130,7 @@ body {
   margin: 0 0 10px 0; font-family: "ＭＳ Ｐ明朝", serif; letter-spacing: 2px;
 }
 
-/* マーキーのコンテナ（横にはみ出す原因をブロック） */
+/* マーキーのコンテナ */
 .marquee-container {
   position: absolute; top: 5%; left: 0; width: 100%; overflow: hidden; z-index: 20; pointer-events: none;
 }
