@@ -1,14 +1,16 @@
-/*
-  A-Frame simple FPS controls (keyboard + touch joysticks) with in-page settings UI.
+/* fps-player.js
+  A-Frame simple FPS controls (keyboard + touch). Includes in-page settings UI.
 
   - WASD: move
   - Arrow keys: look
   - Space / Jump button: jump
-  - Touch: left joystick move, right joystick look
-  - Gear button: move speed / look speed / master volume sliders
+  - Touch: left joystick move
+  - Touch look: default is D-pad (mobile). Optional right joystick if enabled.
+  - Buttons: ⚙️ settings, ⛶ fullscreen
 
   Usage:
-    <a-entity id="rig" fps-player wall-collider> ... <a-entity camera> ...
+    <a-entity id="rig" fps-player wall-collider>
+      <a-entity camera></a-entity>
     </a-entity>
 
   Notes:
@@ -24,20 +26,29 @@
     moveSpeed: 0.20,
     lookSpeed: 0.05,
     volume: 1.0,
+    lookMode: null, // 'dpad' | 'stick'
   };
-
-  function getSettings(){
-    const s = (window[SETTINGS_KEY] ||= {...DEFAULTS});
-    // fill missing
-    for (const k of Object.keys(DEFAULTS)) if (typeof s[k] !== 'number') s[k] = DEFAULTS[k];
-    return s;
-  }
 
   function isCoarsePointer(){
     return (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || window.innerWidth <= 900;
   }
 
   function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+  function getSettings(){
+    const s = (window[SETTINGS_KEY] ||= {...DEFAULTS});
+
+    // Numbers
+    if (typeof s.moveSpeed !== 'number') s.moveSpeed = DEFAULTS.moveSpeed;
+    if (typeof s.lookSpeed !== 'number') s.lookSpeed = DEFAULTS.lookSpeed;
+    if (typeof s.volume !== 'number') s.volume = DEFAULTS.volume;
+
+    // Look mode
+    const defMode = isCoarsePointer() ? 'dpad' : 'stick';
+    if (s.lookMode !== 'dpad' && s.lookMode !== 'stick') s.lookMode = defMode;
+
+    return s;
+  }
 
   // ---------- Master volume (preserve relative mix) ----------
   function ensureBaseVolumes(){
@@ -63,37 +74,91 @@
   // Expose for pages that want to call it.
   window.__setMasterVolume = applyMasterVolume;
 
+  // ---------- Fullscreen ----------
+  function fsIsOn(){
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+
+  async function fsToggle(){
+    const doc = document;
+    const root = doc.documentElement;
+    try {
+      if (fsIsOn()){
+        (doc.exitFullscreen || doc.webkitExitFullscreen).call(doc);
+      } else {
+        await (root.requestFullscreen || root.webkitRequestFullscreen).call(root);
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   // ---------- UI injection ----------
   function injectStyles(){
     if (document.getElementById('fps-ui-style')) return;
     const css = `
       #fps-ui{position:fixed;inset:0;z-index:9999;pointer-events:none;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans JP",sans-serif;}
       #fps-ui .fps-btn{pointer-events:auto;user-select:none;touch-action:manipulation;}
+
       #fps-gear{position:fixed;top:14px;right:14px;width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.35);color:#fff;display:grid;place-items:center;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(0,0,0,.35)}
-      #fps-gear:active{transform:scale(.98)}
-      #fps-panel{position:fixed;top:68px;right:14px;width:min(320px,calc(100vw - 28px));padding:12px 12px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.40);color:#fff;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 18px 60px rgba(0,0,0,.45);pointer-events:auto;display:none}
+      #fps-full{position:fixed;top:14px;left:14px;width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.35);color:#fff;display:grid;place-items:center;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+      #fps-gear:active,#fps-full:active{transform:scale(.98)}
+
+      #fps-panel{position:fixed;top:68px;right:14px;width:min(340px,calc(100vw - 28px));padding:12px 12px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.40);color:#fff;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 18px 60px rgba(0,0,0,.45);pointer-events:auto;display:none}
       #fps-panel.open{display:block}
       #fps-panel h3{margin:0 0 8px;font-size:14px;opacity:.9}
-      #fps-panel .row{display:grid;grid-template-columns:1fr 90px;gap:10px;align-items:center;margin:10px 0}
+      #fps-panel .row{display:grid;grid-template-columns:1fr 92px;gap:10px;align-items:center;margin:10px 0}
       #fps-panel label{font-size:13px;opacity:.85}
       #fps-panel input[type=range]{width:100%}
       #fps-panel .val{font-variant-numeric:tabular-nums;text-align:right;font-size:13px;opacity:.9}
+      #fps-panel select{width:100%;padding:6px 8px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.35);color:#fff}
+
+      #fps-toast{position:fixed;left:50%;top:14px;transform:translateX(-50%);padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.55);color:#fff;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(0,0,0,.35);pointer-events:none;opacity:0;transition:opacity .2s ease;z-index:10000;font-size:13px;}
+      #fps-toast.show{opacity:1;}
 
       .fps-joy{position:fixed;bottom:18px;width:128px;height:128px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.20);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(0,0,0,.35);pointer-events:auto;touch-action:none;display:none}
       .fps-joy .stick{position:absolute;left:50%;top:50%;width:54px;height:54px;border-radius:999px;transform:translate(-50%,-50%);border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08)}
       #fps-joy-move{left:18px}
       #fps-joy-look{right:18px}
+
+      /* Look D-pad */
+      #fps-lookpad{position:fixed;right:18px;bottom:18px;width:128px;height:128px;border-radius:18px;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.20);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(0,0,0,.35);pointer-events:auto;touch-action:none;display:none;}
+      #fps-lookpad .pad{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:116px;height:116px;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:8px;}
+      #fps-lookpad button{width:100%;height:100%;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);color:#fff;font-size:18px;line-height:1;}
+      #fps-lookpad button:active{transform:scale(.98)}
+      #fps-lookpad .up{grid-column:2;grid-row:1}
+      #fps-lookpad .left{grid-column:1;grid-row:2}
+      #fps-lookpad .right{grid-column:3;grid-row:2}
+      #fps-lookpad .down{grid-column:2;grid-row:3}
+
       #fps-jump{position:fixed;right:18px;bottom:160px;width:84px;height:52px;border-radius:14px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.35);color:#fff;display:none;place-items:center;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(0,0,0,.35)}
       #fps-jump:active{transform:scale(.98)}
+
       @media (max-width:900px){
         .fps-joy{display:block}
         #fps-jump{display:grid}
+      }
+
+      /* Mobile default: D-pad look (joystick look hidden unless user chooses stick) */
+      @media (max-width:900px){
+        #fps-lookpad{display:block}
+        #fps-joy-look{display:none}
       }
     `;
     const style = document.createElement('style');
     style.id = 'fps-ui-style';
     style.textContent = css;
     document.head.appendChild(style);
+  }
+
+  function showToast(msg){
+    const t = document.getElementById('fps-toast');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._tm);
+    showToast._tm = setTimeout(() => t.classList.remove('show'), 2200);
   }
 
   function buildUI(){
@@ -104,7 +169,9 @@
     const ui = document.createElement('div');
     ui.id = 'fps-ui';
     ui.innerHTML = `
+      <button id="fps-full" class="fps-btn" aria-label="fullscreen" title="fullscreen">⛶</button>
       <button id="fps-gear" class="fps-btn" aria-label="settings" title="settings">⚙️</button>
+      <div id="fps-toast"></div>
       <div id="fps-panel" role="dialog" aria-label="fps settings">
         <h3>操作設定</h3>
         <div class="row">
@@ -124,18 +191,40 @@
           <div class="val" id="fps-vol-val"></div>
         </div>
         <input id="fps-vol" type="range" min="0" max="1" step="0.01">
+
+        <div class="row" style="margin-top:12px;">
+          <label for="fps-lookmode">視点操作</label>
+          <div class="val"></div>
+        </div>
+        <select id="fps-lookmode">
+          <option value="dpad">十字</option>
+          <option value="stick">スティック</option>
+        </select>
       </div>
+
       <div id="fps-joy-move" class="fps-joy" aria-label="move joystick"><div class="stick"></div></div>
       <div id="fps-joy-look" class="fps-joy" aria-label="look joystick"><div class="stick"></div></div>
+
+      <div id="fps-lookpad" aria-label="look pad">
+        <div class="pad">
+          <button class="up" data-dir="up" aria-label="look up">▲</button>
+          <button class="left" data-dir="left" aria-label="look left">◀</button>
+          <button class="right" data-dir="right" aria-label="look right">▶</button>
+          <button class="down" data-dir="down" aria-label="look down">▼</button>
+        </div>
+      </div>
+
       <button id="fps-jump" class="fps-btn" aria-label="jump">JUMP</button>
     `;
     document.body.appendChild(ui);
 
     const gear = ui.querySelector('#fps-gear');
+    const full = ui.querySelector('#fps-full');
     const panel = ui.querySelector('#fps-panel');
     const move = ui.querySelector('#fps-move');
     const look = ui.querySelector('#fps-look');
     const vol = ui.querySelector('#fps-vol');
+    const lookModeSel = ui.querySelector('#fps-lookmode');
     const moveVal = ui.querySelector('#fps-move-val');
     const lookVal = ui.querySelector('#fps-look-val');
     const volVal = ui.querySelector('#fps-vol-val');
@@ -149,10 +238,48 @@
     move.value = String(s.moveSpeed);
     look.value = String(s.lookSpeed);
     vol.value = String(s.volume);
+    lookModeSel.value = s.lookMode;
     refreshLabels();
+
+    function applyLookModeUI(){
+      const joyLook = document.getElementById('fps-joy-look');
+      const dpad = document.getElementById('fps-lookpad');
+      const mobile = isCoarsePointer();
+
+      if (!joyLook || !dpad) return;
+
+      if (!mobile){
+        // Desktop: don't force; show nothing unless stick mode selected
+        if (s.lookMode === 'stick'){
+          joyLook.style.display = 'block';
+          dpad.style.display = 'none';
+        } else {
+          joyLook.style.display = 'none';
+          dpad.style.display = 'none';
+        }
+        return;
+      }
+
+      // Mobile
+      if (s.lookMode === 'stick'){
+        joyLook.style.display = 'block';
+        dpad.style.display = 'none';
+      } else {
+        joyLook.style.display = 'none';
+        dpad.style.display = 'block';
+      }
+    }
 
     gear.addEventListener('click', () => {
       panel.classList.toggle('open');
+      applyLookModeUI();
+    });
+
+    full.addEventListener('click', async () => {
+      const ok = await fsToggle();
+      if (!ok){
+        showToast('全画面にできない端末です（iPhoneは「共有→ホーム画面に追加」が確実）');
+      }
     });
 
     move.addEventListener('input', () => {
@@ -168,9 +295,18 @@
       refreshLabels();
     });
 
+    lookModeSel.addEventListener('change', () => {
+      s.lookMode = lookModeSel.value;
+      applyLookModeUI();
+    });
+
     // ensure current basevols captured, apply volume in case user already changed.
     ensureBaseVolumes();
     applyMasterVolume(s.volume);
+
+    // Apply mode once on build.
+    applyLookModeUI();
+    window.addEventListener('resize', applyLookModeUI);
   }
 
   // ---------- joystick helpers ----------
@@ -222,6 +358,30 @@
     });
   }
 
+  // ---------- D-pad helpers ----------
+  function setupPadButton(btn, onDown, onUp){
+    let activeId = null;
+    const down = (e) => {
+      activeId = e.pointerId;
+      btn.setPointerCapture(activeId);
+      onDown();
+      e.preventDefault();
+    };
+    const up = (e) => {
+      if (activeId !== null && e.pointerId !== activeId) return;
+      activeId = null;
+      onUp();
+      e.preventDefault();
+    };
+    btn.addEventListener('pointerdown', down);
+    btn.addEventListener('pointerup', up);
+    btn.addEventListener('pointercancel', up);
+    btn.addEventListener('pointerleave', (e) => {
+      // If finger slides out, keep it pressed only while captured.
+      if (activeId === null) return;
+    });
+  }
+
   // ---------- Component ----------
   AFRAME.registerComponent('fps-player', {
     schema: {
@@ -250,6 +410,12 @@
       this.jLookX = 0;
       this.jLookY = 0;
 
+      // d-pad state
+      this.padL = false;
+      this.padR = false;
+      this.padU = false;
+      this.padD = false;
+
       // determine camera element
       this.cameraEl = null;
       if (this.el.components.camera){
@@ -273,15 +439,31 @@
       // touch UI wiring
       const joyMove = document.getElementById('fps-joy-move');
       const joyLook = document.getElementById('fps-joy-look');
-      if (joyMove && joyLook){
-        setupJoystick(joyMove, (x,y) => { this.jMoveX = x; this.jMoveY = y; });
-        setupJoystick(joyLook, (x,y) => { this.jLookX = x; this.jLookY = y; });
+      if (joyMove) setupJoystick(joyMove, (x,y) => { this.jMoveX = x; this.jMoveY = y; });
+      if (joyLook) setupJoystick(joyLook, (x,y) => { this.jLookX = x; this.jLookY = y; });
+
+      const pad = document.getElementById('fps-lookpad');
+      if (pad){
+        const up = pad.querySelector('button[data-dir="up"]');
+        const down = pad.querySelector('button[data-dir="down"]');
+        const left = pad.querySelector('button[data-dir="left"]');
+        const right = pad.querySelector('button[data-dir="right"]');
+        if (left) setupPadButton(left, () => this.padL = true, () => this.padL = false);
+        if (right) setupPadButton(right, () => this.padR = true, () => this.padR = false);
+        if (up) setupPadButton(up, () => this.padU = true, () => this.padU = false);
+        if (down) setupPadButton(down, () => this.padD = true, () => this.padD = false);
       }
 
       const jumpBtn = document.getElementById('fps-jump');
       if (jumpBtn){
         const q = () => { this.jumpQueued = true; };
         jumpBtn.addEventListener('pointerdown', (e) => { q(); e.preventDefault(); });
+      }
+
+      // iOS gesture unlock hint (optional)
+      if (isCoarsePointer()){
+        // capture base volumes once at start
+        ensureBaseVolumes();
       }
     },
     tick: function(time, timeDelta){
@@ -291,18 +473,27 @@
       const s = getSettings();
       const moveSpeed = (typeof s.moveSpeed === 'number') ? s.moveSpeed : this.data.moveSpeed;
       const lookSpeed = (typeof s.lookSpeed === 'number') ? s.lookSpeed : this.data.lookSpeed;
+      const lookMode = s.lookMode;
 
       const delta = Math.min(timeDelta / 16.6, 2);
 
       // ----- look -----
+      // keyboard
       if (this.keys['ArrowLeft'])  this.yaw += lookSpeed * delta;
       if (this.keys['ArrowRight']) this.yaw -= lookSpeed * delta;
       if (this.keys['ArrowUp'])    this.pitch += lookSpeed * delta;
       if (this.keys['ArrowDown'])  this.pitch -= lookSpeed * delta;
 
-      // joystick look (constant while held)
-      this.yaw   -= (this.jLookX * lookSpeed * 1.6) * delta;
-      this.pitch -= (this.jLookY * lookSpeed * 1.6) * delta;
+      // touch look
+      if (lookMode === 'stick'){
+        this.yaw   -= (this.jLookX * lookSpeed * 1.6) * delta;
+        this.pitch -= (this.jLookY * lookSpeed * 1.6) * delta;
+      } else {
+        if (this.padL) this.yaw += lookSpeed * delta;
+        if (this.padR) this.yaw -= lookSpeed * delta;
+        if (this.padU) this.pitch += lookSpeed * delta;
+        if (this.padD) this.pitch -= lookSpeed * delta;
+      }
 
       const limit = Math.PI / 2.2;
       this.pitch = clamp(this.pitch, -limit, limit);
