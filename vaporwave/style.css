@@ -1,84 +1,84 @@
+/* 画面を完全に固定し、意図しないスクロールやハミ出しを100%防ぐ */
 body {
-  margin: 0;
-  height: 100vh;
-  width: 100vw;
+  margin: 0; padding: 0;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: linear-gradient(to bottom, #010a26 0%, #ff71ce 50%, #01cdfe 100%);
   font-family: 'MS UI Gothic', "ＭＳ Ｐゴシック", sans-serif;
-  overflow: hidden; /* はみ出しによるスクロールを防止 */
   color: #fff;
   user-select: none;
+  -webkit-user-select: none;
 }
 
 /* 太陽 */
 .sun {
   position: absolute;
-  top: 15%; left: 50%;
+  top: 10%; left: 50%;
   transform: translateX(-50%);
-  width: 250px; height: 250px;
+  width: 200px; height: 200px;
   border-radius: 50%;
   background: linear-gradient(to bottom, #ffeb3b 0%, #ff007c 100%);
-  box-shadow: 0 0 60px #ff007c;
+  box-shadow: 0 0 50px #ff007c;
   -webkit-mask-image: repeating-linear-gradient(to bottom, #000 0%, #000 8%, transparent 8%, transparent 10%);
   mask-image: repeating-linear-gradient(to bottom, #000 0%, #000 8%, transparent 8%, transparent 10%);
   z-index: 1;
 }
 
-/* ★修正点: 床の遠近法を親要素に限定（画面崩れ防止） */
+/* 3Dチェッカーボードの床 */
 .grid-container {
   position: absolute;
-  bottom: 0; left: 0;
-  width: 100%; height: 40vh;
-  perspective: 600px; /* ここに遠近法を設定 */
+  bottom: 0; left: 0; right: 0;
+  height: 40vh;
+  perspective: 400px;
   overflow: hidden;
   z-index: 2;
 }
 .grid {
   position: absolute;
-  bottom: -20%; left: -50%;
-  width: 200%; height: 150%;
+  top: 0; left: -50%; right: -50%;
+  height: 200%;
   background-image: 
     linear-gradient(#ff71ce 2px, transparent 2px),
     linear-gradient(90deg, #01cdfe 2px, transparent 2px);
-  background-size: 50px 50px;
-  transform: rotateX(75deg); /* ここで床を寝かせる */
+  background-size: 40px 40px;
+  transform: rotateX(70deg);
   transform-origin: top center;
   animation: gridMove 2s linear infinite;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.85);
 }
 @keyframes gridMove {
-  0% { transform: rotateX(75deg) translateY(0); }
-  100% { transform: rotateX(75deg) translateY(50px); }
+  0% { transform: rotateX(70deg) translateY(0); }
+  100% { transform: rotateX(70deg) translateY(40px); }
 }
 
-/* ヤシの木（サイズを安定化） */
+/* ヤシの木 */
 .palm {
   position: absolute;
   bottom: 15%;
-  height: 50vh;
-  max-width: 40vw; /* 横に伸びすぎないように制限 */
-  object-fit: contain;
+  height: 40vh;
+  max-height: 300px;
   z-index: 3;
-  filter: drop-shadow(0 0 10px #ff71ce) hue-rotate(180deg) opacity(0.8);
+  filter: drop-shadow(0 0 8px #ff71ce) hue-rotate(180deg) opacity(0.8);
   pointer-events: none;
 }
-.palm-left { left: -5%; }
-.palm-right { right: -5%; transform: scaleX(-1); }
+.palm-left { left: -10%; }
+.palm-right { right: -10%; transform: scaleX(-1); }
 
-/* 彫刻（ブレンドモードを調整） */
+/* 彫刻 */
 .statue {
   position: absolute;
   bottom: 25%; left: 50%;
   transform: translateX(-50%);
-  width: 250px; max-width: 60vw;
+  width: 200px; max-width: 50vw;
   z-index: 4;
-  filter: drop-shadow(10px 10px 0px rgba(1, 205, 254, 0.7)) drop-shadow(-10px -10px 0px rgba(255, 113, 206, 0.7)) contrast(1.2) grayscale(0.8) hue-rotate(200deg);
-  animation: floatStatue 6s ease-in-out infinite;
-  mix-blend-mode: screen; /* 黒背景を透過して綺麗に馴染ませる */
+  filter: drop-shadow(5px 5px 0px rgba(1, 205, 254, 0.7)) drop-shadow(-5px -5px 0px rgba(255, 113, 206, 0.7)) contrast(1.2) grayscale(0.8) hue-rotate(200deg);
+  animation: floatStatue 5s ease-in-out infinite;
+  mix-blend-mode: screen;
   pointer-events: none;
 }
 @keyframes floatStatue {
   0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(-30px); }
+  50% { transform: translateX(-50%) translateY(-20px); }
 }
 
 /* Windowsウィンドウ共通 */
@@ -86,73 +86,75 @@ body {
   position: absolute;
   background: #c0c0c0;
   border: 2px solid #dfdfdf; border-right-color: #000; border-bottom-color: #000;
-  box-shadow: inset 1px 1px #fff, 5px 5px 0px rgba(0,0,0,0.5);
+  box-shadow: inset 1px 1px #fff, 4px 4px 0px rgba(0,0,0,0.5);
   z-index: 10;
   color: #000;
-  box-sizing: border-box; /* パディングでのサイズ崩れ防止 */
+  box-sizing: border-box;
 }
 .title-bar {
   background: linear-gradient(to right, #000080, #1084d0);
-  color: white; padding: 4px 6px;
+  color: white; padding: 4px;
   display: flex; justify-content: space-between; align-items: center;
-  font-weight: bold; letter-spacing: 1px; cursor: grab;
+  font-weight: bold; font-size: 14px; cursor: grab;
 }
 .title-bar:active { cursor: grabbing; }
 .close-btn { 
-  background: #c0c0c0; color: black; padding: 0 6px; 
+  background: #c0c0c0; color: black; padding: 0 5px; 
   border: 1px solid #fff; border-right-color: #000; border-bottom-color: #000; 
   cursor: pointer; font-size: 12px; font-weight: bold;
 }
-.close-btn:active { border-style: inset; }
 .content { padding: 15px; text-align: center; }
 
-/* ウィンドウサイズと配置（スマホ対応） */
+/* 各ウィンドウの配置（スマホでも絶対にはみ出さないように調整） */
 .main-window {
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 90%; max-width: 400px; /* スマホでは90%の幅に */
+  width: 90%; max-width: 350px;
 }
-.error-window { width: 80%; max-width: 250px; }
-.error-1 { top: 15%; left: 5%; }
-.error-2 { bottom: 20%; right: 5%; }
+.error-window { width: 80%; max-width: 200px; }
+.error-1 { top: 10%; left: 5%; }
+.error-2 { bottom: 15%; right: 5%; }
 
 /* ボタン */
 .btn {
-  display: inline-block; padding: 6px 15px; margin-top: 10px;
+  display: inline-block; padding: 6px 15px;
   background: #c0c0c0; border: 2px solid #fff; border-right-color: #000; border-bottom-color: #000;
-  color: black; text-decoration: none; font-weight: bold; cursor: pointer;
+  color: black; text-decoration: none; font-weight: bold; cursor: pointer; font-size: 14px;
 }
 .btn:active { border: 2px solid #000; border-right-color: #fff; border-bottom-color: #fff; }
+.return-btn { margin-top: 10px; width: 100%; box-sizing: border-box; }
 
 /* 音楽プレーヤー */
 .player {
-  margin: 15px 0; padding: 10px;
+  margin: 10px 0; padding: 10px;
   border: 2px inset #dfdfdf; background: #000; color: #05ffa1;
-  font-family: 'Courier New', monospace; font-weight: bold; font-size: 14px;
+  font-family: 'Courier New', monospace; font-weight: bold; font-size: 12px;
 }
 .player span { display: block; margin-bottom: 10px; word-break: break-all; }
 
 /* グリッチテキスト */
 .glitch { 
-  font-size: 2.5em; color: #01cdfe; text-shadow: 3px 3px 0px #ff71ce; 
-  margin: 0 0 10px 0; font-family: "ＭＳ Ｐ明朝", serif; letter-spacing: 5px;
+  font-size: 2em; color: #01cdfe; text-shadow: 2px 2px 0px #ff71ce; 
+  margin: 0 0 10px 0; font-family: "ＭＳ Ｐ明朝", serif; letter-spacing: 2px;
 }
 
-/* マーキー（流れる文字） */
+/* マーキーのコンテナ（横にはみ出す原因をブロック） */
+.marquee-container {
+  position: absolute; top: 5%; left: 0; width: 100%; overflow: hidden; z-index: 20; pointer-events: none;
+}
 .vapor-text {
-  position: absolute; top: 5%; width: 100%;
-  font-size: 24px; color: #05ffa1; text-shadow: 2px 2px #000;
-  z-index: 20; letter-spacing: 10px; pointer-events: none;
+  font-size: 20px; color: #05ffa1; text-shadow: 2px 2px #000;
+  letter-spacing: 5px;
 }
 
 /* ノイズエフェクト */
 .vhs-glitch {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
   background: repeating-linear-gradient(transparent, transparent 2px, rgba(0,0,0,0.1) 3px);
   pointer-events: none; z-index: 99;
 }
 .scanlines {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
   background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
   background-size: 100% 4px, 4px 100%;
   pointer-events: none; z-index: 98;
