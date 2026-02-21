@@ -35,7 +35,7 @@
       }
     });
 
-    // 2. 壁すり抜け防止（レイキャスター方式）
+    // 2. 壁すり抜け防止
     AFRAME.registerComponent('wall-collider', {
       init: function () {
         this.raycaster = new THREE.Raycaster();
@@ -87,14 +87,13 @@
       }
     });
 
-    // ★ 4. バグって激しく振動する演出（Bacteria用） ★
+    // 4. バグって激しく振動する演出
     AFRAME.registerComponent('jitter', {
       schema: { amount: {type: 'number', default: 0.05} },
       tick: function () {
         if (!this.basePos) {
            this.basePos = this.el.object3D.position.clone();
         }
-        // 毎フレーム乱数で位置を微小にズラし続ける
         this.el.object3D.position.set(
           this.basePos.x + (Math.random() - 0.5) * this.data.amount,
           this.basePos.y + (Math.random() - 0.5) * this.data.amount,
@@ -103,16 +102,13 @@
       }
     });
 
-    // ★ 5. 3Dオブジェクトをクリックして別ページへ飛ぶ機能 ★
+    // 5. 3Dオブジェクトのクリックイベント
     AFRAME.registerComponent('clickable-link', {
       schema: { url: { type: 'string' } },
       init: function () {
-        // クリックされたらURLへ遷移
         this.el.addEventListener('click', () => {
           window.location.href = this.data.url;
         });
-        
-        // 視点（カーソル）が合った時にカーソルの色を緑に変える
         this.el.addEventListener('mouseenter', () => {
           document.querySelector('a-cursor').setAttribute('color', '#00ff00');
         });
@@ -165,17 +161,23 @@
 
     <a-gltf-model src="#car-model" class="collidable" position="3 0 -3" rotation="0 -45 0" scale="1.6 1.6 1.6"></a-gltf-model>
 
-    <a-gltf-model src="#bacteria-model" class="clickable collidable" position="-2 0 2" scale="1 1 1" 
-                  jitter="amount: 0.04" 
-                  clickable-link="url: https://backrooms.fandom.com/wiki/Backrooms_Wiki"></a-gltf-model>
 
-    <a-gltf-model src="#sculpture-model" class="clickable collidable" position="-4 1.5 -5" scale="1.5 1.5 1.5"
-                  animation__rot="property: rotation; to: 0 360 0; dur: 5000; loop: true; easing: linear"
-                  animation__pos="property: position; to: -4 1.8 -5; dur: 2000; dir: alternate; loop: true; easing: easeInOutSine"
-                  clickable-link="url: ../vaporwave/index.html"></a-gltf-model>
+    <a-entity position="2.5 0 -2.5" jitter="amount: 0.04">
+      <a-gltf-model src="#bacteria-model" scale="0.4 0.4 0.4"></a-gltf-model>
+      <a-box class="clickable" visible="false" position="0 1 0" scale="0.8 2 0.8" 
+             clickable-link="url: https://backrooms.fandom.com/wiki/Backrooms_Wiki"></a-box>
+    </a-entity>
+
+    <a-entity position="0 1.2 -4"
+              animation__rot="property: rotation; to: 0 360 0; dur: 5000; loop: true; easing: linear"
+              animation__pos="property: position; to: 0 1.5 -4; dur: 2000; dir: alternate; loop: true; easing: easeInOutSine">
+      <a-gltf-model src="#sculpture-model" position="0 0 0" scale="1.5 1.5 1.5"></a-gltf-model>
+      <a-box class="clickable" visible="false" position="0 0 0" scale="1 1.5 1" 
+             clickable-link="url: ../vaporwave/index.html"></a-box>
+    </a-entity>
 
 
-    <a-entity position="0 1.0 -12" shadow-watcher>
+    <a-entity position="-1 1.0 -12" shadow-watcher>
       <a-cylinder color="#050505" height="1.8" radius="0.3"></a-cylinder>
       <a-sphere color="#ff0000" radius="0.05" position="-0.1 0.7 0.25"></a-sphere>
       <a-sphere color="#ff0000" radius="0.05" position="0.1 0.7 0.25"></a-sphere>
