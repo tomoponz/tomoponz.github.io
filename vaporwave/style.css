@@ -1,49 +1,205 @@
 body {
   margin: 0;
   height: 100vh;
-  background: linear-gradient(135deg, #ff71ce, #01cdfe, #05ffa1, #b967ff);
-  background-size: 400% 400%;
-  animation: gradient 10s ease infinite;
-  font-family: 'MS UI Gothic', sans-serif;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  /* 紫と水色の鮮やかなグラデーション */
+  background: linear-gradient(to bottom, #010a26 0%, #ff71ce 50%, #01cdfe 100%);
+  font-family: 'MS UI Gothic', "ＭＳ Ｐゴシック", sans-serif;
   overflow: hidden;
+  color: #fff;
+  perspective: 800px; /* 3D空間の奥行き */
+  user-select: none;
 }
+
+/* レトロウェーブ風の太陽 */
+.sun {
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: linear-gradient(to bottom, #ffeb3b 0%, #ff007c 100%);
+  box-shadow: 0 0 80px #ff007c;
+  /* 太陽に入る横線のスリット */
+  -webkit-mask-image: repeating-linear-gradient(to bottom, #000 0%, #000 8%, transparent 8%, transparent 10%);
+  mask-image: repeating-linear-gradient(to bottom, #000 0%, #000 8%, transparent 8%, transparent 10%);
+  z-index: 1;
+}
+
+/* 3Dチェッカーボードの床 */
+.grid-container {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 40%;
+  overflow: hidden;
+  z-index: 2;
+}
+.grid {
+  position: absolute;
+  bottom: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  /* ピンクと水色のグリッド線 */
+  background-image: 
+    linear-gradient(#ff71ce 3px, transparent 3px),
+    linear-gradient(90deg, #01cdfe 3px, transparent 3px);
+  background-size: 60px 60px;
+  /* 床を寝かせる */
+  transform: rotateX(75deg);
+  transform-origin: top center;
+  animation: gridMove 2s linear infinite;
+  background-color: #000;
+}
+@keyframes gridMove {
+  0% { transform: rotateX(75deg) translateY(0); }
+  100% { transform: rotateX(75deg) translateY(60px); } /* background-sizeに合わせる */
+}
+
+/* ヤシの木 */
+.palm {
+  position: absolute;
+  bottom: 10%;
+  height: 65vh;
+  z-index: 3;
+  /* シルエットを水色・紫っぽく染める */
+  filter: drop-shadow(0 0 10px #ff71ce) hue-rotate(180deg) opacity(0.8);
+  pointer-events: none;
+}
+.palm-left { left: -5%; }
+.palm-right { right: -5%; transform: scaleX(-1); }
+
+/* ギリシャ彫刻 */
+.statue {
+  position: absolute;
+  bottom: 25%;
+  left: 50%;
+  margin-left: -150px;
+  width: 300px;
+  z-index: 4;
+  /* 像を青紫に染め、グリッチ風の影をつける */
+  filter: drop-shadow(10px 10px 0px rgba(1, 205, 254, 0.7)) drop-shadow(-10px -10px 0px rgba(255, 113, 206, 0.7)) contrast(1.2) grayscale(0.8) hue-rotate(200deg);
+  animation: floatStatue 6s ease-in-out infinite, rotateY 20s linear infinite;
+  mix-blend-mode: hard-light;
+  pointer-events: none;
+}
+@keyframes floatStatue {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-40px); }
+}
+@keyframes rotateY {
+  0% { transform: rotateY(0deg); }
+  100% { transform: rotateY(360deg); }
+}
+
+/* Windows 95風ウィンドウ */
 .window {
-  width: 400px;
+  position: absolute;
   background: #c0c0c0;
-  border: 2px solid #fff;
+  border: 2px solid #dfdfdf;
   border-right-color: #000;
   border-bottom-color: #000;
-  box-shadow: 10px 10px 0px rgba(0,0,0,0.3);
+  box-shadow: inset 1px 1px #fff, 10px 10px 0px rgba(0,0,0,0.5);
   z-index: 10;
+  color: #000;
 }
 .title-bar {
-  background: #000080;
+  background: linear-gradient(to right, #000080, #1084d0);
   color: white;
-  padding: 3px 5px;
+  padding: 4px 6px;
   display: flex;
   justify-content: space-between;
   font-weight: bold;
+  letter-spacing: 1px;
+  cursor: grab;
 }
-.close-btn { background: #c0c0c0; color: black; padding: 0 4px; border: 1px solid #fff; border-right-color: #000; border-bottom-color: #000; cursor: not-allowed; }
+.title-bar:active { cursor: grabbing; }
+.close-btn { 
+  background: #c0c0c0; color: black; padding: 0 5px; 
+  border: 1px solid #fff; border-right-color: #000; border-bottom-color: #000; 
+  cursor: pointer; font-family: sans-serif; font-size: 14px; font-weight: bold;
+}
+.close-btn:active { border-style: inset; }
 .content { padding: 20px; text-align: center; }
-.glitch { font-size: 3em; color: cyan; text-shadow: 3px 3px 0px magenta; margin: 0; }
-.statue { width: 100px; mix-blend-mode: multiply; margin: 15px 0; filter: hue-rotate(90deg); }
+
+/* 各ウィンドウの配置 */
+.main-window {
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 450px;
+}
+.error-window { width: 250px; }
+.error-1 { top: 20%; left: 10%; animation: floatWin 5s infinite; }
+.error-2 { bottom: 25%; right: 10%; animation: floatWin 7s infinite reverse; }
+
+@keyframes floatWin {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(1deg); }
+}
+
+/* ボタン共通 */
 .btn {
   display: inline-block;
-  padding: 5px 15px;
+  padding: 6px 20px;
   background: #c0c0c0;
   border: 2px solid #fff;
   border-right-color: #000; border-bottom-color: #000;
   color: black;
   text-decoration: none;
+  font-family: 'MS UI Gothic', sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
 }
-.btn:active { border-top-color: #000; border-left-color: #000; }
+.btn:active { border: 2px solid #000; border-right-color: #fff; border-bottom-color: #fff; }
+
+/* 音楽プレーヤー */
+.player {
+  margin: 15px 0;
+  padding: 15px;
+  border: 2px inset #dfdfdf;
+  background: #000;
+  color: #05ffa1;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+}
+.player span { display: block; margin-bottom: 10px; }
+
+/* グリッチテキスト（幻想郷） */
+.glitch { 
+  font-size: 3em; 
+  color: #01cdfe; 
+  text-shadow: 4px 4px 0px #ff71ce; 
+  margin: 0 0 15px 0; 
+  font-family: "ＭＳ Ｐ明朝", serif;
+  letter-spacing: 5px;
+}
+
+/* 意味が分からない日本語のマーキー */
+.vapor-text {
+  position: absolute;
+  top: 5%;
+  width: 100%;
+  font-size: 28px;
+  color: #05ffa1;
+  text-shadow: 2px 2px #000;
+  z-index: 20;
+  font-family: 'MS UI Gothic', sans-serif;
+  letter-spacing: 15px;
+  pointer-events: none;
+}
+
+/* VHSの走査線とノイズ */
 .vhs-glitch {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   background: repeating-linear-gradient(transparent, transparent 2px, rgba(0,0,0,0.1) 3px);
   pointer-events: none; z-index: 99;
 }
-@keyframes gradient { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+.scanlines {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  background-size: 100% 4px, 6px 100%;
+  pointer-events: none; z-index: 98;
+}
