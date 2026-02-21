@@ -3,158 +3,200 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Wake up.</title>
+  <title>RUN.</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   
   <svg style="width:0; height:0; position:absolute;">
-    <filter id="dream-warp">
-      <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="3" result="noise">
-        <animate attributeName="baseFrequency" values="0.015;0.025;0.015" dur="10s" repeatCount="indefinite" />
+    <filter id="horror-warp">
+      <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="5" seed="1">
+        <animate attributeName="baseFrequency" values="0.01;0.015;0.01" dur="5s" repeatCount="indefinite" />
       </feTurbulence>
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="30" xChannelSelector="R" yChannelSelector="G" />
+      <feDisplacementMap in="SourceGraphic" scale="40" />
     </filter>
   </svg>
 
-  <div class="sky warp-effect"></div>
-  <div class="ground warp-effect"></div>
-
-  <img src="../img/cloud.png" class="weird-cloud warp-effect" style="top: 10%; left: 10%; animation-duration: 40s;">
-  <img src="../img/cloud.png" class="weird-cloud warp-effect" style="top: 25%; left: 60%; animation-duration: 35s; transform: scale(1.5);">
-  <img src="../img/rainbow.png" class="weird-rainbow warp-effect" alt="Rainbow">
-
-  <div class="crazy-clock">
-    <div class="clock-face">
-      <div class="hand hour" id="crazy-hour"></div>
-      <div class="hand minute" id="crazy-minute"></div>
-      <div class="hand second" id="crazy-second"></div>
-      <div class="center-dot"></div>
+  <div class="world-container" id="world">
+    <div class="sky"></div>
+    <div class="ground"></div>
+    
+    <div class="scenery-overlay">
+      <img src="../img/cloud.png" class="dream-obj cloud-1">
+      <img src="../img/cloud.png" class="dream-obj cloud-2">
+      <img src="../img/rainbow.png" class="dream-obj rainbow-mirror">
     </div>
   </div>
 
-  <div class="crt-overlay"></div>
-  <div class="noise"></div>
+  <div class="vignette" id="vignette"></div>
+  <div class="grain"></div>
+  <div class="vhs-lines"></div>
 
-  <div class="center-message" id="main-text">Wake up.</div>
+  <div class="nightmare-clock">
+    <div class="clock-inner">
+      <div class="hand hour" id="h"></div>
+      <div class="hand min" id="m"></div>
+      <div class="hand sec" id="s"></div>
+    </div>
+  </div>
 
-  <div id="text-container"></div>
-  <div id="dummy-btn-container"></div>
+  <div class="main-title" id="text-primary">Wake up.</div>
 
-  <div class="eye-container" style="top: 20%; left: 15%;"><div class="eye"><div class="pupil"></div></div></div>
-  <div class="eye-container" style="top: 15%; right: 20%; transform: scale(0.8);"><div class="eye"><div class="pupil"></div></div></div>
-  <div class="eye-container" style="top: 60%; left: 80%; transform: scale(1.5);"><div class="eye"><div class="pupil"></div></div></div>
-  <div class="eye-container" style="bottom: 25%; left: 25%; transform: scale(1.2);"><div class="eye"><div class="pupil"></div></div></div>
+  <div id="click-chaos-container"></div>
+  <div id="button-hell"></div>
 
-  <div class="flash-bang" id="flash">WAKE UP!</div>
+  <a href="../aero/index.html" class="the-exit" id="real-exit">I want to wake up.</a>
 
-  <a href="../aero/index.html" class="escape-btn real-btn" id="escape-btn">I want to wake up.</a>
+  <div id="entity" class="glitch-entity">
+    <div class="entity-core"></div>
+    <div class="entity-aura"></div>
+    <div class="eye"><div class="pupil" style="background: red; box-shadow: 0 0 20px yellow;"></div></div>
+  </div>
+
+  <div class="game-over-screen" id="game-over">
+    <h1>YOU WERE CAUGHT.</h1>
+    <p>Returning to Level 0...</p>
+  </div>
 
   <script>
-    // 1. 目玉の追従
-    document.addEventListener('mousemove', (e) => {
-      const eyes = document.querySelectorAll('.eye');
-      eyes.forEach(eye => {
-        const rect = eye.getBoundingClientRect();
-        const x = rect.left + rect.width / 2;
-        const y = rect.top + rect.height / 2;
-        const rad = Math.atan2(e.clientX - x, e.clientY - y);
-        const rot = (rad * (180 / Math.PI) * -1) + 180;
-        eye.style.transform = `rotate(${rot}deg)`;
-      });
-    });
-
-    // 2. 狂った時計の逆回転アニメーション
-    let crazyAngle = 0;
+    // --- 1. 時計の狂った回転 ---
+    let ang = 0;
     setInterval(() => {
-      crazyAngle -= 15; // 超高速で逆回転
-      document.getElementById('crazy-second').style.transform = `translateX(-50%) rotate(${crazyAngle}deg)`;
-      document.getElementById('crazy-minute').style.transform = `translateX(-50%) rotate(${crazyAngle / 12}deg)`;
-      document.getElementById('crazy-hour').style.transform = `translateX(-50%) rotate(${crazyAngle / 60}deg)`;
-    }, 50);
+      ang -= 20;
+      document.getElementById('s').style.transform = `translateX(-50%) rotate(${ang}deg)`;
+      document.getElementById('m').style.transform = `translateX(-50%) rotate(${ang/12}deg)`;
+      document.getElementById('h').style.transform = `translateX(-50%) rotate(${ang/60}deg)`;
+    }, 40);
 
-    // 3. 画面クリック時の狂気ギミック
-    const textContainer = document.getElementById('text-container');
-    const flash = document.getElementById('flash');
-    const mainText = document.getElementById('main-text');
-    const messages = ["Wake up.", "You are dreaming.", "No escape.", "IT HURTS", "Is this real?", "Look behind you."];
-    const colors = ['#ff0000', '#ffff00', '#00ff00', '#ff00ff', '#00ffff'];
-
-    document.addEventListener('click', (e) => {
-      if(e.target.id === 'escape-btn') return;
-
-      flash.style.opacity = 1;
-      setTimeout(() => { flash.style.opacity = 0; }, 50);
-
-      const span = document.createElement('div');
-      span.className = 'floating-text';
-      span.innerText = messages[Math.floor(Math.random() * messages.length)];
-      span.style.left = e.clientX + 'px';
-      span.style.top = e.clientY + 'px';
-      span.style.color = colors[Math.floor(Math.random() * colors.length)];
-      span.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 40 - 20}deg) scale(${Math.random() * 2 + 0.5})`;
-      textContainer.appendChild(span);
-
-      mainText.style.letterSpacing = (Math.random() * 40) + 'px';
-      mainText.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 20 - 10}deg) scale(${Math.random() * 0.8 + 1})`;
-    });
-
-    // 4. ★ 理論値レベルの鬼畜ボタンギミック ★
-    const escapeBtn = document.getElementById('escape-btn');
-    const dummyContainer = document.getElementById('dummy-btn-container');
+    // --- 2. 理論値脱出ボタン ---
+    const exit = document.getElementById('real-exit');
+    const hell = document.getElementById('button-hell');
     
-    // マウスが乗った瞬間にテレポートする
-    escapeBtn.addEventListener('mouseenter', function() {
-      // 98%の確率で容赦なく逃げる（残り2%は一瞬だけ留まる隙ができる）
-      if (Math.random() < 0.98) {
-        teleportButton(this);
-      } else {
-        // 運良く逃げなかった場合も、0.3秒後には逃げる
-        setTimeout(() => { teleportButton(this); }, 300);
-      }
+    exit.addEventListener('mouseenter', function() {
+      if (Math.random() < 0.98) teleport(this);
     });
 
-    // クリックしようとしてマウスを動かしただけでも逃げる（極悪）
-    escapeBtn.addEventListener('mousemove', function() {
-      if (Math.random() < 0.3) teleportButton(this);
-    });
-
-    function teleportButton(btn) {
-      // 現在の位置を記憶して、そこにダミーを残す
-      const currentRect = btn.getBoundingClientRect();
-      createDummy(currentRect.left, currentRect.top);
-
-      // 新しい座標を計算（画面外に出ないように）
-      const maxX = window.innerWidth - btn.offsetWidth - 20;
-      const maxY = window.innerHeight - btn.offsetHeight - 20;
-      const newX = Math.max(20, Math.random() * maxX);
-      const newY = Math.max(20, Math.random() * maxY);
-      
-      btn.style.position = 'absolute';
-      btn.style.left = newX + 'px';
-      btn.style.top = newY + 'px';
-      // 中央揃えの transform を解除して、不規則な回転を加える
-      btn.style.transform = `rotate(${Math.random() * 30 - 15}deg) scale(${Math.random() * 0.4 + 0.6})`;
-    }
-
-    // 偽物の出口（ダミーボタン）を生成する関数
-    function createDummy(x, y) {
+    function teleport(btn) {
       const dummy = document.createElement('div');
-      dummy.className = 'escape-btn dummy-btn';
+      dummy.className = 'the-exit dummy';
       dummy.innerText = "I want to wake up.";
-      dummy.style.position = 'absolute';
-      dummy.style.left = x + 'px';
-      dummy.style.top = y + 'px';
-      // ダミーは押せない。押すと文字が変わる
-      dummy.onclick = function() {
-        this.innerText = "Fake.";
-        this.style.background = "#000";
-        this.style.color = "red";
-        this.style.textDecoration = "line-through";
-        this.style.pointerEvents = "none";
-      };
-      dummyContainer.appendChild(dummy);
+      dummy.style.left = btn.style.left || '50%';
+      dummy.style.top = btn.style.top || '80%';
+      hell.appendChild(dummy);
+
+      const x = Math.random() * (window.innerWidth - 200);
+      const y = Math.random() * (window.innerHeight - 100);
+      btn.style.left = x + 'px';
+      btn.style.top = y + 'px';
+      btn.style.position = 'fixed';
+      btn.style.transform = 'none';
     }
+
+    // --- 3. 追跡者 (Glitch Entity) のロジック ---
+    const entity = document.getElementById('entity');
+    const world = document.getElementById('world');
+    const vignette = document.getElementById('vignette');
+    const mainText = document.getElementById('text-primary');
+    
+    // カーソルの位置（初期値は画面中央）
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    // 怪物の位置（初期値は画面外からスタート）
+    let entityX = -200;
+    let entityY = -200;
+    // 怪物の移動速度
+    let speed = 2.5; 
+    let isGameOver = false;
+
+    // マウス座標の更新
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    // タッチデバイス（スマホ）用
+    document.addEventListener('touchmove', (e) => {
+      mouseX = e.touches[0].clientX;
+      mouseY = e.touches[0].clientY;
+    }, {passive: true});
+
+    function updateEntity() {
+      if (isGameOver) return;
+
+      // 怪物がカーソルに向かって移動する計算
+      const dx = mouseX - entityX;
+      const dy = mouseY - entityY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance > 0) {
+        entityX += (dx / distance) * speed;
+        entityY += (dy / distance) * speed;
+      }
+
+      // 怪物の位置を更新
+      entity.style.left = entityX + 'px';
+      entity.style.top = entityY + 'px';
+
+      // --- 距離に応じた恐怖演出の強化 ---
+      // 距離が近いほど、画面の歪み、暗さ、テキストの揺れが激しくなる
+      const dangerLevel = Math.max(0, 1 - (distance / 500)); // 0(安全) 〜 1(激ヤバ)
+
+      // 背景の赤黒さ
+      vignette.style.background = `radial-gradient(circle, transparent ${20 - dangerLevel * 20}%, rgba(${dangerLevel * 150},0,0,0.9) 100%)`;
+      
+      // 世界のノイズ強化
+      world.style.filter = `url(#horror-warp) contrast(${1.2 + dangerLevel}) saturate(${1.5 + dangerLevel * 2}) hue-rotate(${dangerLevel * 90}deg)`;
+
+      // メインテキストのパニック度
+      mainText.style.letterSpacing = (dangerLevel * 50) + 'px';
+      mainText.style.transform = `translate(-50%, -50%) scale(${1 + dangerLevel * 0.5}) skew(${dangerLevel * 20}deg)`;
+      
+      // 目玉をカーソルに向ける
+      const eye = entity.querySelector('.eye');
+      const rad = Math.atan2(mouseX - entityX, mouseY - entityY);
+      const rot = (rad * (180 / Math.PI) * -1) + 180;
+      eye.style.transform = `rotate(${rot}deg)`;
+
+      // --- 捕獲判定 ---
+      // 怪物の中心（コア）にカーソルが触れたらゲームオーバー
+      if (distance < 30) {
+        gameOver();
+      } else {
+        // 時間経過で少しずつ怪物がスピードアップする（最大速度あり）
+        if (speed < 7) speed += 0.001; 
+        requestAnimationFrame(updateEntity);
+      }
+    }
+
+    function gameOver() {
+      isGameOver = true;
+      document.getElementById('game-over').style.opacity = 1;
+      document.body.style.cursor = 'none'; // カーソルを消す絶望感
+      
+      // 少し待ってから Backrooms(Level 0) に強制送還
+      setTimeout(() => {
+        window.location.href = '../liminal/index.html';
+      }, 3000);
+    }
+
+    // 追跡開始
+    requestAnimationFrame(updateEntity);
+
+    // クリック時の発火（邪魔な文字を出す）
+    document.addEventListener('click', (e) => {
+      if(e.target.id === 'real-exit' || isGameOver) return;
+      
+      const txt = document.createElement('div');
+      txt.className = 'pop-text';
+      txt.innerText = "RUN";
+      txt.style.left = e.clientX + 'px';
+      txt.style.top = e.clientY + 'px';
+      document.getElementById('click-chaos-container').appendChild(txt);
+      
+      document.body.style.animation = 'shake 0.1s infinite';
+      setTimeout(() => { document.body.style.animation = ''; }, 200);
+    });
+
   </script>
 </body>
 </html>
