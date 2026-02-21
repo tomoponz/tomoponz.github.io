@@ -2,23 +2,114 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Ｖ Ｉ Ｒ Ｔ Ｕ Ａ Ｌ</title>
+  <title>Ｖ Ｉ Ｒ Ｔ Ｕ Ａ Ｌ　Ｐ Ｌ Ａ Ｚ Ａ</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="sun"></div>
+  <div class="grid-container">
+    <div class="grid"></div>
+  </div>
+
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Silhouette_of_palm_trees.png/800px-Silhouette_of_palm_trees.png" class="palm palm-left" alt="palm">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Silhouette_of_palm_trees.png/800px-Silhouette_of_palm_trees.png" class="palm palm-right" alt="palm">
+
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Bust_of_Aphrodite.jpg/400px-Bust_of_Aphrodite.jpg" class="statue" alt="statue">
+
   <div class="vhs-glitch"></div>
-  <div class="window">
+  <div class="scanlines"></div>
+
+  <marquee class="vapor-text" scrollamount="12">プラザへようこそ　//　消費社会の終焉　//　私たちは皆、仮想空間に生きている　//　ＭＡＣＩＮＴＯＳＨ　ＰＬＵＳ　//　すべてはシミュレーションです　//　ノスタルジーの喪失　//　あなたの心はアップロードされました</marquee>
+
+  <div class="window main-window">
     <div class="title-bar">
-      <span>ERROR.exe</span>
-      <span class="close-btn">X</span>
+      <span>ＭＡＣＩＮＴＯＳＨ　ＰＬＵＳ.exe</span>
+      <span class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">X</span>
     </div>
     <div class="content">
       <h1 class="glitch" data-text="幻 想 郷">幻 想 郷</h1>
-      <p>何も感じない。<br>すべてはシミュレーションです。</p>
-      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Bust_of_Aphrodite.jpg/200px-Bust_of_Aphrodite.jpg" alt="statue" class="statue">
+      <p>何も感じない。<br>未来は過去の中にあります。</p>
+      
+      <div class="player">
+        <span>▶ ＰＬＡＹＩＮＧ :  リサフランク420 / 現代のコンピュー</span>
+        <button id="play-btn" class="btn" style="background:#000; color:#05ffa1; border-color:#05ffa1;">再生 / ＰＬＡＹ</button>
+      </div>
+      
       <br>
-      <a href="../index.html" class="btn">R E T U R N</a>
+      <a href="../index.html" class="btn">Ｒ Ｅ Ｔ Ｕ Ｒ Ｎ</a>
     </div>
   </div>
+
+  <div class="window error-window error-1">
+    <div class="title-bar"><span>警告</span><span class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">X</span></div>
+    <div class="content">
+      <p style="margin-top: 0; font-weight: bold;">魂の接続が切れました。</p>
+      <button class="btn" onclick="this.parentElement.parentElement.style.display='none'">Ｏ Ｋ</button>
+    </div>
+  </div>
+
+  <div class="window error-window error-2">
+    <div class="title-bar"><span>System Error</span><span class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">X</span></div>
+    <div class="content">
+      <img src="https://media.giphy.com/media/xT9IgzoVuwqr8UzO1i/giphy.gif" width="100%" alt="anime gif" style="border: 2px inset #dfdfdf;">
+      <p style="font-size: 12px;">感情のロードに失敗しました</p>
+    </div>
+  </div>
+
+  <audio id="vapor-audio" src="../assets/sfx/umahii.mp3" loop></audio>
+
+  <script>
+    // 再生ボタンの処理
+    document.getElementById('play-btn').addEventListener('click', function() {
+      const audio = document.getElementById('vapor-audio');
+      // 少しピッチを下げて（スローダウンして）Vaporwave感を出す
+      audio.playbackRate = 0.85; 
+      
+      if(audio.paused) {
+        audio.play().catch(()=>{});
+        this.innerText = '停止 / ＳＴＯＰ';
+      } else {
+        audio.pause();
+        this.innerText = '再生 / ＰＬＡＹ';
+      }
+    });
+
+    // ウィンドウをドラッグ可能にする簡易スクリプト
+    const windows = document.querySelectorAll('.window');
+    let isDragging = false;
+    let currentWindow = null;
+    let offsetX, offsetY;
+
+    windows.forEach(win => {
+      const titleBar = win.querySelector('.title-bar');
+      titleBar.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        currentWindow = win;
+        // 最前面に出す
+        windows.forEach(w => w.style.zIndex = 10);
+        win.style.zIndex = 20;
+        
+        const rect = win.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+        // アニメーションを解除して固定位置へ
+        win.style.animation = 'none';
+        win.style.transform = 'none';
+        win.style.left = rect.left + 'px';
+        win.style.top = rect.top + 'px';
+      });
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging || !currentWindow) return;
+      currentWindow.style.left = (e.clientX - offsetX) + 'px';
+      currentWindow.style.top = (e.clientY - offsetY) + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
+      currentWindow = null;
+    });
+  </script>
 </body>
 </html>
