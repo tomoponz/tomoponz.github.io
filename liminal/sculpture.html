@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="theme-color" content="#000000">
+  <title>彫刻｜AR / VR</title>
+
+  <!-- model-viewer (AR / 3D viewer) -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
+  <style>
+    html,body{height:100%; margin:0; background:#000; overflow:hidden;}
+    .topbar{
+      position:fixed; left:0; right:0; top:0; z-index:10;
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      padding:12px 14px;
+      background: rgba(0,0,0,.35);
+      border-bottom:1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans JP",sans-serif;
+      color:#fff;
+    }
+    .btn{border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06); color:#fff; padding:8px 10px; border-radius:12px; font-weight:700;}
+    .btn:active{transform:scale(.98)}
+    .hint{opacity:.8; font-size:12px;}
+
+    model-viewer{
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(1200px 600px at 50% 20%, rgba(255,255,255,.10), rgba(0,0,0,1) 60%);
+    }
+
+    /* model-viewer の AR ボタンを分かりやすく */
+    model-viewer::part(default-progress-bar){ display:none; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div style="display:flex; gap:10px; align-items:center;">
+      <button class="btn" id="btnBack" type="button">← 戻る</button>
+      <div>
+        <div style="font-weight:900; letter-spacing:.3px;">彫刻</div>
+        <div class="hint">ARは端末対応時に「AR」ボタンが出る</div>
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <button class="btn" id="btnFull" type="button">全画面</button>
+    </div>
+  </div>
+
+  <model-viewer
+    id="mv"
+    src="../assets/models/sculpture_bust_of_roza_loewenfeld.glb"
+    alt="sculpture"
+    camera-controls
+    auto-rotate
+    rotation-per-second="18deg"
+    exposure="0.95"
+    shadow-intensity="0.6"
+    ar
+    ar-modes="webxr scene-viewer quick-look"
+    ar-scale="auto"
+    interaction-prompt="auto"
+  ></model-viewer>
+
+  <script>
+    // iframe(=shell)内だとAR/VRが制限される場合があるので、必要なら単体で開く
+    (function(){
+      try{
+        const sp = new URLSearchParams(location.search);
+        if(sp.get('embed') === '1'){
+          sp.delete('embed');
+          const url = location.pathname + (sp.toString() ? ('?'+sp.toString()) : '') + location.hash;
+          // same-origin ならトップへ
+          if(window.top && window.top !== window){
+            window.top.location.href = url;
+          }else{
+            location.href = url;
+          }
+        }
+      }catch(_){ }
+    })();
+
+    const mv = document.getElementById('mv');
+    document.getElementById('btnBack').addEventListener('click', ()=>{
+      // shellが居れば戻す / 居なければ liminal へ
+      try{
+        if(window.parent && window.parent !== window && window.parent.postMessage){
+          window.parent.postMessage({type:'NAV', href:'liminal/index.html'}, location.origin);
+          return;
+        }
+      }catch(_){ }
+      location.href = './index.html';
+    });
+
+    document.getElementById('btnFull').addEventListener('click', async ()=>{
+      try{
+        const el = document.documentElement;
+        if(document.fullscreenElement){
+          await document.exitFullscreen();
+        }else{
+          await el.requestFullscreen();
+        }
+      }catch(_){ }
+    });
+
+    // ?ar=1 のときは、ユーザーが次に押すべきボタンを目立たせる
+    (function(){
+      const sp = new URLSearchParams(location.search);
+      if(sp.get('ar') === '1'){
+        // model-viewer の AR ボタンは shadow DOM にあり直接クリックできないので誘導だけ
+        setTimeout(()=>{
+          try{ mv.focus(); }catch(_){ }
+        }, 200);
+      }
+    })();
+  </script>
+</body>
+</html>
