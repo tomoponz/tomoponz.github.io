@@ -10,6 +10,7 @@
   
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="../assets/js/fps-player.js"></script>
+  <script src="../assets/js/aframe-gltf-scatter.js?v=20260222"></script>
   <script defer src="../assets/js/security-lite.js?v=20260222"></script>
   
   <link rel="stylesheet" href="style.css">
@@ -136,7 +137,52 @@
         this.el.addEventListener('mouseleave', () => { document.querySelector('a-cursor').setAttribute('color', '#ff0000'); });
       }
     });
-  </script>
+  
+
+// 6. 近づくと鳴るループ音（お経など）
+AFRAME.registerComponent('proximity-loop-sound', {
+  schema: {
+    audioId: {type: 'string', default: 'audio-okyou'},
+    target: {type: 'selector', default: '#rig'},
+    radius: {type: 'number', default: 10},
+    boost: {type: 'number', default: 2.2}
+  },
+  init: function () {
+    this.audio = document.getElementById(this.data.audioId);
+    this.playing = false;
+    this._vT = new THREE.Vector3();
+    this._vS = new THREE.Vector3();
+    if (this.audio) {
+      this.audio.volume = 0;
+      this.audio.dataset.basevol = '1';
+    }
+  },
+  tick: function () {
+    if (!this.audio || !window.audioUnlocked) return;
+    var target = this.data.target;
+    if (!target) return;
+    target.object3D.getWorldPosition(this._vT);
+    this.el.object3D.getWorldPosition(this._vS);
+    var dist = this._vT.distanceTo(this._vS);
+
+    var master = (window.__fpsSettings && typeof window.__fpsSettings__.volume === 'number') ? window.__fpsSettings__.volume : 1;
+    var k = Math.max(0, Math.min(1, (this.data.radius - dist) / (this.data.radius * 0.6)));
+    var v = Math.min(1, k) * master;
+
+    this.audio.volume = v;
+
+    if (v > 0.01) {
+      if (!this.playing) {
+        if (window.__boostAudio) { try { window.__boostAudio(this.audio, this.data.boost); } catch(e){} }
+        this.audio.play().catch(()=>{});
+        this.playing = true;
+      }
+    } else {
+      if (this.playing) { this.audio.pause(); this.playing = false; }
+    }
+  }
+});
+</script>
 </head>
 <body>
 
@@ -165,6 +211,7 @@
 
   <audio id="audio-buzz" src="../assets/sfx/backrooms-buzzing-sound-effect.mp3" loop></audio>
   <audio id="audio-daisy" src="../assets/sfx/daisy-bell.mp3"></audio>
+  <audio id="audio-okyou" src="../assets/sfx/2okyou.wav" loop></audio>
   <audio id="audio-footstep" src="../assets/sfx/walking%20on%20the%20carpet.mp3" loop></audio>
 
   <a-scene fog="type: exponential; color: #d1c7a3; density: 0.1">
@@ -189,9 +236,9 @@
 
     
 
-    <!-- 警戒標識セット（warning_signs_set.glb） -->
-    <a-entity id="warning-signs" position="-2 0 -7" rotation="0 30 0" scale="0.35 0.35 0.35">
-      <a-gltf-model src="#warning-signs-model"></a-gltf-model>
+    <!-- 警戒標識セット（warning_signs_set.glb）：標識ごとにばらして密集配置 -->
+    <a-entity id="warning-signs" position="-2 0 -7" rotation="0 30 0" scale="0.15 0.15 0.15"
+              scatter-gltf-children="src:#warning-signs-model; spread:1.05" proximity-loop-sound="radius: 9.5">
     </a-entity>
     <a-entity position="2.5 0 -2.5" jitter="amount: 0.04">
       <a-gltf-model src="#bacteria-model" scale="0.4 0.4 0.4"></a-gltf-model>
@@ -237,12 +284,13 @@
       }, 1000);
       const buzz = document.getElementById("audio-buzz");
       const daisy = document.getElementById("audio-daisy");
+      const okyou = document.getElementById("audio-okyou");
       const footstep = document.getElementById("audio-footstep");
       const daisyBtn = document.getElementById("daisy-btn");
-      buzz.volume = 0.3; daisy.volume = 0.8; footstep.volume = 0.6; 
+      buzz.volume = 0.3; daisy.volume = 0.8; footstep.volume = 0.6; if(okyou){ okyou.volume = 0.0; } 
 
       // ★ master volume スライダーで相対関係を保てるように basevol を保存
-      [buzz, daisy, footstep].forEach(a => { if (a && !a.dataset.basevol) a.dataset.basevol = String(a.volume); });
+      [buzz, daisy, footstep, okyou].filter(Boolean).forEach(a => { if (a && !a.dataset.basevol) a.dataset.basevol = String(a.volume); });
 
       const startAmbiance = () => {
         if (window.audioUnlocked) return; window.audioUnlocked = true;
