@@ -7,9 +7,9 @@
   <meta name="description" content="ミニゲーム置き場">
 
   <link rel="stylesheet" href="style.css?v=20260222">
-  <script defer src="quotes_base.js?v=20260220"></script>
-  <script defer src="user_quotes.js?v=20260220"></script>
-  <script defer src="app.js?v=20260220"></script>
+  <script defer src="quotes_base.js?v=20260222"></script>
+  <script defer src="user_quotes.js?v=20260222"></script>
+  <script defer src="app.js?v=20260222"></script>
 </head>
 
 <body>
@@ -31,12 +31,12 @@
       <a class="chip" href="games.html">ゲーム</a>
       <a class="chip" href="door.html">ドア</a>
       <a class="chip" href="hachi.html">八百科事典</a>
-      
+
       <div class="nav-search">
         <input type="search" id="searchInput" placeholder="検索キーワードを入力してください" autocomplete="off">
         <button id="searchBtn">検索</button>
       </div>
-      </nav>
+    </nav>
   </header>
 
   <main class="wrap">
@@ -54,6 +54,7 @@
         <h2>ミニゲーム一覧</h2>
         <ul class="list">
           <li><a class="btn" href="minigames.html">マインスイーパー / 2048</a></li>
+          <li><a class="btn" href="tetris.html">テトリス</a></li>
           <li><a class="btn" href="door.html">ドア（ワープ演出）</a></li>
           <li><a class="btn" href="omikuji.html">おみくじ</a></li>
           <li><a class="btn" href="shindan.html">診断</a></li>
@@ -67,6 +68,47 @@
         <div class="note" id="quote">（ここに一言が出る）</div>
         <hr class="sep">
         <p class="muted">※ワープ演出は <code>door.html / warp.html</code>（<code>portal.js</code>）側。</p>
+      </div>
+    </section>
+
+    <section class="grid2" style="margin-top:12px">
+      <div class="card">
+        <h2>おすすめフリーゲーム（ネタ）</h2>
+        <ul class="list">
+          <li>
+            <a class="btn" href="https://games.kaedeee.com/ja/home-jp/" target="_blank" rel="noopener noreferrer">
+              Kaede Games（公式）
+            </a>
+            <div class="muted">ブラウザで遊べる系がまとまってる。</div>
+          </li>
+          <li>
+            <a class="btn" href="https://www.freem.ne.jp/brand/10031" target="_blank" rel="noopener noreferrer">
+              ぬか漬けパリピマン（公開中一覧）
+            </a>
+            <div class="muted">作品一覧ページ（freem）。</div>
+          </li>
+          <li>
+            <a class="btn" href="https://game16.net/burage/act/cat-mario/" target="_blank" rel="noopener noreferrer">
+              しょぼんのアクション（PC版）
+            </a>
+            <div class="muted">理不尽で有名なやつ。</div>
+          </li>
+          <li>
+            <a class="btn" href="https://game16.net/burage/act/homerun/" target="_blank" rel="noopener noreferrer">
+              くまのプーさんのホームランダービー（復活ブラウザ版）
+            </a>
+            <div class="muted">例の…。</div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>注意</h2>
+        <ul class="list">
+          <li>外部サイトに飛ぶリンクは、新しいタブで開く。</li>
+          <li>リンク先の安全性・広告表示などは、こちらでは管理できない。</li>
+          <li>怪しい挙動が出たら、閉じる。それだけ。</li>
+        </ul>
       </div>
     </section>
 
