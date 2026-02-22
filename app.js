@@ -859,6 +859,33 @@ function resolveOmikujiItem(item){
       const vol = volAttr != null ? Number(volAttr) : undefined;
       playSfx(key, (typeof vol === "number" && isFinite(vol)) ? vol : undefined);
 
+      // shell.html では shell.js が iframe 遷移を担当するため、
+      // ここで location.href への遷移予約（delay遷移）をしない（※二重読み込み/挙動崩れ防止）
+      if(__IS_SHELL){
+        // shell.js がすでに処理しているなら二重実行しない
+        if(e.defaultPrevented) return;
+
+        // shell.js が居るなら即 iframe 遷移（音は親に残るので待たない）
+        if(typeof window.__shellSetFrame === "function" && isLink && a){
+          // 修飾キー/別タブ/target は尊重（音だけ鳴らして通常動作）
+          if(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+          if(a.target && a.target.toLowerCase() !== "_self") return;
+          let u;
+          try{ u = new URL(a.getAttribute("href"), location.href); }catch(_){ return; }
+          if(u.origin !== location.origin) return;
+
+          e.preventDefault();
+          try{ e.stopImmediatePropagation(); }catch(_){ }
+          window.__shellSetFrame(u.href, true);
+          return;
+        }
+        // shell.js が無い/壊れている場合は通常遷移（delayなし）
+        return;
+      }
+
+      // すでに他のハンドラ（shell.js等）が preventDefault 済みなら、ここでは遷移予約しない
+      if(e.defaultPrevented) return;
+
       // 遷移遅延：リンクだけ
       if(!isLink || !a) return;
 
