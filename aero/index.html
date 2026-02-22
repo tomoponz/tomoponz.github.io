@@ -112,11 +112,14 @@
         <div class="visualizer-bar" style="left: 30%; animation-delay: 0.1s;"></div><div class="visualizer-bar" style="left: 40%; animation-delay: 0.3s;"></div><div class="visualizer-bar" style="left: 50%; animation-delay: 0.2s;"></div><div class="visualizer-bar" style="left: 60%; animation-delay: 0.5s;"></div><div class="visualizer-bar" style="left: 70%; animation-delay: 0.4s;"></div>
       </div>
       <div style="padding: 15px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(to bottom, #333, #111);">
-        <div><h4 style="margin: 0; font-size: 14px; color: #55e6ff;">Aquatic Ambience.mp3</h4><span style="font-size: 11px; color: #aaa;">Frutiger Aero Soundtrack</span></div>
+        <div><h4 style="margin: 0; font-size: 14px; color: #55e6ff;">Uiiissudo-mosyamude-su.mp3</h4><span style="font-size: 11px; color: #aaa;">Frutiger Aero Soundtrack</span></div>
         <div style="display: flex; gap: 10px;"><button class="player-btn">⏮</button><button class="player-btn" id="wmpPlayBtn" data-sfx="aeroPlay" data-sfx-volume="1" style="transform: scale(1.2);">▶</button><button class="player-btn">⏭</button></div>
       </div>
     </div>
   </div>
+
+  <audio id="aeroTrack" src="../assets/sfx/nc123011_uiiissudo-mosyamude-su.mp3" preload="auto" loop></audio>
+
 
   <div class="aero-window" id="notepad-win-1" style="display: none; width: 400px; height: 300px;" onmousedown="bringToFront('notepad-win-1')">
     <div class="glass-highlight"></div>
@@ -266,6 +269,65 @@ Root: Wake_Up_Now</textarea>
       document.getElementById('trash-contents').innerHTML = '<p style="color:#888; font-size:12px; margin-top:20px;">ごみ箱は空です</p>';
       document.getElementById('desktop-trash-icon').style.opacity = '0.5'; // デスクトップのアイコンを薄くする（空の表現）
     }
+
+    // ===== Media Player (実再生) =====
+    (function initAeroPlayer(){
+      const btn = document.getElementById("wmpPlayBtn");
+      const audio = document.getElementById("aeroTrack");
+      if(!btn || !audio) return;
+
+      // 音声ON/OFF（サイト共通）に追従
+      function apply(){
+        const on = (typeof window.getAudioEnabled === "function") ? window.getAudioEnabled() : true;
+        audio.muted = !on;
+        if(!on){ try{ audio.pause(); }catch(_){} }
+        sync();
+      }
+      function sync(){
+        btn.textContent = (!audio.paused && !audio.ended) ? "⏸" : "▶";
+      }
+
+      // 初期反映
+      apply();
+
+      btn.addEventListener("click", ()=>{
+        const on = (typeof window.getAudioEnabled === "function") ? window.getAudioEnabled() : true;
+        if(!on){ sync(); return; }
+
+        if(audio.paused){
+          audio.play().catch(()=>{});
+        }else{
+          audio.pause();
+        }
+        sync();
+      });
+
+      audio.addEventListener("play", sync);
+      audio.addEventListener("pause", sync);
+      audio.addEventListener("ended", sync);
+
+      // shell(親)からの切替通知
+      window.addEventListener("message", (ev)=>{
+        const d = ev && ev.data;
+        if(!d || d.type !== "AUDIO") return;
+        audio.muted = !d.enabled;
+        if(!d.enabled){ try{ audio.pause(); }catch(_){} }
+        sync();
+      });
+
+      window.addEventListener("storage", (ev)=>{
+        if(ev && ev.key === "audio_enabled") apply();
+      });
+
+      // タブを離れたら停止（スマホの暴走防止）
+      document.addEventListener("visibilitychange", ()=>{
+        if(document.hidden){
+          try{ audio.pause(); }catch(_){}
+          sync();
+        }
+      });
+    })();
+
 
     // ★ 初期状態：Aero Explorer と Media Player を中央に開く ★
     window.onload = () => {
