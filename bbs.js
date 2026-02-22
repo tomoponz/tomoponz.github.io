@@ -4,7 +4,7 @@
 // - POST: {name, message} を送信
 //
 // ★GAS URL（あなたのWebアプリURL）
-const GAS_URL = (window.BBS_GAS_URL) || "https://script.google.com/macros/s/AKfycbyBblZxfER3Lb_Pyak9fD863qM0sJFqrWljra9RkfYHxyno18fkU9gySKcravrDxtqu/exec";
+const GAS_URL = (window.BBS_GAS_URL) || "https://script.google.com/macros/s/AKfycbyxfazD2J8CkfQ0eVrS_qYBzuePrXddWELHRNSagdySKmzDPStpyCuAN155csAiKhFu/exec";
 
 (function(){
   "use strict";
