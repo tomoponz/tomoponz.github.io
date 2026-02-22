@@ -207,6 +207,34 @@
   <a href="../index.html" class="return-btn" id="return-btn">現 実 へ 帰 還</a>
 
   <script>
+    function postToShell(msg){
+      try{
+        if(window.parent && window.parent !== window){
+          window.parent.postMessage(msg, location.origin);
+        }
+      }catch(_){ }
+    }
+
+    // 没入：shellのメニューを隠す
+    postToShell({type:"IMMERSION", active:true});
+
+    // achievements：vaporwaveページ訪問を記録（localStorageのみ）
+    (function(){
+      const K="tomoponz_ach_v1";
+      try{
+        const raw=localStorage.getItem(K);
+        const s=raw?JSON.parse(raw):{v:1,pages:{},counters:{},unlocked:{}};
+        s.pages=s.pages&&typeof s.pages==="object"?s.pages:{};
+        s.counters=s.counters&&typeof s.counters==="object"?s.counters:{};
+        s.unlocked=s.unlocked&&typeof s.unlocked==="object"?s.unlocked:{};
+        s.pages["vaporwave/eva.html"]=true;
+        s.counters.visits=(Number(s.counters.visits)||0)+1;
+        localStorage.setItem(K, JSON.stringify(s));
+      }catch(_){ }
+    })();
+
+    window.addEventListener('beforeunload', ()=>{ postToShell({type:"IMMERSION", active:false}); });
+
     function startEnding() {
       const startScreen = document.getElementById('start-screen');
       startScreen.style.opacity = '0';
@@ -231,6 +259,22 @@
 
       document.getElementById('return-btn').style.opacity = '1';
     }
+  
+
+    // 現実への帰還：shell(iframe) のときは親に遷移を委譲（URL同期）
+    (function(){
+      const btn = document.getElementById("return-btn");
+      if(!btn) return;
+      btn.addEventListener("click", (e)=>{
+        try{
+          if(window.parent && window.parent !== window){
+            e.preventDefault();
+            postToShell({type:"NAV", href: new URL("../index.html", location.href).href});
+          }
+        }catch(_){ }
+      });
+    })();
+
   </script>
 </body>
 </html>
