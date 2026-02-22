@@ -1,5 +1,5 @@
-// bbs.js（画像投稿 確実版）
-// ★接続先は Worker URL にする
+// bbs.js（画像投稿：確実版 + 状態表示）
+// 接続先：Cloudflare Worker
 const API_URL = "https://tomoponz-bbs-proxy.yuto181130.workers.dev";
 
 function $(id){ return document.getElementById(id); }
@@ -13,19 +13,27 @@ function getUid(){
   return uid;
 }
 
-// 文字の簡易エスケープ（表示用）
 function esc(s){
   return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
 
-// 画像を縮小・圧縮してDataURL化（長辺max 1280 / jpeg品質可変）
+function fileToImage(file){
+  return new Promise((resolve, reject)=>{
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = ()=>{ URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = (e)=>{ URL.revokeObjectURL(url); reject(e); };
+    img.src = url;
+  });
+}
+
+// 長辺1280 / JPEG圧縮
 async function compressToDataURL(file){
   const img = await fileToImage(file);
 
   const MAX_SIDE = 1280;
   let w = img.naturalWidth;
   let h = img.naturalHeight;
-
   const scale = Math.min(1, MAX_SIDE / Math.max(w, h));
   w = Math.round(w * scale);
   h = Math.round(h * scale);
@@ -37,28 +45,15 @@ async function compressToDataURL(file){
   const ctx = canvas.getContext("2d", { alpha:false });
   ctx.drawImage(img, 0, 0, w, h);
 
-  // まずは品質0.85 → 大きければ段階的に下げる
   let q = 0.85;
   let dataUrl = canvas.toDataURL("image/jpeg", q);
 
-  // DataURLのサイズ目安（base64は約4/3）
-  // GAS側 MAX_IMG_BYTES=1800000 なので、base64は余裕を見て ~2.2MB以下を目標
-  while(dataUrl.length > 2_200_000 && q > 0.45){
+  // DataURL長さで軽くする（GAS 1.8MB想定）
+  while(dataUrl.length > 2200000 && q > 0.45){
     q -= 0.10;
     dataUrl = canvas.toDataURL("image/jpeg", q);
   }
-
   return dataUrl;
-}
-
-function fileToImage(file){
-  return new Promise((resolve, reject)=>{
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = ()=>{ URL.revokeObjectURL(url); resolve(img); };
-    img.onerror = (e)=>{ URL.revokeObjectURL(url); reject(e); };
-    img.src = url;
-  });
 }
 
 async function loadBBS(){
@@ -86,8 +81,8 @@ async function loadBBS(){
       const msg  = esc(item.message || "");
       const date = esc(item.date || "");
       const tag  = esc(item.tag || "");
-
       const imgUrl = String(item.imgUrl || "").trim();
+
       const imgHtml = imgUrl
         ? `<div style="margin-top:8px;">
              <a href="${imgUrl}" target="_blank" rel="noopener">
@@ -134,18 +129,23 @@ async function submitBBS(){
   try{
     let imgData = "";
     const file = fileEl?.files?.[0];
-    if(file){
-      if(st) st.textContent = "画像を圧縮中…";
-      imgData = await compressToDataURL(file);
-    }
 
-    if(st) st.textContent = "送信中…";
+    if(file){
+      if(st) st.textContent = `選択: ${file.name} (${Math.round(file.size/1024)}KB) → 圧縮中…`;
+      imgData = await compressToDataURL(file);
+      if(!imgData || imgData.indexOf("data:image") !== 0){
+        throw new Error("画像の変換に失敗しました");
+      }
+      if(st) st.textContent = `圧縮後: ${Math.round(imgData.length/1024)}KB（送信中…）`;
+    }else{
+      if(st) st.textContent = "画像なしで送信中…";
+    }
 
     const payload = {
       name,
       message: msg,
       uid: getUid(),
-      imgData // ★これが入ればGASが保存して imgUrl列(D)にURLが入る
+      imgData // ★ここ
     };
 
     const res = await fetch(API_URL, {
@@ -156,10 +156,9 @@ async function submitBBS(){
 
     const txt = await res.text();
     if(!/^Success/i.test(txt)){
-      throw new Error(txt || "unknown error");
+      throw new Error(txt || "unknown");
     }
 
-    // リセット
     msgEl.value = "";
     if(fileEl) fileEl.value = "";
     if(st) st.textContent = "投稿しました。";
@@ -176,7 +175,6 @@ async function submitBBS(){
 
 document.addEventListener("DOMContentLoaded", ()=>{
   loadBBS();
-
   $("bbsSubmit")?.addEventListener("click", submitBBS);
   $("bbsReload")?.addEventListener("click", loadBBS);
 });
