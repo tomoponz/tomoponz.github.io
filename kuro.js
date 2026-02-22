@@ -65,10 +65,16 @@
           いわゆる“機密データ”。（※現実の個人情報・住所などは入れない）
         </p>
         <ul>
-          <li><a class="btn" href="kuro_data/plot16_7000.pdf" target="_blank" rel="noopener">16章×各50話：細目プロット（PDF）</a></li>
-          <li><a class="btn" href="kuro_data/scenario.pdf" target="_blank" rel="noopener">シナリオ（PDF）</a></li>
-          <li><a class="btn" href="kuro_data/status_sample.pdf" target="_blank" rel="noopener">ステータス表示（完全統合サンプル）（PDF）</a></li>
-          <li><a class="btn" href="kuro_data/lumen_log_excerpt.pdf" target="_blank" rel="noopener">ルーメン結論記録（抄）（PDF）</a></li>
+          <li><a class="btn" href="kuro_data/16章_各50話_細目プロット_7000字想定.pdf" target="_blank" rel="noopener">16章×各50話：細目プロット（PDF）</a></li>
+          <li><a class="btn" href="kuro_data/シナリオ.pdf" target="_blank" rel="noopener">シナリオ（PDF）</a></li>
+          <li><a class="btn" href="kuro_data/ステータス表示（完全統合サンプル）.pdf" target="_blank" rel="noopener">ステータス表示（完全統合サンプル）（PDF）</a></li>
+          <li><a class="btn" href="kuro_data/ラノベあるある。.pdf" target="_blank" rel="noopener">ラノベあるある。（PDF）</a></li>
+          <li><a class="btn" href="kuro_data/ルーメン結論記録（抄）.pdf" target="_blank" rel="noopener">ルーメン結論記録（抄）（PDF）</a></li>
+          <li><a class="btn" href="kuro_data/人間.pdf" target="_blank" rel="noopener">人間（PDF）</a></li>
+          <li><a class="btn" href="kuro_data/佐藤雄二 生い立ちアーカイブ.pdf" target="_blank" rel="noopener">佐藤雄二 生い立ちアーカイブ（PDF）</a></li>
+          <li><a class="btn" href="kuro_data/案.pdf" target="_blank" rel="noopener">案（PDF）</a></li>
+          <li><a class="btn" href="kuro_data/経済.pdf" target="_blank" rel="noopener">経済（PDF）</a></li>
+          <li><a class="btn" href="kuro_data/進化の過程.pdf" target="_blank" rel="noopener">進化の過程（PDF）</a></li>
         </ul>
         <p class="note">
           追加したいPDFが増えたら <code>kuro_data/</code> に置いて、このエントリにリンクを足せばOK。
