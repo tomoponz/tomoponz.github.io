@@ -31,6 +31,10 @@
   }
 
   function setFrame(p, push){
+    const norm = normalizeP(p);
+    // 長いナビ音（リンク/ゲームなど）は、別ページへ移動する時に停止
+    try{ if(typeof window.__stopLongNavSfxFor === "function") window.__stopLongNavSfxFor(norm); }catch(_){ }
+
     // ページ切替の瞬間に“音楽（BGM/動画）”は止める（SEは親で鳴るのでOK）
     try{ if(typeof window.stopAllMedia === "function") window.stopAllMedia(); }catch(_){ }
     try{ frame.contentWindow && frame.contentWindow.postMessage({type:"STOP_MEDIA"}, location.origin); }catch(_){ }
@@ -42,7 +46,7 @@
       });
     }catch(_){ }
 
-    const norm = normalizeP(p);
+    
     frame.src = withEmbed(norm);
 
     if(push){

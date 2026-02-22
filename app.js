@@ -585,6 +585,30 @@ function resolveOmikujiItem(item){
     osuna: "/assets/sfx/nanikore.wav",
   };
 
+  // 長いナビ音（リンク/ゲームなど）は「別ページへ移動したら停止」したい
+  const LONG_NAV_SFX_KEYS = new Set(["games","links"]);
+  function __stopAudio(a){
+    try{ a.pause(); a.currentTime = 0; }catch(_){ }
+  }
+  function stopLongNavSfxFor(nextPage){
+    try{
+      const key = String(window.__longNavSfxKey || "");
+      const a = window.__longNavSfxAudio;
+      if(!a || !key) return;
+      const allow =
+        (key === "games" && nextPage === "games.html") ||
+        (key === "links" && nextPage === "links.html");
+      if(!allow){
+        __stopAudio(a);
+        window.__longNavSfxKey = "";
+        window.__longNavSfxAudio = null;
+      }
+    }catch(_){ }
+  }
+  // shell.js から呼ぶ用
+  window.__stopLongNavSfxFor = stopLongNavSfxFor;
+
+
   // 既存仕様：ネタ置き場(gallery.html)は、data-sfx を付けてなくても鳴らす
   const GALLERY_AUTO_SFX_KEY = "neta";
   const GALLERY_AUTO_DELAY_MS = 380;
@@ -765,6 +789,18 @@ function resolveOmikujiItem(item){
     const src = resolveSfxSrc(keyOrPath);
     if(!src) return;
     const a = getAudio(src);
+    const __k = String(keyOrPath||"").trim();
+    const __isLongNav = LONG_NAV_SFX_KEYS.has(__k);
+    if(__isLongNav){
+      // 以前の長いナビ音が鳴っていたら止める（重なり防止）
+      try{
+        const prev = window.__longNavSfxAudio;
+        if(prev && prev !== a){ __stopAudio(prev); }
+      }catch(_){ }
+      window.__longNavSfxKey = __k;
+      window.__longNavSfxAudio = a;
+    }
+
     if(!a) return;
 
     const o = (opts && typeof opts === "object") ? opts : {};
