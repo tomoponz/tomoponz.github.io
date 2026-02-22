@@ -195,6 +195,7 @@ function resolveOmikujiItem(item){
         const obj = JSON.parse(raw);
         if (obj.date === todayKey()) {
           showOmikuji(obj.picked);
+          if(window.playSfx) playSfx("omikujiResult", 1.0, {boost: 2.6});
           return;
         }
       } catch (e) {}
@@ -202,6 +203,7 @@ function resolveOmikujiItem(item){
     const pickedRaw = weightedPick(OMIKUJI_POOL);
     const picked = resolveOmikujiItem(pickedRaw);
     showOmikuji(picked);
+    if(window.playSfx) playSfx("omikujiResult", 1.0, {boost: 2.6});
     localStorage.setItem("omikuji_today", JSON.stringify({ date: todayKey(), picked }));
   }
 
@@ -506,20 +508,72 @@ function resolveOmikujiItem(item){
 
   // ここに音を追加（キー→ファイル）
   // ※フォルダ運用にしたら、値を assets/sfx/... に変えるだけ
-  const SFX_MAP = {
-    // 音源（assets/sfx/ 配下）
-    neta: "assets/sfx/umahii.mp3",
-    osuna: "assets/sfx/nanikore.wav",
+    const SFX_MAP = {
+    // クリック/遷移
+    neta: "/assets/sfx/nc170231_nnnn,nanikore.wav",
+    profile: "/assets/sfx/nc316178_naniwositennnou.mp3",
+    hachi: "/assets/sfx/nc245505_deeeeeeeeenn.mp3",
+    shindan: "/assets/sfx/nc170234_honntokanaa.wav",
 
-    // 例：追加したらここに追記
-    // click1: "assets/sfx/click1.mp3",
-    // ok: "assets/sfx/ok.mp3",
+    // おみくじ
+    omikujiResult: "/assets/sfx/nc64483_detaxa.wav",
+
+    // ミニゲーム
+    msBoom: "/assets/sfx/nc288712_kannkyouhakaihakimotiizoi(BGM delete).mp3",
+    g2048Stuck: "/assets/sfx/nc38022_warattehaikenai【dede-nn】koukaonn.mp3",
+
+    // 隠し/演出
+    konamiKuro: "/assets/sfx/nc453817_kissyo,nanndewakarunndayo(GetouSuguru).wav",
+    sealUnlock: "/assets/sfx/nc62053_yaroubuxtukorositeyaruxu.wav",
+    nigasanai: "/assets/sfx/nigasanai.wav",
+    yarimasunee: "/assets/sfx/nc116455_yarimasunee.wav",
+
+    // Aero
+    aeroPlay: "/assets/sfx/nc28445_yaranaika_【SE】koukaonn.wma",
+
+    // 既存
+    osuna: "/assets/sfx/nanikore.wav",
   };
 
   // 既存仕様：ネタ置き場(gallery.html)は、data-sfx を付けてなくても鳴らす
   const GALLERY_AUTO_SFX_KEY = "neta";
   const GALLERY_AUTO_DELAY_MS = 380;
 
+
+  // Quiet SFX boost (WebAudio GainNode). Works even if fps-player.js is not loaded.
+  // Usage: window.__boostAudio(audioEl, 2.8)
+  if(!window.__boostAudio){
+    let __boostCtx = null;
+    const __boosted = new WeakMap();
+    function __getBoostCtx(){
+      if(__boostCtx) return __boostCtx;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return null;
+      try{ __boostCtx = new AC(); }catch(_){ return null; }
+      const resume = ()=>{ try{ __boostCtx.resume().catch(()=>{}); }catch(_){} };
+      document.addEventListener("pointerdown", resume, {once:true, capture:true});
+      document.addEventListener("touchstart", resume, {once:true, capture:true, passive:true});
+      return __boostCtx;
+    }
+    window.__boostAudio = function(audioEl, gainValue){
+      if(!audioEl) return false;
+      const ctx = __getBoostCtx();
+      if(!ctx) return false;
+      const g = Math.max(1, Number(gainValue) || 1);
+      if(__boosted.has(audioEl)){
+        try{ __boosted.get(audioEl).gain.gain.value = g; }catch(_){}
+        return true;
+      }
+      try{
+        const src = ctx.createMediaElementSource(audioEl);
+        const gain = ctx.createGain();
+        gain.gain.value = g;
+        src.connect(gain).connect(ctx.destination);
+        __boosted.set(audioEl, {src, gain});
+        return true;
+      }catch(_){ return false; }
+    };
+  }
   // 事前ロード（同じ音は使い回し）
   const sfxCache = new Map(); // src -> HTMLAudioElement
 
@@ -540,6 +594,7 @@ function resolveOmikujiItem(item){
       const a = new Audio(safeSrc);
       a.preload = "auto";
       a.volume = 0.95;
+      try{ a.load(); }catch(e){}
       sfxCache.set(safeSrc, a);
       return a;
     }catch(e){
@@ -547,15 +602,35 @@ function resolveOmikujiItem(item){
     }
   }
 
-  function playSfx(keyOrPath, volume){
+  function preloadSfx(keyOrPath){
     const src = resolveSfxSrc(keyOrPath);
     if(!src) return;
     const a = getAudio(src);
     if(!a) return;
+    try{ a.load(); }catch(e){}
+  }
+  window.preloadSfx = preloadSfx;
+
+  function playSfx(keyOrPath, volume, opts){
+    const src = resolveSfxSrc(keyOrPath);
+    if(!src) return;
+    const a = getAudio(src);
+    if(!a) return;
+
+    const o = (opts && typeof opts === "object") ? opts : {};
+    const boost = Number(o.boost || 1);
+
     try{
-      if(typeof volume === "number" && isFinite(volume)){
-        a.volume = clamp(volume, 0, 1);
+      if(boost > 1 && window.__boostAudio){
+        try{ window.__boostAudio(a, boost); }catch(e){}
       }
+
+      const v =
+        (typeof volume === "number" && isFinite(volume)) ? volume :
+        (typeof o.volume === "number" && isFinite(o.volume)) ? o.volume :
+        undefined;
+      if(v != null) a.volume = clamp(v, 0, 1);
+
       a.currentTime = 0;
       a.play().catch(()=>{});
     }catch(e){}
@@ -590,6 +665,15 @@ function resolveOmikujiItem(item){
         if(dest === "gallery.html"){
           key = GALLERY_AUTO_SFX_KEY;
           autoDelay = GALLERY_AUTO_DELAY_MS;
+        } else if(dest === "index.html" && (t.textContent || "").includes("プロフィール")){
+          key = "profile";
+          autoDelay = 180;
+        } else if(dest === "hachi.html"){
+          key = "hachi";
+          autoDelay = 180;
+        } else if(dest === "shindan.html"){
+          key = "shindan";
+          autoDelay = 180;
         }
       }
 

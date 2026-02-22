@@ -282,6 +282,9 @@
     if (dangerBtn) {
       dangerBtn.addEventListener("click", () => {
         
+        // 事前に読み込んでおく（遅延タイミングでも確実に鳴らす）
+        try{ if(window.preloadSfx){ window.preloadSfx("nigasanai"); } }catch(e){}
+
         // ★ クリックした瞬間に音声（osuna）を鳴らす ★
         // app.js の playSfx が使えるならそれを優先
         if (window.playSfx) {

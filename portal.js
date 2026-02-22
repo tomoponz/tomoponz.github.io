@@ -562,6 +562,12 @@
     const data = await getWikiDataSmart(wikiTitle);
 
     titleEl.textContent = data.title || wikiTitle;
+    try{
+      const tt = String(data.title || wikiTitle || "");
+      if(tt.includes("コートコーポレーション")){
+        if(window.playSfx) window.playSfx("yarimasunee", 1.0, {boost: 2.8});
+      }
+    }catch(e){}
     const excerpt = (data.extract || "").trim();
     descEl.textContent = excerpt ? excerpt : "説明の取得に失敗。リンクから開け。";
 
@@ -700,7 +706,8 @@
         if (i >= seq.length) {
           i = 0;
           sessionStorage.setItem(KURO_UNLOCK_KEY, "1");
-          location.href = "kuro.html";
+          try{ if(window.playSfx) window.playSfx("konamiKuro", 1.0, {boost: 2.8}); }catch(e){}
+          setTimeout(()=>{ location.href = "kuro.html"; }, 220);
         }
       } else {
         i = 0;

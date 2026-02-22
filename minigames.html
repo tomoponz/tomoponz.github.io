@@ -505,6 +505,7 @@
         msStopTimer();
         msSetState("敗北");
         msRevealAllMines();
+        try{ if(window.playSfx) window.playSfx("msBoom", 1.0, {boost: 3.2}); }catch(e){}
         return;
       }
 
@@ -680,8 +681,13 @@
 
       gSpawn();
 
+      const prevState = G.state;
       if(gHas2048()) G.state = "勝ち";
       else if(!gCanMove()) G.state = "詰み";
+
+      if(prevState !== "詰み" && G.state === "詰み"){
+        try{ if(window.playSfx) window.playSfx("g2048Stuck", 1.0, {boost: 2.8}); }catch(e){}
+      }
 
       gRender();
     }
