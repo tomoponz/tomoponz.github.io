@@ -1,4 +1,4 @@
-// bbs.js（画像投稿：確実版 + 状態表示）
+// bbs.js（画像表示 修正版：Drive画像を確実に表示）
 // 接続先：Cloudflare Worker
 const API_URL = "https://tomoponz-bbs-proxy.yuto181130.workers.dev";
 
@@ -25,6 +25,18 @@ function fileToImage(file){
     img.onerror = (e)=>{ URL.revokeObjectURL(url); reject(e); };
     img.src = url;
   });
+}
+
+// Driveのuc URL → 画像として確実に返る thumbnail URL に変換
+function driveThumb(url){
+  try{
+    const u = new URL(url);
+    const id = u.searchParams.get("id");
+    if(!id) return url;
+    return `https://drive.google.com/thumbnail?id=${id}&sz=w2000`;
+  }catch{
+    return url;
+  }
 }
 
 // 長辺1280 / JPEG圧縮
@@ -83,13 +95,20 @@ async function loadBBS(){
       const tag  = esc(item.tag || "");
       const imgUrl = String(item.imgUrl || "").trim();
 
-      const imgHtml = imgUrl
-        ? `<div style="margin-top:8px;">
-             <a href="${imgUrl}" target="_blank" rel="noopener">
-               <img src="${imgUrl}" alt="img" style="max-width:100%; border-radius:12px; border:1px solid rgba(255,255,255,.12);">
-             </a>
-           </div>`
-        : "";
+      let imgHtml = "";
+      if(imgUrl){
+        const src = driveThumb(imgUrl);
+        // 画像が取れない場合の保険：imgUrl にフォールバック
+        imgHtml = `
+          <div style="margin-top:8px;">
+            <a href="${imgUrl}" target="_blank" rel="noopener">
+              <img src="${src}" alt="img"
+                style="max-width:100%; border-radius:12px; border:1px solid rgba(255,255,255,.12);"
+                onerror="this.onerror=null; this.src='${imgUrl}';">
+            </a>
+          </div>
+        `;
+      }
 
       li.innerHTML = `
         <div style="display:flex; gap:10px; align-items:baseline; flex-wrap:wrap;">
@@ -145,7 +164,7 @@ async function submitBBS(){
       name,
       message: msg,
       uid: getUid(),
-      imgData // ★ここ
+      imgData
     };
 
     const res = await fetch(API_URL, {
