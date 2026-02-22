@@ -51,6 +51,25 @@
         else this.lastLocalPos.copy(this.el.object3D.position);
       }
     });
+
+    // ==========================================
+    // ★ 追跡目玉：常にプレイヤー方向へ向ける（Yawのみ）
+    // ==========================================
+    AFRAME.registerComponent('look-at-player-y', {
+      schema: { target: { type: 'selector', default: '#main-cam' } },
+      init: function(){ this._vT = new THREE.Vector3(); this._vS = new THREE.Vector3(); },
+      tick: function(){
+        if (!window.isPlaying) return;
+        const t = this.data.target;
+        if (!t) return;
+        t.object3D.getWorldPosition(this._vT);
+        this.el.object3D.getWorldPosition(this._vS);
+        const dx = this._vT.x - this._vS.x;
+        const dz = this._vT.z - this._vS.z;
+        const yaw = Math.atan2(dx, dz);
+        this.el.object3D.rotation.set(0, yaw, 0);
+      }
+    });
   </script>
 
   <style>
@@ -91,8 +110,9 @@
       <a-entity id="monster" position="130 1.6 10">
         <!-- リアル目玉テクスチャ（img/eye.png） -->
         <a-sphere radius="2.05" color="#ffffff" material="roughness:0.35; metalness:0.0"></a-sphere>
-        <a-plane width="4.8" height="4.8" position="0 0 -2.12" rotation="0 180 0"
-                 material="src:#tex-eye; transparent:true; alphaTest:0.05; side:double; shader:flat; roughness:0.25; metalness:0.0"></a-plane>
+        <!-- 目のテクスチャは“正面”に配置（以前は背面に置いていたため見えにくかった） -->
+        <a-plane width="4.8" height="4.8" position="0 0 2.12" rotation="0 0 0" look-at-player-y
+                 material="src:#tex-eye; transparent:true; alphaTest:0.05; side:double; shader:flat;"></a-plane>
         <a-light type="point" color="#ffffff" intensity="1.4" distance="35" position="0 0 0"></a-light>
         <a-light type="point" color="red" intensity="2.2" distance="25" position="0 0 0"></a-light>
       </a-entity>
@@ -260,13 +280,6 @@
         const pPos = new THREE.Vector3();
         playerCam.object3D.getWorldPosition(pPos);
         const mPos = monster.object3D.position;
-
-        // モンスターは常にプレイヤーを見る（水平回転のみ）
-        {
-          const yaw = Math.atan2((pPos.x - mPos.x), (pPos.z - mPos.z));
-          monster.object3D.rotation.set(0, yaw, 0);
-        }
-
         // 捕獲判定（角待ちで抜けないように少し堅めに）
         const dx = pPos.x - mPos.x;
         const dz = pPos.z - mPos.z;
