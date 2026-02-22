@@ -4,122 +4,102 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>tomoponz｜足跡帳</title>
-  <meta name="description" content="匿名で一言残せるサーバーレス掲示板（GAS + Spreadsheet）" />
+  <meta name="description" content="足跡帳（画像投稿対応）" />
 
-  <link rel="stylesheet" href="style.css?v=20260222">
-  <script defer src="quotes_base.js?v=20260222"></script>
-  <script defer src="user_quotes.js?v=20260222"></script>
-  <script defer src="app.js?v=20260222"></script>
-  <script defer src="bbs.js?v=20260222"></script>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="app.js"></script>
 
   <style>
-    /* bbs 専用：入力とリスト */
-    .bbsRow{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-start; margin-top:10px}
-    .bbsField{
-      border-radius:14px;
+    /* bbs専用の微調整（既存style.cssに馴染ませる） */
+    .bbsRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-bottom:10px;
+    }
+    .bbsRow input[type="text"]{
+      border-radius:12px;
       padding:10px 12px;
       background:rgba(0,0,0,.18);
       color:#fff;
       border:1px solid rgba(255,255,255,.14);
       outline:none;
     }
-    .bbsField::placeholder{ color: rgba(234,241,255,.55); }
-    #bbsName{ width:160px; }
-    #bbsMsg{ flex:1; min-width:240px; resize:vertical; min-height:44px; }
-    #bbsList{ max-height: 420px; overflow:auto; padding-right:10px; margin:0; padding-left:0; list-style:none; }
-    .bbsItem{ margin-bottom:12px; padding-bottom:10px; border-bottom:1px dashed rgba(255,255,255,.10); }
-    .bbsMeta{ display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; margin-bottom:6px; }
-    .bbsName{ font-weight:900; color: rgba(124,203,255,.92); }
-    .bbsDate{ font-size:11px; color: rgba(234,241,255,.52); }
-    .bbsMsg{ color: rgba(234,241,255,.92); line-height:1.5; white-space:pre-wrap; }
-    .bbsHint{ margin-top:10px; color: rgba(234,241,255,.70); font-size:12px; }
-    .bbsErr{ color: rgba(255,124,124,.90); font-size:12px; }
+    .bbsName{ width:160px; }
+    .bbsMsg{ flex:1; min-width:220px; }
 
-    /* 画像添付 */
-    .bbsFile{ display:flex; flex-direction:column; gap:8px; min-width:220px; }
-    .bbsPreview{ display:none; gap:10px; align-items:flex-start; }
-    .bbsPreview.show{ display:flex; }
-    .bbsPreview img{ width:96px; height:96px; object-fit:cover; border-radius:14px; border:1px solid rgba(255,255,255,.14); }
-    .bbsPreviewMeta{ font-size:12px; color: rgba(234,241,255,.70); }
-    .bbsImg{ max-width: 100%; border-radius: 14px; border:1px solid rgba(255,255,255,.12); margin-top:8px; }
+    /* file inputはブラウザ依存が強いので控えめ */
+    .bbsFile{
+      max-width:260px;
+      color:#fff;
+      padding:6px 0;
+    }
+
+    #bbsStatus{ min-height:1.2em; }
+
+    /* 投稿一覧の画像 */
+    .bbsImg{
+      max-width:100%;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+    }
   </style>
 </head>
 
 <body>
-  <!-- 統一メニュー（embed=1 なら自動で非表示になる） -->
+  <!-- app.js の setActiveNav() 等に合わせる -->
   <header class="nav">
-    <a class="brand" href="index.html" aria-label="tomoponz ホーム">
-      <span class="logo" aria-hidden="true"></span>
-      <span class="brandText">
-        <span class="brandName">tomoponz</span>
-        <span class="brandSub" id="brandSub"></span>
-      </span>
-    </a>
+    <div class="navIn">
+      <a class="brand" href="index.html">
+        <span class="brandMark"></span>
+        <span class="brandTxt">tomoponz</span>
+      </a>
 
-    <nav class="navlinks" aria-label="メニュー">
-      <a class="chip" href="index.html">プロフィール</a>
-      <a class="chip" href="omikuji.html">おみくじ</a>
-      <a class="chip" href="shindan.html">診断</a>
-      <a class="chip" href="gallery.html">ネタ置き場</a>
-      <a class="chip" href="links.html">リンク</a>
-      <a class="chip" href="games.html">ゲーム</a>
-      <a class="chip" href="door.html">ドア</a>
-      <a class="chip" href="hachi.html">八百科事典</a>
-    </nav>
+      <nav class="navLinks">
+        <a class="chip" href="index.html" data-sfx="profile">プロフィール</a>
+        <a class="chip" href="omikuji.html">おみくじ</a>
+        <a class="chip" href="shindan.html" data-sfx="shindan">診断</a>
+        <a class="chip" href="gallery.html" data-sfx="neta">ネタ置き場</a>
+        <a class="chip" href="links.html">リンク</a>
+        <a class="chip" href="games.html">ゲーム</a>
+        <a class="chip" href="door.html">ドア</a>
+        <a class="chip" href="hachi.html" data-sfx="hachi">八百科事典</a>
+        <a class="chip active" href="bbs.html">足跡帳</a>
+      </nav>
+    </div>
   </header>
 
   <main class="wrap">
-    <section class="hero">
-      <h1 class="h1">足跡帳</h1>
-      <p class="sub">匿名で一言。荒れたら消す。</p>
-      <div class="badges">
-        <span class="badge"><span class="dot"></span>GAS + Spreadsheet</span>
-        <span class="badge">サーバーレス</span>
-        <span class="badge">無料</span>
+    <section class="card">
+      <h1 class="h2">📝 書き込み</h1>
+      <p class="muted">名前は任意。メッセージは200文字まで。</p>
+
+      <div class="bbsRow">
+        <input id="bbsName" class="bbsName" type="text" placeholder="名前（任意）">
+        <input id="bbsMsg"  class="bbsMsg"  type="text" placeholder="一言どうぞ！">
+        <!-- ★重要：id="bbsFile" -->
+        <input id="bbsFile" class="bbsFile" type="file" accept="image/*">
+        <button id="bbsSubmit" class="btn primary">書き込む</button>
+        <button id="bbsReload" class="btn">更新</button>
       </div>
-      <div class="note" id="quote">（ここに一言が出る）</div>
-    </section>
 
-    <section class="grid2" style="margin-top:12px">
-      <div class="card" style="grid-column:1/-1">
-        <h2>📝 書き込み</h2>
-        <p class="muted">名前は任意。メッセージは200文字まで。</p>
+      <div id="bbsStatus" class="muted"></div>
 
-        <div class="bbsRow">
-          <input type="text" id="bbsName" class="bbsField" placeholder="名前（任意）" maxlength="24" autocomplete="nickname">
-          <textarea id="bbsMsg" class="bbsField" placeholder="一言どうぞ！" maxlength="200"></textarea>
+      <p class="muted" style="margin-top:10px;">
+        ※ 公序良俗アウト / 個人情報 / スパムは消す。<br>
+        ※ 画像は自動で圧縮され、Google Driveに保存されます。
+      </p>
 
-          <div class="bbsFile">
-            <input type="file" id="bbsImg" class="bbsField" accept="image/*">
-            <div class="bbsPreview" id="bbsPreview">
-              <img id="bbsPreviewImg" alt="preview">
-              <div class="bbsPreviewMeta">
-                <div id="bbsPreviewInfo"></div>
-                <button id="bbsImgClear" class="btn" type="button" style="margin-top:6px;">画像を外す</button>
-              </div>
-            </div>
-          </div>
+      <hr class="sep">
 
-          <!-- bot避け：見えない入力 -->
-          <input type="text" id="bbsHp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;opacity:0;height:0;width:0">
-          <button id="bbsSubmit" class="btn primary">書き込む</button>
-          <button id="bbsReload" class="btn">更新</button>
-        </div>
-
-        <div class="bbsHint">
-          ※ 公序良俗アウト / 個人情報 / スパムは消す。<br>
-          ※ 画像は自動で圧縮され、Google Drive に保存されます。
-        </div>
-
-        <hr class="sep">
-
-        <ul id="bbsList">
-          <li class="muted">通信中…</li>
-        </ul>
-
-        <div id="bbsErr" class="bbsErr" style="display:none"></div>
-      </div>
+      <ul class="list" id="bbsList" style="max-height:420px; overflow-y:auto; padding-right:10px;">
+        <li class="muted">通信中…</li>
+      </ul>
     </section>
   </main>
+
+  <!-- 掲示板ロジック -->
+  <script src="bbs.js"></script>
 </body>
 </html>
