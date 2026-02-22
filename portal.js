@@ -617,7 +617,16 @@
     // 1) まずドア演出を見せる（opening → ガタガタ → 開く）
     if (wrap) wrap.classList.add("opening");
     if (fxParticlesOn()) burstParticles(canvas);
-    if (fxSoundOn()) playClickSound();
+    if (fxSoundOn()){
+      // ドア→ワープの効果音（ページ遷移で途切れにくいよう SFX を優先）
+      const audioOn = (typeof window.getAudioEnabled === "function") ? window.getAudioEnabled() : true;
+      if(audioOn){
+        try{
+          if(window.playSfx) window.playSfx("doorWarp", 1.0, {boost: 2.8});
+          else playClickSound();
+        }catch(e){ try{ playClickSound(); }catch(_){ } }
+      }
+    }
 
     // 2) 暗転は“開き始めてから”に遅らせる（早いと演出が見えない）
     //    - door.html 側の CSS で doorOpen は 0.28s から開始 → 0.70s で完了

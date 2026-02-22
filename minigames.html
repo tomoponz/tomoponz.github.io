@@ -103,10 +103,53 @@
     .tile.v32{box-shadow:0 0 0 3px rgba(255,124,124,.10)}
     .tile.v64{box-shadow:0 0 0 3px rgba(255,124,124,.14)}
     .tile.v128,.tile.v256,.tile.v512,.tile.v1024,.tile.v2048{box-shadow:0 0 0 3px rgba(124,255,178,.14)}
+  
+    /* === Mobile fixes === */
+    .msViewport{
+      max-width:100%;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius:18px;
+    }
+    /* 2048: swipe should not scroll the page */
+    .board{ touch-action:none; overscroll-behavior: contain; }
+
+    /* Fullscreen (スマホ向け) */
+    .fsClose{
+      position:fixed;
+      top:10px; right:10px;
+      z-index:9999;
+      width:44px; height:44px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(10,12,22,.55);
+      color:#EAF1FF;
+      display:none;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    html.gameFs .fsClose{ display:block; }
+
+    html.gameFs body{ overflow:hidden; }
+    html.gameFs .nav{ display:none !important; }
+    html.gameFs .hero, html.gameFs .footer{ display:none !important; }
+    html.gameFs .wrap{
+      max-width: none;
+      padding-top: 14px;
+      padding-bottom: 18px;
+    }
+    html.gameFs .gameArea{ margin-top: 0; }
+    html.gameFs .grid2{ gap: 10px; }
+    html.gameFs .card{ border-radius: 18px; }
+    /* allow the game area to use more height */
+    html.gameFs .msViewport{ max-height: calc(100dvh - 190px); }
+    html.gameFs .board{ width: min(520px, 100%); }
+
   </style>
 </head>
 
 <body>
+  <button class="fsClose" id="fsClose" type="button" onclick="exitGameFs()" aria-label="全画面を終了">×</button>
   <!-- 統一メニュー -->
   <header class="nav">
     <a class="brand" href="index.html" aria-label="tomoponz ホーム">
@@ -161,6 +204,7 @@
               </span>
               <button onclick="msNew()">新しく開始</button>
               <button id="msFlagBtn" onclick="msToggleFlagMode()">旗モード：OFF</button>
+              <button type="button" id="msFsBtn" onclick="enterGameFs('ms')">全画面</button>
             </div>
 
             <div class="hudRight meter">
@@ -171,7 +215,7 @@
           </div>
 
           <div class="msWrap" style="margin-top:12px">
-            <div class="msGrid" id="msGrid" style="--cols:9"></div>
+            <div class="msViewport"><div class="msGrid" id="msGrid" style="--cols:9"></div></div>
             <div class="note tiny">コツ：数字は周囲8マスの地雷数。0は連鎖で開く。</div>
           </div>
         </div>
@@ -199,6 +243,7 @@
           <div class="hud">
             <div class="hudLeft">
               <button onclick="gNew()">リスタート</button>
+              <button type="button" id="gFsBtn" onclick="enterGameFs('2048')">全画面</button>
             </div>
             <div class="hudRight meter">
               <span class="pill">Score：<b id="gScore">0</b></span>
@@ -249,7 +294,34 @@
       window.scrollTo({top:0, behavior:"smooth"});
     }
 
-    // =======================
+        // ===== Fullscreen (スマホ向け) =====
+    function enterGameFs(which){
+      try{
+        document.documentElement.classList.add("gameFs");
+        document.documentElement.dataset.fsWhich = which || "";
+      }catch(_){}
+      if(which === "ms" || which === "2048") showTab(which);
+      // shell側があれば没入モード（メニュー非表示）を依頼
+      try{
+        if(window.top && window.top !== window){
+          window.top.postMessage({type:"IMMERSIVE", on:true}, location.origin);
+        }
+      }catch(_){}
+      window.scrollTo({top:0});
+    }
+    function exitGameFs(){
+      try{
+        document.documentElement.classList.remove("gameFs");
+        delete document.documentElement.dataset.fsWhich;
+      }catch(_){}
+      try{
+        if(window.top && window.top !== window){
+          window.top.postMessage({type:"IMMERSIVE", on:false}, location.origin);
+        }
+      }catch(_){}
+    }
+
+// =======================
     // Minesweeper
     // =======================
     const MS = {
@@ -704,16 +776,31 @@
       }
     }, {passive:false});
 
-    // swipe
+    // swipe（スマホ：スクロールしない）
     (function(){
       const board = document.getElementById("gBoard");
       if(!board) return;
+
       let sx=0, sy=0;
+      let active = false;
+
       board.addEventListener("touchstart", (e)=>{
+        if(!e.touches || !e.touches[0]) return;
         const t = e.touches[0];
-        sx=t.clientX; sy=t.clientY;
-      }, {passive:true});
+        sx = t.clientX; sy = t.clientY;
+        active = true;
+      }, {passive:false});
+
+      board.addEventListener("touchmove", (e)=>{
+        // ボード上のスワイプはページスクロールにしない
+        if(!active) return;
+        try{ e.preventDefault(); }catch(_){}
+      }, {passive:false});
+
       board.addEventListener("touchend", (e)=>{
+        if(!active) return;
+        active = false;
+        if(!e.changedTouches || !e.changedTouches[0]) return;
         const t = e.changedTouches[0];
         const dx = t.clientX - sx;
         const dy = t.clientY - sy;
@@ -723,10 +810,10 @@
         }else{
           gMove(dy>0 ? "down" : "up");
         }
-      }, {passive:true});
+      }, {passive:false});
     })();
 
-    // init
+// init
     document.addEventListener("DOMContentLoaded", ()=>{
       msNew();
       gNew();

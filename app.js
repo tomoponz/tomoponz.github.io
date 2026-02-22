@@ -560,6 +560,9 @@ function resolveOmikujiItem(item){
     hachi: "/assets/sfx/nc245505_deeeeeeeeenn.mp3",
     shindan: "/assets/sfx/nc170234_honntokanaa.wav",
 
+    links: "/assets/sfx/nc93329_xfairu.wav",
+    games: "/assets/sfx/nc108262_RSEonngennbann_hosinoka-bixi_gekitotugurumere-su.mp3",
+
     // おみくじ
     omikujiResult: "/assets/sfx/nc64483_detaxa.wav",
 
@@ -568,6 +571,7 @@ function resolveOmikujiItem(item){
     g2048Stuck: "/assets/sfx/nc38022_warattehaikenai【dede-nn】koukaonn.mp3",
 
     // 隠し/演出
+    doorWarp: "/assets/sfx/nc126285_doragonnbo-ru_syunnkannidounokoukaonn.wav",
     konamiKuro: "/assets/sfx/nc453817_kissyo,nanndewakarunndayo(GetouSuguru).wav",
     sealUnlock: "/assets/sfx/nc62053_yaroubuxtukorositeyaruxu.wav",
     nigasanai: "/assets/sfx/nigasanai.wav",
@@ -575,6 +579,7 @@ function resolveOmikujiItem(item){
 
     // Aero
     aeroPlay: "/assets/sfx/nc28445_yaranaika_【SE】koukaonn.wma",
+    aeroTrack: "/assets/sfx/nc123011_uiiissudo-mosyamude-su.mp3",
 
     // 既存
     osuna: "/assets/sfx/nanikore.wav",
@@ -801,6 +806,12 @@ function resolveOmikujiItem(item){
           autoDelay = 180;
         } else if(dest === "shindan.html"){
           key = "shindan";
+          autoDelay = 180;
+        } else if(dest === "games.html"){
+          key = "games";
+          autoDelay = 180;
+        } else if(dest === "links.html"){
+          key = "links";
           autoDelay = 180;
         }
       }
