@@ -70,7 +70,25 @@
         this.el.object3D.rotation.set(0, yaw, 0);
       }
     });
-  </script>
+  
+
+// ★ 追跡目玉（本体）も常にプレイヤー方向へ向ける（Yawのみ）
+AFRAME.registerComponent('face-player-y', {
+  schema: { target: { type: 'selector', default: '#main-cam' } },
+  init: function(){ this._vT = new THREE.Vector3(); this._vS = new THREE.Vector3(); },
+  tick: function(){
+    if (!window.isPlaying) return;
+    const t = this.data.target;
+    if (!t) return;
+    t.object3D.getWorldPosition(this._vT);
+    this.el.object3D.getWorldPosition(this._vS);
+    const dx = this._vT.x - this._vS.x;
+    const dz = this._vT.z - this._vS.z;
+    const yaw = Math.atan2(dx, dz);
+    this.el.object3D.rotation.y = yaw;
+  }
+});
+</script>
 
   <style>
     #phase-3d { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; opacity: 0; pointer-events: none; z-index: -10; }
@@ -107,7 +125,7 @@
         <a-light type="point" color="#fff" intensity="1.2" distance="60" position="0 0 0"></a-light>
       </a-entity>
 
-      <a-entity id="monster" position="130 1.6 10">
+      <a-entity id="monster" position="130 1.6 10" face-player-y>
         <!-- リアル目玉テクスチャ（img/eye.png） -->
         <a-sphere radius="2.05" color="#ffffff" material="roughness:0.35; metalness:0.0"></a-sphere>
         <!-- 目のテクスチャは“正面”に配置（以前は背面に置いていたため見えにくかった） -->
@@ -122,6 +140,10 @@
     </a-scene>
   </div>
   
+  <audio id="sfx-kodou" src="../assets/sfx/kodou.wav" loop preload="auto"></audio>
+  <audio id="sfx-hashiri" src="../assets/sfx/3_hashiri.wav" loop preload="auto"></audio>
+  <audio id="sfx-gya" src="../assets/sfx/gyaaaa_d.wav" preload="auto"></audio>
+
   <div class="overlay-screen" id="game-over"><h1 style="color: red;">CAUGHT.</h1></div>
   <div class="overlay-screen" id="game-clear" style="background: #fff; color: #000;"><h1>AWAKE.</h1></div>
 
@@ -263,6 +285,31 @@
       const monster = document.getElementById('monster');
       const timerDisp = document.getElementById('timer-display');
       const hudVignette = document.getElementById('hud-vignette');
+
+// 逃走サウンド（心拍/息）と捕獲ボイス
+const sKodou = document.getElementById('sfx-kodou');
+const sHashiri = document.getElementById('sfx-hashiri');
+const sGya = document.getElementById('sfx-gya');
+
+// Quiet files → boost (WebAudio Gain) if available
+[sKodou, sHashiri, sGya].forEach(a => {
+  if(!a) return;
+  a.volume = 0;
+  a.dataset.basevol = '1';
+  if(window.__boostAudio) { try{ window.__boostAudio(a, 2.8); }catch(e){} }
+});
+
+// Start loops at 0 volume (user gesture: exitBtn click → startSurvival)
+try{ if(sKodou) sKodou.play().catch(()=>{}); }catch(e){}
+try{ if(sHashiri) sHashiri.play().catch(()=>{}); }catch(e){}
+
+function updateChaseAudio(dist){
+  const master = (window.__fpsSettings && typeof window.__fpsSettings__.volume === 'number') ? window.__fpsSettings__.volume : 1;
+  const k = Math.max(0, Math.min(1, (28 - dist) / 18)); // 0..1
+  if (sKodou)   sKodou.volume   = Math.min(1, (0.04 + 0.86 * k) * master);
+  if (sHashiri) sHashiri.volume = Math.min(1, (0.03 + 0.82 * k) * master);
+}
+
       
       let currentPath = [];
       let pathUpdateTimer = 0; 
@@ -284,6 +331,8 @@
         const dx = pPos.x - mPos.x;
         const dz = pPos.z - mPos.z;
         const dist = Math.sqrt(dx*dx + dz*dz);
+
+        updateChaseAudio(dist);
 
         const toCell = (x, z) => ({
           x: Math.floor((x + UNIT/2) / UNIT),
@@ -373,7 +422,11 @@
     }
 
     // ★ ここが修正されたポイントです ★
-    function gameOver() { 
+    function gameOver() {
+      try{ if(sKodou){ sKodou.pause(); sKodou.currentTime = 0; } }catch(e){}
+      try{ if(sHashiri){ sHashiri.pause(); sHashiri.currentTime = 0; } }catch(e){}
+      try{ if(sGya){ sGya.currentTime = 0; sGya.volume = Math.min(1, (window.__fpsSettings?.volume ?? 1) * 1.0); sGya.play().catch(()=>{}); } }catch(e){}
+ 
       window.isPlaying = false; 
       document.getElementById('game-over').style.opacity = 1; 
       setTimeout(() => location.href = '../liminal/index.html', 3000); 
