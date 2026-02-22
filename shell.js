@@ -3,6 +3,15 @@
   const frame = document.getElementById("viewFrame");
   if(!frame) return;
 
+  // WebXR / fullscreen permission for iframe (VR/AR on mobile)
+  // - WebXR in iframes requires the xr-spatial-tracking permission policy.
+  // - AR may also need camera + motion sensors.
+  try{
+    frame.setAttribute('allow', 'fullscreen; xr-spatial-tracking; accelerometer; gyroscope; magnetometer; camera');
+    frame.setAttribute('allowfullscreen', '');
+    frame.setAttribute('webkitallowfullscreen', '');
+  }catch(_){ }
+
   function safeDecode(x){ return String(x || ""); }
 
   function normalizeP(raw){

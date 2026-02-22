@@ -34,6 +34,14 @@
     .bbsMsg{ color: rgba(234,241,255,.92); line-height:1.5; white-space:pre-wrap; }
     .bbsHint{ margin-top:10px; color: rgba(234,241,255,.70); font-size:12px; }
     .bbsErr{ color: rgba(255,124,124,.90); font-size:12px; }
+
+    /* 画像添付 */
+    .bbsFile{ display:flex; flex-direction:column; gap:8px; min-width:220px; }
+    .bbsPreview{ display:none; gap:10px; align-items:flex-start; }
+    .bbsPreview.show{ display:flex; }
+    .bbsPreview img{ width:96px; height:96px; object-fit:cover; border-radius:14px; border:1px solid rgba(255,255,255,.14); }
+    .bbsPreviewMeta{ font-size:12px; color: rgba(234,241,255,.70); }
+    .bbsImg{ max-width: 100%; border-radius: 14px; border:1px solid rgba(255,255,255,.12); margin-top:8px; }
   </style>
 </head>
 
@@ -80,6 +88,18 @@
         <div class="bbsRow">
           <input type="text" id="bbsName" class="bbsField" placeholder="名前（任意）" maxlength="24" autocomplete="nickname">
           <textarea id="bbsMsg" class="bbsField" placeholder="一言どうぞ！" maxlength="200"></textarea>
+
+          <div class="bbsFile">
+            <input type="file" id="bbsImg" class="bbsField" accept="image/*">
+            <div class="bbsPreview" id="bbsPreview">
+              <img id="bbsPreviewImg" alt="preview">
+              <div class="bbsPreviewMeta">
+                <div id="bbsPreviewInfo"></div>
+                <button id="bbsImgClear" class="btn" type="button" style="margin-top:6px;">画像を外す</button>
+              </div>
+            </div>
+          </div>
+
           <!-- bot避け：見えない入力 -->
           <input type="text" id="bbsHp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;opacity:0;height:0;width:0">
           <button id="bbsSubmit" class="btn primary">書き込む</button>
@@ -88,7 +108,7 @@
 
         <div class="bbsHint">
           ※ 公序良俗アウト / 個人情報 / スパムは消す。<br>
-          ※ 書き込みは Google スプレッドシートに保存されます。
+          ※ 画像は自動で圧縮され、Google Drive に保存されます。
         </div>
 
         <hr class="sep">
