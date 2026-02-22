@@ -103,8 +103,8 @@ async function loadBBS(){
           <div style="margin-top:8px;">
             <a href="${imgUrl}" target="_blank" rel="noopener">
               <img src="${src}" alt="img"
-                style="max-width:100%; border-radius:12px; border:1px solid rgba(255,255,255,.12);"
-                onerror="this.onerror=null; this.src='${imgUrl}';">
+              style="max-width:420px; width:100%; max-height:280px; height:auto; object-fit:cover; border-radius:12px; border:1px solid rgba(255,255,255,.12);"
+              onerror="this.onerror=null; this.src='${imgUrl}';">
             </a>
           </div>
         `;
