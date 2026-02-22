@@ -666,7 +666,7 @@ function resolveOmikujiItem(item){
       hint:"気が済むまで"},
     {id:"konami", title:"黒歴史閲覧許可", desc:"〇〇〇〇〇ンドを通した。", check:(s)=> (Number(s.counters.konami)||0) >= 1,
       progress:(s)=> Math.min(1, (Number(s.counters.konami)||0) / 1),
-      hint:"↑↑↓↓←→←→BA"},
+      hint:"〇〇〇〇〇〇〇〇BA"},
     {id:"omikuji5", title:"占い依存", desc:"おみくじ結果を5回見る。", check:(s)=> (Number(s.counters.omikuji)||0) >= 5,
       progress:(s)=> Math.min(1, (Number(s.counters.omikuji)||0) / 5),
       hint:"引く"},
