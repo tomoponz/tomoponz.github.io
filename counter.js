@@ -39,7 +39,6 @@
     span.textContent = `Access: ${count}`;
   }
 
-  }
 
   function triggerKiribanEvent(num) {
     alert(
