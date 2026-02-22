@@ -7,6 +7,23 @@
 (() => {
   "use strict";
 
+  // ========= Shell / Embedded =========
+  const __QS = new URLSearchParams(location.search);
+  const __IS_EMBED = (__QS.get("embed") === "1") || (window.self !== window.top);
+  const __NO_SHELL = (__QS.get("noshell") === "1");
+  const __FILE_LC = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+  const __IS_SHELL = (__FILE_LC === "shell.html");
+  const __IS_404 = (__FILE_LC === "404.html");
+
+  // ページ遷移でSEが途切れる問題の回避：通常アクセスは shell.html に集約
+  // （noshell=1 を付ければ従来挙動）
+  if(!__IS_EMBED && !__IS_SHELL && !__IS_404 && !__NO_SHELL){
+    const p = encodeURIComponent((location.pathname.split("/").pop() || "index.html") + location.search + location.hash);
+    location.replace("shell.html?p=" + p);
+    return;
+  }
+
+
   // ========== security-lite (deterrence only) ==========
   // 静的サイトでは本当の意味で「ソースを隠す」ことはできない。
   // これは Ctrl+U/F12 等を“軽く”妨害し、target=_blank を noopener で安全化するだけ。
@@ -42,7 +59,17 @@
 
   // ========== NAV (統一) ==========
   function setActiveNav() {
-    const file = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+    let file = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+    // shell.html は ?p= で中身が変わるので、そのファイル名でアクティブ判定
+    if(file === "shell.html"){
+      const p = new URLSearchParams(location.search).get("p");
+      if(p){
+        try{
+          const decoded = decodeURIComponent(p);
+          file = (decoded.split(/[?#]/)[0].split("/").pop() || "index.html").toLowerCase();
+        }catch(_){}
+      }
+    }
     const labelMap = {
       "index.html": "プロフィール",
       "omikuji.html": "おみくじ",
@@ -77,6 +104,10 @@
       if (isActive) a.classList.add("active");
     });
   }
+
+  // 外部（shell.js）から呼べるように
+  window.setActiveNav = setActiveNav;
+
 
   // ========== quote（今日の一言：偉人(author)撤去） ==========
   // 使うのは「ベース（quotes_base.js）」＋「追加（user_quotes.js）」のみ
@@ -643,29 +674,34 @@ function resolveOmikujiItem(item){
     // 一部ブラウザで「最初のユーザー操作」以降でないと音が鳴らないので、
     // ここは click をトリガにする（OK）
     document.addEventListener("click", (e)=>{
-      const t = e.target && e.target.closest ? e.target.closest("[data-sfx],a[href]") : null;
-      if(!t) return;
+      const any = e.target && e.target.closest ? e.target.closest("[data-sfx],a[href]") : null;
+      if(!any) return;
 
-      const isLink = (t.tagName || "").toLowerCase() === "a" && t.getAttribute("href");
+      const a = (e.target && e.target.closest) ? e.target.closest("a[href]") : null;
+      const isLink = !!(a && a.getAttribute("href"));
 
-      // data-sfx があればそれを優先
-      let key = t.getAttribute("data-sfx") || "";
+      // data-sfx があればそれを優先（リンク内の子要素でも拾う）
+      let key = "";
+      try{ key = (any.getAttribute && any.getAttribute("data-sfx")) ? (any.getAttribute("data-sfx")||"") : ""; }catch(_){}
+      if(!key && a){
+        try{ key = (a.getAttribute("data-sfx") || ""); }catch(_){}
+      }
 
-      // data-sfx が無くても「ネタ置き場リンク」なら自動で鳴らす（旧仕様互換）
+      // data-sfx が無くても「ネタ置き場リンク」等なら自動で鳴らす（旧仕様互換）
       let autoDelay = 0;
       if(!key && isLink){
         let dest = "";
         try{
-          const u = new URL(t.getAttribute("href"), location.href);
+          const u = new URL(a.getAttribute("href"), location.href);
           dest = (u.pathname.split("/").pop() || "").toLowerCase();
         }catch{
-          dest = (t.getAttribute("href") || "").toLowerCase();
+          dest = (a.getAttribute("href") || "").toLowerCase();
         }
         dest = dest.replace(/^[.\/]+/, "").split(/[?#]/)[0];
         if(dest === "gallery.html"){
           key = GALLERY_AUTO_SFX_KEY;
           autoDelay = GALLERY_AUTO_DELAY_MS;
-        } else if(dest === "index.html" && (t.textContent || "").includes("プロフィール")){
+        } else if(dest === "index.html" && (a.textContent || "").includes("プロフィール")){
           key = "profile";
           autoDelay = 180;
         } else if(dest === "hachi.html"){
@@ -677,24 +713,60 @@ function resolveOmikujiItem(item){
         }
       }
 
+      // ========= embed(iframe) モード：親(shell)へ委譲 =========
+      if(__IS_EMBED){
+        // iframe内の遷移は shell 側でやる（SEを途切れさせない＆URL同期）
+        if(isLink && a){
+          const hrefRaw = a.getAttribute("href") || "";
+          if(hrefRaw.startsWith("#")) return;
+
+          // 修飾キー/別タブは尊重
+          if(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+          if(a.target && a.target.toLowerCase() !== "_self") return;
+
+          let u;
+          try{ u = new URL(hrefRaw, location.href); }catch(_){ return; }
+          if(u.origin !== location.origin) return;
+
+          e.preventDefault();
+          try{
+            window.parent && window.parent.postMessage({type:"NAV", href:u.href, key:key||""}, location.origin);
+          }catch(_){
+            try{ window.parent && window.parent.postMessage({type:"NAV", href:u.href, key:key||""}, "*"); }catch(__){}
+          }
+          return;
+        }
+
+        // リンクじゃないクリックSEは親に鳴らしてもらう
+        if(key){
+          try{
+            window.parent && window.parent.postMessage({type:"SFX", key:key}, location.origin);
+          }catch(_){
+            try{ window.parent && window.parent.postMessage({type:"SFX", key:key}, "*"); }catch(__){}
+          }
+        }
+        return;
+      }
+
+      // ========= 通常モード =========
       if(!key) return; // 音指定が無いなら何もしない
 
       // 音を鳴らす
-      const volAttr = t.getAttribute("data-sfx-volume");
+      const volAttr = any.getAttribute ? any.getAttribute("data-sfx-volume") : null;
       const vol = volAttr != null ? Number(volAttr) : undefined;
       playSfx(key, (typeof vol === "number" && isFinite(vol)) ? vol : undefined);
 
       // 遷移遅延：リンクだけ
-      if(!isLink) return;
+      if(!isLink || !a) return;
 
-      const delayAttr = t.getAttribute("data-sfx-delay");
+      const delayAttr = a.getAttribute("data-sfx-delay");
       const delay = clamp(
         parseInt((delayAttr != null ? delayAttr : autoDelay) || 0, 10) || 0,
         0, 4000
       );
 
       // すでに同ページなら遷移しない（音だけ）
-      const hrefAbs = t.href;
+      const hrefAbs = a.href;
       const current = (location.href || "");
       if(hrefAbs === current){
         if(delay > 0) e.preventDefault();
@@ -703,7 +775,7 @@ function resolveOmikujiItem(item){
 
       // 修飾キー/別タブ/target は尊重（音だけ鳴らして通常動作）
       if(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-      if(t.target && t.target.toLowerCase() !== "_self") return;
+      if(a.target && a.target.toLowerCase() !== "_self") return;
       if(delay <= 0) return;
 
       // 同一タブ遷移だけ少し遅らせる

@@ -65,9 +65,19 @@
     return $("warpConsole") || $("console");
   }
 
-  function log(line) {
+  const DEV_MODE = (new URLSearchParams(location.search).get("dev") === "1");
+  function status(line){
     const c = getConsoleEl();
-    if (c) c.textContent += (c.textContent ? "\n" : "") + line;
+    if(!c) return;
+    // 既存文字列を置き換え（画面の“内部ログ”にならないよう短文に）
+    c.textContent = String(line || "");
+  }
+  function log(line) {
+    // 画面に“こちら側メモ”が出ないよう、通常は沈黙（dev=1 の時だけ出す）
+    if(!DEV_MODE) return;
+    const c = getConsoleEl();
+    if (c) c.textContent += (c.textContent ? "
+" : "") + line;
     else console.log(line);
   }
 
@@ -555,10 +565,12 @@
         pushWarpLog({ title: t, time: new Date().toLocaleString(), url: place.kuroLink || "kuro.html" });
         renderWarpLogs();
       }
+      status("完了。");
       return;
     }
 
     const wikiTitle = place?.wikiTitle || "メインページ";
+    status("Wikipediaを取得中…");
     const data = await getWikiDataSmart(wikiTitle);
 
     titleEl.textContent = data.title || wikiTitle;
@@ -574,6 +586,7 @@
     setLink(wikiA, data.pageUrl || wikiPageUrl(wikiTitle));
     setImage(data.thumbnail || null);
 
+    status("地図を生成中…");
     const lat = (typeof place.lat === "number") ? place.lat : null;
     const lng = (typeof place.lng === "number") ? place.lng : null;
     setMap(lat, lng);
@@ -582,6 +595,7 @@
       pushWarpLog({ title: data.title || wikiTitle, time: new Date().toLocaleString(), url: data.pageUrl || wikiPageUrl(wikiTitle) });
       renderWarpLogs();
     }
+    status("完了。");
   }
 
   // =====================
@@ -643,9 +657,10 @@
   }
 
   async function initWarp() {
+    status("ワープ先を解析中…");
     const places = window.PLACES || [];
     if (!places.length) {
-      log("ERR: PLACESが空。");
+      status("ERR: データが読めません（places）。");
       return;
     }
 
@@ -675,7 +690,9 @@
     const again = $("warpAgain");
     if (again) again.addEventListener("click", warpAgainImpl);
     window.warpAgain = warpAgainImpl;
-  }
+  
+    status("完了。");
+}
 
   // =====================
   // kuro.html behavior

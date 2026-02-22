@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>tomoponz｜Shell</title>
+  <meta name="description" content="ページ遷移してもSEが途切れないシェル（iframe）">
+
+  <link rel="stylesheet" href="style.css?v=20260222">
+  <!-- shell.js を先に（リンクの既定遷移を止める） -->
+  <script defer src="shell.js?v=20260222"></script>
+
+  <!-- クリックSE / 共通機能 -->
+  <script defer src="quotes_base.js?v=20260222"></script>
+  <script defer src="user_quotes.js?v=20260222"></script>
+  <script defer src="app.js?v=20260222"></script>
+</head>
+
+<body>
+  <header class="nav">
+    <a class="brand" href="index.html" aria-label="tomoponz ホーム">
+      <span class="logo" aria-hidden="true"></span>
+      <span class="brandText">
+        <span class="brandName">tomoponz</span>
+        <span class="brandSub" id="brandSub"></span>
+      </span>
+    </a>
+
+    <nav class="navlinks" aria-label="メニュー">
+      <a class="chip" href="index.html" data-sfx="profile" data-sfx-delay="0">プロフィール</a>
+      <a class="chip" href="omikuji.html" data-sfx="omikujiResult" data-sfx-delay="0">おみくじ</a>
+      <a class="chip" href="shindan.html" data-sfx="shindan" data-sfx-delay="0">診断</a>
+      <a class="chip" href="gallery.html" data-sfx="neta" data-sfx-delay="0">ネタ置き場</a>
+      <a class="chip" href="links.html" data-sfx="neta" data-sfx-delay="0">リンク</a>
+      <a class="chip" href="games.html" data-sfx="neta" data-sfx-delay="0">ゲーム</a>
+      <a class="chip" href="door.html" data-sfx="neta" data-sfx-delay="0">ドア</a>
+      <a class="chip" href="hachi.html" data-sfx="hachi" data-sfx-delay="0">八百科事典</a>
+    </nav>
+  </header>
+
+  <main class="wrap shellWrap">
+    <iframe id="viewFrame" class="viewFrame" title="tomoponz view" loading="eager"></iframe>
+  </main>
+</body>
+</html>
