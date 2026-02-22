@@ -174,6 +174,7 @@
       <a-asset-item id="car-model" src="../assets/models/destroyed_car_03__backrooms_car_gameready.glb"></a-asset-item>
       <a-asset-item id="bacteria-model" src="../assets/models/bacteria_-_kane_pixels_backrooms.glb"></a-asset-item>
       <a-asset-item id="sculpture-model" src="../assets/models/sculpture_bust_of_roza_loewenfeld.glb"></a-asset-item>
+      <a-asset-item id="warning-signs-model" src="../assets/models/warning_signs_set.glb"></a-asset-item>
     </a-assets>
 
     <a-entity id="rig" position="0 1.0 0" fps-player="jumpVelocity: 0.187" wall-collider>
@@ -186,6 +187,12 @@
 
     <a-gltf-model src="#car-model" class="collidable" position="3 0 -3" rotation="0 -45 0" scale="1.6 1.6 1.6"></a-gltf-model>
 
+    
+
+    <!-- 警戒標識セット（warning_signs_set.glb） -->
+    <a-entity id="warning-signs" position="-2 0 -7" rotation="0 30 0" scale="0.85 0.85 0.85">
+      <a-gltf-model src="#warning-signs-model"></a-gltf-model>
+    </a-entity>
     <a-entity position="2.5 0 -2.5" jitter="amount: 0.04">
       <a-gltf-model src="#bacteria-model" scale="0.4 0.4 0.4"></a-gltf-model>
       <a-box class="clickable" visible="false" position="0 1 0" scale="0.8 2 0.8" 
