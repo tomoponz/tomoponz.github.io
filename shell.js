@@ -11,8 +11,8 @@
     try{
       const u = new URL(p, location.href);
       if(u.origin !== location.origin) return "index.html";
-      const file = (u.pathname.split("/").pop() || "index.html");
-      return file + (u.search || "") + (u.hash || "");
+      const path = (u.pathname || '/index.html').replace(/^\/+/,'');
+      return path + (u.search || "") + (u.hash || "");
     }catch(_){
       // 相対で雑に
       const cleaned = p.replace(/^[.\/]+/, "");
@@ -26,12 +26,15 @@
     const sp = new URLSearchParams(u.search);
     sp.set("embed","1");
     u.search = sp.toString() ? ("?"+sp.toString()) : "";
-    const file = (u.pathname.split("/").pop() || "index.html");
-    return file + u.search + (u.hash || "");
+    const path = (u.pathname || '/index.html').replace(/^\/+/,'');
+    return path + u.search + (u.hash || "");
   }
 
   function setFrame(p, push){
     const norm = normalizeP(p);
+
+    // immersive はページごとに明示ONする方式。遷移時はいったん解除しておく（戻り忘れ防止）
+    try{ document.documentElement.classList.remove("immersive"); }catch(_){ }
     // 長いナビ音（リンク/ゲームなど）は、別ページへ移動する時に停止
     try{ if(typeof window.__stopLongNavSfxFor === "function") window.__stopLongNavSfxFor(norm); }catch(_){ }
 
@@ -82,7 +85,7 @@
 
     // shell 自身の遷移に置き換える
     e.preventDefault();
-    setFrame((u.pathname.split("/").pop() || "index.html") + (u.search || "") + (u.hash || ""), true);
+    setFrame((u.pathname || '/index.html').replace(/^\/+/,'') + (u.search || "") + (u.hash || ""), true);
   }, true);
 
   // iframe 側（embed=1）からの遷移要求

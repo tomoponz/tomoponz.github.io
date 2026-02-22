@@ -95,6 +95,9 @@
       "door.html": "ドア",
       "warp.html": "ワープ",
       "hachi.html": "八百科事典",
+      "achievements.html": "実績",
+      "sweetdeath.html": "甘き死よ",
+      "eva.html": "終劇",
       "meigen.html": "名言",
       "kuro.html": "黒歴史",
       "404.html": "迷ひ道",
@@ -609,6 +612,140 @@ function resolveOmikujiItem(item){
   window.__stopLongNavSfxFor = stopLongNavSfxFor;
 
 
+  // ========== achievements (localStorage only) ==========
+  // 目的：サーバ無しで「探索したくなる」実績システムを追加
+  const ACH_KEY = "tomoponz_ach_v1";
+
+  function __achLoad(){
+    try{
+      const raw = localStorage.getItem(ACH_KEY);
+      if(!raw) return {v:1, pages:{}, counters:{}, unlocked:{}};
+      const o = JSON.parse(raw);
+      if(!o || typeof o !== "object") return {v:1, pages:{}, counters:{}, unlocked:{}};
+      o.v = 1;
+      o.pages = (o.pages && typeof o.pages === "object") ? o.pages : {};
+      o.counters = (o.counters && typeof o.counters === "object") ? o.counters : {};
+      o.unlocked = (o.unlocked && typeof o.unlocked === "object") ? o.unlocked : {};
+      return o;
+    }catch(_){
+      return {v:1, pages:{}, counters:{}, unlocked:{}};
+    }
+  }
+  function __achSave(s){
+    try{ localStorage.setItem(ACH_KEY, JSON.stringify(s)); }catch(_){ }
+  }
+  function __achInc(key, delta){
+    const s = __achLoad();
+    const k = String(key||"").trim();
+    if(!k) return;
+    const d = (typeof delta === "number" && isFinite(delta)) ? delta : 1;
+    s.counters[k] = (Number(s.counters[k])||0) + d;
+    __achEvalAndSave(s);
+  }
+  function __achMarkPage(file){
+    const s = __achLoad();
+    const f = String(file||"").trim();
+    if(!f) return;
+    s.pages[f] = true;
+    s.counters.visits = (Number(s.counters.visits)||0) + 1;
+    __achEvalAndSave(s);
+  }
+
+  const __ACH_DEFS = [
+    {id:"first", title:"初訪問", desc:"ここに来た。", check:(s)=> (Number(s.counters.visits)||0) >= 1,
+      progress:(s)=> Math.min(1, (Number(s.counters.visits)||0) / 1),
+      hint:""},
+    {id:"explore5", title:"探索者", desc:"5ページ以上を訪問。", check:(s)=> Object.keys(s.pages||{}).length >= 5,
+      progress:(s)=> Math.min(1, Object.keys(s.pages||{}).length / 5),
+      hint:"いろいろ押す"},
+    {id:"warp3", title:"ワープ旅行者", desc:"ワープを3回成功。", check:(s)=> (Number(s.counters.doorWarp)||0) >= 3,
+      progress:(s)=> Math.min(1, (Number(s.counters.doorWarp)||0) / 3),
+      hint:"ドアを開ける"},
+    {id:"warp10", title:"ワープ中毒", desc:"ワープ10回。", check:(s)=> (Number(s.counters.doorWarp)||0) >= 10,
+      progress:(s)=> Math.min(1, (Number(s.counters.doorWarp)||0) / 10),
+      hint:"気が済むまで"},
+    {id:"konami", title:"黒歴史閲覧許可", desc:"コナミコマンドを通した。", check:(s)=> (Number(s.counters.konami)||0) >= 1,
+      progress:(s)=> Math.min(1, (Number(s.counters.konami)||0) / 1),
+      hint:"↑↑↓↓←→←→BA"},
+    {id:"omikuji5", title:"占い依存", desc:"おみくじ結果を5回見る。", check:(s)=> (Number(s.counters.omikuji)||0) >= 5,
+      progress:(s)=> Math.min(1, (Number(s.counters.omikuji)||0) / 5),
+      hint:"引く"},
+    {id:"msboom", title:"環境破壊", desc:"マインスイーパで爆発。", check:(s)=> (Number(s.counters.msBoom)||0) >= 1,
+      progress:(s)=> Math.min(1, (Number(s.counters.msBoom)||0) / 1),
+      hint:"踏む"},
+    {id:"g2048", title:"詰みの瞬間", desc:"2048で詰む。", check:(s)=> (Number(s.counters.g2048)||0) >= 1,
+      progress:(s)=> Math.min(1, (Number(s.counters.g2048)||0) / 1),
+      hint:"詰ませる"},
+    {id:"seal", title:"封印解除", desc:"黒歴史の封印を解く。", check:(s)=> (Number(s.counters.sealUnlock)||0) >= 1,
+      progress:(s)=> Math.min(1, (Number(s.counters.sealUnlock)||0) / 1),
+      hint:"禁を破る"},
+    {id:"aero", title:"Aeroの住人", desc:"Aeroで再生を押す。", check:(s)=> (Number(s.counters.aeroPlay)||0) >= 1,
+      progress:(s)=> Math.min(1, (Number(s.counters.aeroPlay)||0) / 1),
+      hint:"▶"},
+    {id:"vapor", title:"ノスタルジア", desc:"Vaporwaveページを2つ訪問。",
+      check:(s)=>{
+        const pages = (s && s.pages && typeof s.pages === "object") ? s.pages : {};
+        let n = 0;
+        for(const k in pages){ if(String(k).startsWith("vaporwave/")) n++; }
+        return n >= 2;
+      },
+      progress:(s)=>{
+        const pages = (s && s.pages && typeof s.pages === "object") ? s.pages : {};
+        let n = 0;
+        for(const k in pages){ if(String(k).startsWith("vaporwave/")) n++; }
+        return Math.min(1, n / 2);
+      },
+      hint:"vaporwave"},
+  ];
+
+  function __achEvalAndSave(s){
+    try{
+      for(const def of __ACH_DEFS){
+        if(!def || !def.id) continue;
+        const id = String(def.id);
+        if(s.unlocked && s.unlocked[id]) continue;
+        let ok = false;
+        try{ ok = !!def.check(s); }catch(_){ ok = false; }
+        if(ok){
+          s.unlocked[id] = Date.now();
+        }
+      }
+    }catch(_){ }
+    __achSave(s);
+  }
+
+  function __achNoteSfx(key){
+    const k = String(key||"").trim();
+    if(!k) return;
+    // ここで“音が鳴った事実”を実績イベントとして扱う
+    if(k === "doorWarp") __achInc("doorWarp", 1);
+    else if(k === "konamiKuro") __achInc("konami", 1);
+    else if(k === "omikujiResult") __achInc("omikuji", 1);
+    else if(k === "msBoom") __achInc("msBoom", 1);
+    else if(k === "g2048Stuck") __achInc("g2048", 1);
+    else if(k === "sealUnlock") __achInc("sealUnlock", 1);
+    else if(k === "aeroPlay") __achInc("aeroPlay", 1);
+  }
+
+  // 外部公開（achievements.html が読む）
+  window.ACH = {
+    key: ACH_KEY,
+    getState: ()=>__achLoad(),
+    getDefinitions: ()=>__ACH_DEFS.slice(),
+    noteSfx: __achNoteSfx,
+    notePage: ()=>{
+      try{
+        const parts = String(location.pathname||"").split("/").filter(Boolean);
+        const file = (parts.slice(-2).join("/") || "");
+        if(!file || file.endsWith("shell.html")) return;
+        __achMarkPage(file);
+      }catch(_){ }
+    },
+    inc: __achInc,
+    reset: ()=>{ try{ localStorage.removeItem(ACH_KEY); }catch(_){ } },
+  };
+
+
   // 既存仕様：ネタ置き場(gallery.html)は、data-sfx を付けてなくても鳴らす
   const GALLERY_AUTO_SFX_KEY = "neta";
   const GALLERY_AUTO_DELAY_MS = 380;
@@ -772,10 +909,11 @@ function resolveOmikujiItem(item){
 
   function playSfx(keyOrPath, volume, opts){
     try{ if(typeof getAudioEnabled === "function" && !getAudioEnabled()) return; }catch(_){ }
+    const __k = String(keyOrPath||"" ).trim();
     // embed(iframe) 内なら親(shell)で鳴らす（ページ切替でもSEが途切れない）
     // ※親側（shell.html）は __IS_EMBED=false なのでループしない
     if(__IS_EMBED){
-      const k = String(keyOrPath || "").trim();
+      const k = __k;
       if(k){
         const payload = { type:"SFX", key:k };
         if(typeof volume === "number" && isFinite(volume)) payload.volume = volume;
@@ -786,10 +924,12 @@ function resolveOmikujiItem(item){
       // postMessage が失敗した場合のみ、ローカルで鳴らす
     }
 
+    // achievements: 非embed(親)側でのみカウント（embed側は二重計上になるのでしない）
+    try{ window.ACH && typeof window.ACH.noteSfx === "function" && window.ACH.noteSfx(__k); }catch(_){ }
+
     const src = resolveSfxSrc(keyOrPath);
     if(!src) return;
     const a = getAudio(src);
-    const __k = String(keyOrPath||"").trim();
     const __isLongNav = LONG_NAV_SFX_KEYS.has(__k);
     if(__isLongNav){
       // 以前の長いナビ音が鳴っていたら止める（重なり防止）
@@ -989,6 +1129,7 @@ function resolveOmikujiItem(item){
     setActiveNav();
     setDailyQuote();   // USER_QUOTES があるならそれだけで回る
     restoreOmikuji();
+    try{ window.ACH && typeof window.ACH.notePage === "function" && window.ACH.notePage(); }catch(_){ }
     initSiteSearch();
     initSfxClicks();
   });
