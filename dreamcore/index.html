@@ -143,6 +143,7 @@ AFRAME.registerComponent('face-player-y', {
   <audio id="sfx-kodou" src="../assets/sfx/kodou.wav" loop preload="auto"></audio>
   <audio id="sfx-hashiri" src="../assets/sfx/3_hashiri.wav" loop preload="auto"></audio>
   <audio id="sfx-gya" src="../assets/sfx/gyaaaa_d.wav" preload="auto"></audio>
+  <audio id="sfx-nigeru" src="../assets/sfx/nc63924_nigerunndayoxo.wav" preload="auto"></audio>
 
   <div class="overlay-screen" id="game-over"><h1 style="color: red;">CAUGHT.</h1></div>
   <div class="overlay-screen" id="game-clear" style="background: #fff; color: #000;"><h1>AWAKE.</h1></div>
@@ -150,6 +151,21 @@ AFRAME.registerComponent('face-player-y', {
   <script>
     window.isPlaying = false; 
     let timeLeft = 60;
+    // audio refs (need to be visible from gameOver)
+    let sKodou = null, sHashiri = null, sGya = null, sNigeru = null;
+    let _nigeruOnce = false;
+    function playNigeruOnce(){
+      if(_nigeruOnce) return;
+      _nigeruOnce = true;
+      try{
+        sNigeru = sNigeru || document.getElementById('sfx-nigeru');
+        if(!sNigeru) return;
+        sNigeru.currentTime = 0;
+        sNigeru.volume = 1;
+        if(window.__boostAudio) { try{ window.__boostAudio(sNigeru, 2.8); }catch(e){} }
+        sNigeru.play().catch(()=>{});
+      }catch(e){}
+    }
 
     // このページのデフォルト（プレイヤーが敵より少し速い）
     window.__fpsSettings__ = window.__fpsSettings__ || { moveSpeed: 0.22, lookSpeed: 0.05, volume: 1.0 };
@@ -159,6 +175,7 @@ AFRAME.registerComponent('face-player-y', {
     const hell = document.getElementById('button-hell');
     exitBtn.addEventListener('mouseenter', function() {
       if (Math.random() < 0.98) {
+        playNigeruOnce();
         const dummy = document.createElement('button'); dummy.className = 'the-exit dummy'; dummy.innerText = "I want to wake up."; dummy.style.left = this.style.left || '50%'; dummy.style.top = this.style.top || '80%'; hell.appendChild(dummy);
         this.style.left = (Math.random() * (window.innerWidth - 200)) + 'px'; this.style.top = (Math.random() * (window.innerHeight - 100)) + 'px'; this.style.position = 'fixed'; this.style.transform = 'none';
       }
@@ -167,6 +184,7 @@ AFRAME.registerComponent('face-player-y', {
     // モバイルでも同じ「逃げる」挙動にする（タップでもほぼ逃げる）
     exitBtn.addEventListener('touchstart', function(e) {
       if (Math.random() < 0.98) {
+        playNigeruOnce();
         e.preventDefault();
         const dummy = document.createElement('button');
         dummy.className = 'the-exit dummy';
@@ -287,9 +305,9 @@ AFRAME.registerComponent('face-player-y', {
       const hudVignette = document.getElementById('hud-vignette');
 
 // 逃走サウンド（心拍/息）と捕獲ボイス
-const sKodou = document.getElementById('sfx-kodou');
-const sHashiri = document.getElementById('sfx-hashiri');
-const sGya = document.getElementById('sfx-gya');
+sKodou = document.getElementById('sfx-kodou');
+sHashiri = document.getElementById('sfx-hashiri');
+sGya = document.getElementById('sfx-gya');
 
 // Quiet files → boost (WebAudio Gain) if available
 [sKodou, sHashiri, sGya].forEach(a => {
@@ -425,7 +443,7 @@ function updateChaseAudio(dist){
     function gameOver() {
       try{ if(sKodou){ sKodou.pause(); sKodou.currentTime = 0; } }catch(e){}
       try{ if(sHashiri){ sHashiri.pause(); sHashiri.currentTime = 0; } }catch(e){}
-      try{ if(sGya){ sGya.currentTime = 0; sGya.volume = Math.min(1, (window.__fpsSettings?.volume ?? 1) * 1.0); sGya.play().catch(()=>{}); } }catch(e){}
+      try{ if(sGya){ sGya.currentTime = 0; sGya.volume = Math.min(1, (window.__fpsSettings?.volume ?? 1) * 1.0); if(window.__boostAudio){ try{ window.__boostAudio(sGya, 3.0); }catch(e){} } sGya.play().catch(()=>{}); } }catch(e){}
  
       window.isPlaying = false; 
       document.getElementById('game-over').style.opacity = 1; 
