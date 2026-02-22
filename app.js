@@ -15,6 +15,11 @@
   const __IS_SHELL = (__FILE_LC === "shell.html");
   const __IS_404 = (__FILE_LC === "404.html");
 
+  // iframe 内では、ページ側のヘッダーナビを隠す（shell が担当）
+  if(__IS_EMBED){
+    try{ document.documentElement.classList.add("embedded"); }catch(_){ }
+  }
+
   // ページ遷移でSEが途切れる問題の回避：通常アクセスは shell.html に集約
   // （noshell=1 を付ければ従来挙動）
   if(!__IS_EMBED && !__IS_SHELL && !__IS_404 && !__NO_SHELL){
@@ -39,6 +44,31 @@
 
   // ========== utilities ==========
   const $id = (id) => document.getElementById(id);
+
+  // Shell/Embed を意識した遷移（SEを途切れさせず、shell のURLも整える）
+  function smartNav(href, sfxKey){
+    const target = String(href || '').trim();
+    if(!target) return;
+
+    // shell 上なら iframe 切替で遷移
+    if(__IS_SHELL && typeof window.__shellSetFrame === 'function'){
+      try{ window.__shellSetFrame(target, true, sfxKey); return; }catch(_){ }
+    }
+
+    // iframe 内なら親に委譲
+    if(__IS_EMBED && window.parent){
+      const payload = { type:'NAV', href: target };
+      if(sfxKey) payload.key = String(sfxKey);
+      try{ window.parent.postMessage(payload, location.origin); return; }catch(_){ }
+      try{ window.parent.postMessage(payload, '*'); return; }catch(_){ }
+    }
+
+    // 直開き
+    if(sfxKey && typeof window.playSfx === 'function'){
+      try{ window.playSfx(String(sfxKey)); }catch(_){ }
+    }
+    location.href = target;
+  }
 
   function todayKey() {
     const d = new Date();
@@ -475,7 +505,7 @@ function resolveOmikujiItem(item){
       // 裏コマンド（必要なら残す）
       if(query === "kuro-n-tomo"){
         alert("認証完了。裏付けされた記録を開示します。");
-        location.href = "deep.html";
+        smartNav("deep.html");
         return;
       }
 
@@ -499,7 +529,7 @@ function resolveOmikujiItem(item){
 
       if(found){
         if(confirm(`「${query}」に関連するページが見つかった。\n移動する？`)){
-          location.href = found;
+          smartNav(found);
         }
         return;
       }

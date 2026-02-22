@@ -45,6 +45,14 @@
     }catch(_){}
   }
 
+  // 外部（app.js の検索など）から shell 遷移できるように公開
+  window.__shellSetFrame = function(href, push, sfxKey){
+    try{
+      if(sfxKey && typeof window.playSfx === 'function') window.playSfx(String(sfxKey));
+    }catch(_){ }
+    setFrame(String(href||'index.html'), !!push);
+  };
+
   function getPFromLocation(){
     const qs = new URLSearchParams(location.search);
     const raw = qs.get("p");
@@ -110,6 +118,37 @@
   window.addEventListener("popstate", ()=>{
     setFrame(getPFromLocation(), false);
   });
+
+    // =====================
+  // Konami (shell) → kuro.html
+  // =====================
+  (function(){
+    const KURO_UNLOCK_KEY = 'kuro_unlocked_v1';
+    const seq = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+    let i = 0;
+    function isTyping(){
+      const el = document.activeElement;
+      if(!el) return false;
+      const tag = (el.tagName || '').toLowerCase();
+      return tag === 'input' || tag === 'textarea' || tag === 'select' || el.isContentEditable;
+    }
+    window.addEventListener('keydown', (e)=>{
+      if(isTyping()) return;
+      const k = e.key;
+      const ok = (k === seq[i]) || (String(k).toLowerCase() === seq[i]);
+      if(ok){
+        i++;
+        if(i >= seq.length){
+          i = 0;
+          try{ sessionStorage.setItem(KURO_UNLOCK_KEY, '1'); }catch(_){ }
+          try{ if(typeof window.playSfx === 'function') window.playSfx('konamiKuro', 1.0, {boost:2.8}); }catch(_){ }
+          setFrame('kuro.html', true);
+        }
+      }else{
+        i = 0;
+      }
+    }, true);
+  })();
 
   // 初期表示
   setFrame(getPFromLocation(), false);
