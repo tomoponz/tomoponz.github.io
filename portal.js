@@ -715,6 +715,22 @@
     const seq = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
     let i = 0;
 
+    function navToKuroWithSfx(){
+      // unlock を共有（同一オリジンの iframe/shell 間で sessionStorage は共有される）
+      sessionStorage.setItem(KURO_UNLOCK_KEY, "1");
+
+      // shell(iframe) なら親に「SE再生＋遷移」を委譲（SEが途切れない）
+      if(window.self !== window.top){
+        const payload = { type:"NAV", href:"kuro.html", key:"konamiKuro" };
+        try{ window.parent && window.parent.postMessage(payload, location.origin); return; }catch(_){ }
+        try{ window.parent && window.parent.postMessage(payload, "*"); return; }catch(_){ }
+      }
+
+      // 直開き（noshell=1 等）の場合：SEを鳴らして即遷移
+      try{ if(window.playSfx) window.playSfx("konamiKuro", 1.0, {boost: 2.8}); }catch(e){}
+      location.href = "kuro.html";
+    }
+
     window.addEventListener("keydown", (e) => {
       const key = e.key;
       const ok = (key === seq[i]) || (key.toLowerCase() === seq[i]);
@@ -722,9 +738,7 @@
         i++;
         if (i >= seq.length) {
           i = 0;
-          sessionStorage.setItem(KURO_UNLOCK_KEY, "1");
-          try{ if(window.playSfx) window.playSfx("konamiKuro", 1.0, {boost: 2.8}); }catch(e){}
-          setTimeout(()=>{ location.href = "kuro.html"; }, 220);
+          navToKuroWithSfx();
         }
       } else {
         i = 0;

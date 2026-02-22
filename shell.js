@@ -78,14 +78,30 @@
     if(!d || typeof d !== "object") return;
 
     if(d.type === "SFX" && d.key){
-      try{ if(typeof window.playSfx === "function") window.playSfx(String(d.key)); }catch(_){}
+      try{
+        if(typeof window.playSfx === "function"){
+          window.playSfx(
+            String(d.key),
+            (typeof d.volume === "number" ? d.volume : undefined),
+            (d.opts && typeof d.opts === "object" ? d.opts : undefined)
+          );
+        }
+      }catch(_){}
       return;
     }
 
     if(d.type === "NAV" && d.href){
       const key = d.key || d.sfx;
       if(key){
-        try{ if(typeof window.playSfx === "function") window.playSfx(String(key)); }catch(_){}
+        try{
+          if(typeof window.playSfx === "function"){
+            window.playSfx(
+              String(key),
+              (typeof d.volume === "number" ? d.volume : undefined),
+              (d.opts && typeof d.opts === "object" ? d.opts : undefined)
+            );
+          }
+        }catch(_){}
       }
       setFrame(String(d.href), true);
     }

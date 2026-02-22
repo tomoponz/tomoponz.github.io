@@ -643,6 +643,20 @@ function resolveOmikujiItem(item){
   window.preloadSfx = preloadSfx;
 
   function playSfx(keyOrPath, volume, opts){
+    // embed(iframe) 内なら親(shell)で鳴らす（ページ切替でもSEが途切れない）
+    // ※親側（shell.html）は __IS_EMBED=false なのでループしない
+    if(__IS_EMBED){
+      const k = String(keyOrPath || "").trim();
+      if(k){
+        const payload = { type:"SFX", key:k };
+        if(typeof volume === "number" && isFinite(volume)) payload.volume = volume;
+        if(opts && typeof opts === "object") payload.opts = opts;
+        try{ window.parent && window.parent.postMessage(payload, location.origin); return; }catch(_){ }
+        try{ window.parent && window.parent.postMessage(payload, "*"); return; }catch(_){ }
+      }
+      // postMessage が失敗した場合のみ、ローカルで鳴らす
+    }
+
     const src = resolveSfxSrc(keyOrPath);
     if(!src) return;
     const a = getAudio(src);
