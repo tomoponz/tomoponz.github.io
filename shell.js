@@ -162,6 +162,109 @@
     });
   })();
 
+  // expose for app.js fallback (optional)
+  try{
+    window.__shellSetFrame = function(href, push){ setFrame(href, !!push); };
+  }catch(_){}
+
+  // ===== Collapsible ribbon + menu injection (shell only) =====
+  (function initNavEnhancements(){
+    const root = document.documentElement;
+    const header = document.querySelector("header.nav");
+    if(!header) return;
+
+    // CSS (inject once)
+    if(!document.getElementById("navCollapseCss")){
+      const st = document.createElement("style");
+      st.id = "navCollapseCss";
+      st.textContent = `
+        html.navCollapsed .navlinks{ display:none !important; }
+        html.navCollapsed .nav{ padding-top:10px !important; padding-bottom:10px !important; }
+        html.navCollapsed .brandSub{ display:none !important; }
+        @media (max-width:780px){
+          html.navCollapsed .nav{ flex-direction:row !important; align-items:center !important; }
+        }
+      `;
+      document.head.appendChild(st);
+    }
+
+    // Ensure navtools exists
+    let tools = header.querySelector(".navtools");
+    if(!tools){
+      tools = document.createElement("div");
+      tools.className = "navtools";
+      header.appendChild(tools);
+    }
+
+    // Collapse toggle button
+    let btn = header.querySelector("#navCollapse");
+    if(!btn){
+      btn = document.createElement("button");
+      btn.type = "button";
+      btn.id = "navCollapse";
+      btn.className = "chip";
+      btn.setAttribute("aria-pressed","false");
+      btn.title = "メニューを折りたたむ";
+      btn.textContent = "✕";
+      tools.insertBefore(btn, tools.firstChild);
+    }
+
+    const KEY = "tomoponz_nav_collapsed";
+    function load(){
+      try{
+        const v = localStorage.getItem(KEY);
+        if(v === null) return null;
+        return v === "1";
+      }catch(_){ return null; }
+    }
+    function save(v){
+      try{ localStorage.setItem(KEY, v ? "1" : "0"); }catch(_){}
+    }
+    function apply(v){
+      root.classList.toggle("navCollapsed", !!v);
+      btn.setAttribute("aria-pressed", v ? "true" : "false");
+      btn.textContent = v ? "≡" : "✕";
+      btn.title = v ? "メニューを開く" : "メニューを折りたたむ";
+    }
+
+    let st0 = load();
+    if(st0 === null){
+      // first time: compact on small screens
+      st0 = (window.matchMedia && window.matchMedia("(max-width:780px)").matches) ? true : false;
+    }
+    apply(st0);
+
+    btn.addEventListener("click", ()=>{
+      const next = !root.classList.contains("navCollapsed");
+      apply(next);
+      save(next);
+    });
+
+    // Inject "足跡帳" link if missing
+    const navlinks = header.querySelector(".navlinks");
+    if(navlinks){
+      const exists = Array.from(navlinks.querySelectorAll("a[href]")).some(a=>{
+        const h = (a.getAttribute("href")||"").replace(/^\/+/,"");
+        return h === "bbs.html" || h.endsWith("/bbs.html");
+      });
+      if(!exists){
+        const a = document.createElement("a");
+        a.className = "chip";
+        a.href = "bbs.html";
+        a.textContent = "足跡帳";
+        // insert after gallery if possible
+        const anchors = Array.from(navlinks.querySelectorAll("a[href]"));
+        const after = anchors.find(x => (x.getAttribute("href")||"").includes("gallery.html"));
+        if(after && after.insertAdjacentElement){
+          after.insertAdjacentElement("afterend", a);
+        }else{
+          navlinks.appendChild(a);
+        }
+      }
+    }
+  })();
+
+
   // 初期表示
   setFrame(getPFromLocation(), false);
 })();
