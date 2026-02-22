@@ -4,6 +4,31 @@
 
   const canvas = document.getElementById('tetrisCanvas');
   const nextCanvas = document.getElementById('nextCanvas');
+
+
+// --- mobile: prevent page scroll while operating ---
+const padRoot = document.getElementById('tPad');
+function blockScrollOn(el){
+  if(!el) return;
+  const handler = (e)=>{ e.preventDefault(); };
+  ['touchstart','touchmove','touchend','gesturestart'].forEach(ev=>{
+    try{ el.addEventListener(ev, handler, {passive:false}); }catch(_){ el.addEventListener(ev, handler); }
+  });
+}
+blockScrollOn(canvas);
+blockScrollOn(padRoot);
+
+// When dragging, also block document scrolling (Android Chrome etc.)
+let __tScrollBlock = false;
+const setBlock = (v)=>{ __tScrollBlock = v; };
+[canvas, padRoot].forEach(el=>{
+  if(!el) return;
+  el.addEventListener('pointerdown', ()=>setBlock(true));
+  el.addEventListener('pointerup', ()=>setBlock(false));
+  el.addEventListener('pointercancel', ()=>setBlock(false));
+  el.addEventListener('mouseleave', ()=>setBlock(false));
+});
+document.addEventListener('touchmove', (e)=>{ if(__tScrollBlock) e.preventDefault(); }, {passive:false});
   if(!canvas) return;
 
   const ctx = canvas.getContext('2d');

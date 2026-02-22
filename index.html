@@ -501,6 +501,8 @@
           // ★別タブを開かない（スマホで暴発しやすいので禁止）
           
           setTimeout(() => {
+            // 「逃がさない」音声
+            if(window.playSfx){ try{ window.playSfx("nigasanai", 1.0, {boost: 2.8}); }catch(e){} }
             // 最終演出（DOMを全消ししない：エラー増殖と背景タイピングを残す）
             const finale = document.createElement('div');
             finale.style.position = 'fixed';
