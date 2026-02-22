@@ -664,7 +664,7 @@ function resolveOmikujiItem(item){
     {id:"warp10", title:"ワープ中毒", desc:"ワープ10回。", check:(s)=> (Number(s.counters.doorWarp)||0) >= 10,
       progress:(s)=> Math.min(1, (Number(s.counters.doorWarp)||0) / 10),
       hint:"気が済むまで"},
-    {id:"konami", title:"黒歴史閲覧許可", desc:"コナミコマンドを通した。", check:(s)=> (Number(s.counters.konami)||0) >= 1,
+    {id:"konami", title:"黒歴史閲覧許可", desc:"〇〇〇〇〇ンドを通した。", check:(s)=> (Number(s.counters.konami)||0) >= 1,
       progress:(s)=> Math.min(1, (Number(s.counters.konami)||0) / 1),
       hint:"↑↑↓↓←→←→BA"},
     {id:"omikuji5", title:"占い依存", desc:"おみくじ結果を5回見る。", check:(s)=> (Number(s.counters.omikuji)||0) >= 5,
