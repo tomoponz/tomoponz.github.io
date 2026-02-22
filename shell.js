@@ -31,6 +31,17 @@
   }
 
   function setFrame(p, push){
+    // ページ切替の瞬間に“音楽（BGM/動画）”は止める（SEは親で鳴るのでOK）
+    try{ if(typeof window.stopAllMedia === "function") window.stopAllMedia(); }catch(_){ }
+    try{ frame.contentWindow && frame.contentWindow.postMessage({type:"STOP_MEDIA"}, location.origin); }catch(_){ }
+    // postMessage が間に合わない環境対策：同一オリジンなら直接止める
+    try{
+      const doc = frame.contentDocument;
+      if(doc) doc.querySelectorAll("audio,video").forEach(m=>{
+        try{ m.pause(); m.currentTime = 0; }catch(_){ }
+      });
+    }catch(_){ }
+
     const norm = normalizeP(p);
     frame.src = withEmbed(norm);
 
@@ -108,6 +119,8 @@
           }
         }catch(_){}
       }
+      // iframe内→別ページへ行く直前に、いま鳴っている“音楽”を止める
+      try{ if(typeof window.stopAllMedia === "function") window.stopAllMedia(); }catch(_){ }
       setFrame(String(d.href), true);
     }
   });

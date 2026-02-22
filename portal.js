@@ -659,6 +659,10 @@
   function warpAgainImpl() {
     const places = window.PLACES || [];
     if (!places.length) return;
+
+    // もう一回ワープでも「瞬間移動SE」を鳴らす（iframeでも親で鳴るので途切れにくい）
+    try{ if(window.playSfx) window.playSfx("doorWarp", 1.0, {boost: 2.8}); }catch(_){ }
+
     const p = pickRandomPublicPlace();
     setCurrentPlaceIndex(p.index);
     location.reload();

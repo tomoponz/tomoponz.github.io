@@ -660,6 +660,28 @@ function resolveOmikujiItem(item){
     }
   }
 
+  // ========== stop media (BGM) ==========
+  // 目的：shell(iframe方式)でページを切り替えるとき、BGMだけは即停止させる
+  // ※SEは短いので基本そのまま。ループしている音だけ止める。
+  function stopAllMedia(){
+    // stop in-page media
+    try{
+      document.querySelectorAll("audio,video").forEach(m=>{
+        try{ m.pause(); m.currentTime = 0; }catch(_){ }
+      });
+    }catch(_){ }
+
+    // stop looped SFX (treat as BGM)
+    try{
+      for(const a of sfxCache.values()){
+        try{
+          if(a && a.loop){ a.pause(); a.currentTime = 0; }
+        }catch(_){ }
+      }
+    }catch(_){ }
+  }
+  window.stopAllMedia = stopAllMedia;
+
   function setAudioEnabled(on){
     const v = on ? "1" : "0";
     try{ localStorage.setItem(AUDIO_ENABLED_KEY, v); }catch(_){ }
@@ -748,6 +770,14 @@ function resolveOmikujiItem(item){
     const o = (opts && typeof opts === "object") ? opts : {};
     const boost = Number(o.boost || 1);
 
+    // BGMとして扱う場合（例：aeroTrack）
+    // ループさせておくと stopAllMedia() で確実に止められる
+    try{
+      const k = String(keyOrPath||"").trim();
+      const asMusic = !!o.music || k === "aeroTrack";
+      a.loop = !!o.loop || asMusic;
+    }catch(_){ }
+
     try{
       if(boost > 1 && window.__boostAudio){
         try{ window.__boostAudio(a, boost); }catch(e){}
@@ -813,6 +843,9 @@ function resolveOmikujiItem(item){
         } else if(dest === "links.html"){
           key = "links";
           autoDelay = 180;
+        } else if(dest === "warp.html"){
+          key = "doorWarp";
+          autoDelay = 0;
         }
       }
 
@@ -935,6 +968,9 @@ function resolveOmikujiItem(item){
     if(!d || typeof d !== "object") return;
     if(d.type === "AUDIO"){
       try{ applyAudioEnabled(!!d.enabled); }catch(_){ }
+    }
+    if(d.type === "STOP_MEDIA"){
+      try{ stopAllMedia(); }catch(_){ }
     }
   });
 
