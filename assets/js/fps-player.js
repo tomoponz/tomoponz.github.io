@@ -74,6 +74,47 @@
   // Expose for pages that want to call it.
   window.__setMasterVolume = applyMasterVolume;
 
+// ---------- Audio boost (for quiet sfx) ----------
+// Usage: window.__boostAudio(audioEl, 2.5)
+// This uses WebAudio GainNode to amplify beyond HTMLAudio volume=1.
+let __boostCtx = null;
+const __boosted = new WeakMap();
+
+function __getBoostCtx(){
+  if (__boostCtx) return __boostCtx;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return null;
+  try{ __boostCtx = new AC(); }catch(_){ return null; }
+  const resume = ()=>{ try{ __boostCtx.resume().catch(()=>{}); }catch(_){} };
+  document.addEventListener('pointerdown', resume, {once:true, capture:true});
+  document.addEventListener('touchstart', resume, {once:true, capture:true, passive:true});
+  return __boostCtx;
+}
+
+function __boostAudio(audioEl, gainValue){
+  if (!audioEl) return false;
+  const ctx = __getBoostCtx();
+  if (!ctx) return false;
+  const g = Math.max(1, Number(gainValue) || 1);
+  if (__boosted.has(audioEl)){
+    try{ __boosted.get(audioEl).gain.gain.value = g; }catch(_){}
+    return true;
+  }
+  try{
+    const src = ctx.createMediaElementSource(audioEl);
+    const gain = ctx.createGain();
+    gain.gain.value = g;
+    src.connect(gain).connect(ctx.destination);
+    __boosted.set(audioEl, {src, gain});
+    return true;
+  }catch(_){
+    return false;
+  }
+}
+
+window.__boostAudio = __boostAudio;
+
+
   // ---------- Fullscreen ----------
   function fsIsOn(){
     return !!(document.fullscreenElement || document.webkitFullscreenElement);
