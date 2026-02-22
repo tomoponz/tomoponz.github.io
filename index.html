@@ -99,7 +99,7 @@
           </div>
         </div>
 
-        <div class="note">
+        <div class="note devOnly">
           meigen の BASE_QUOTES + user_quotes.js を混ぜる
         </div>
       </div>
@@ -364,6 +364,14 @@
             @keyframes blink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
           `;
           document.head.appendChild(style);
+          try{
+            if(window.parent && window.parent !== window){
+              window.parent.postMessage({type:"IMMERSION", active:true}, location.origin);
+            }
+          }catch(_){
+            try{ window.parent && window.parent.postMessage({type:"IMMERSION", active:true}, "*"); }catch(__){}
+          }
+
           document.body.classList.add("horror-glitch");
 
           // 0. 背後で勝手に入力される「それっぽい」画面（※実害なしの演出）
@@ -427,10 +435,20 @@
 
           // 増殖するエラーの音（前回設定した Windowsエラー音 m4a）
           const playDistortedSound = () => {
-            const se = new Audio(encodeURI("assets/sfx/windows error sound.m4a")); 
-            se.volume = 0.6;
-            se.playbackRate = Math.max(0.2, 1.0 - (errorCount * 0.02) + (Math.random() * 0.2 - 0.1));
-            se.play().catch(() => {});
+            try{
+              if(typeof window.getAudioEnabled === 'function' && !window.getAudioEnabled()) return;
+            }catch(_){ }
+
+            // 共通の playSfx 経由（音声OFFも反映される）
+            if(window.playSfx){
+              try{ window.playSfx('assets/sfx/windows error sound.m4a', 0.6); return; }catch(e){}
+            }
+
+            try{
+              const se = new Audio(encodeURI('assets/sfx/windows error sound.m4a'));
+              se.volume = 0.6;
+              se.play().catch(() => {});
+            }catch(e){}
           };
 
           // 異常なエラーウィンドウを生成する関数
@@ -521,7 +539,16 @@
             clearInterval(typeTimer);
 
             setTimeout(() => {
-              location.href = "horror.html";
+              try{
+                if(window.parent && window.parent !== window){
+                  window.parent.postMessage({type:"NAV", href:"horror.html"}, location.origin);
+                }else{
+                  location.href = "horror.html";
+                }
+              }catch(_){
+                try{ window.parent && window.parent.postMessage({type:"NAV", href:"horror.html"}, "*"); }catch(__){}
+                try{ location.href = "horror.html"; }catch(__){}
+              }
             }, 1800);
           }, 6000);
 

@@ -15,17 +15,26 @@
   const __IS_SHELL = (__FILE_LC === "shell.html");
   const __IS_404 = (__FILE_LC === "404.html");
 
-  // iframe 内では、ページ側のヘッダーナビを隠す（shell が担当）
-  if(__IS_EMBED){
-    try{ document.documentElement.classList.add("embedded"); }catch(_){ }
-  }
-
   // ページ遷移でSEが途切れる問題の回避：通常アクセスは shell.html に集約
   // （noshell=1 を付ければ従来挙動）
   if(!__IS_EMBED && !__IS_SHELL && !__IS_404 && !__NO_SHELL){
     const p = encodeURIComponent((location.pathname.split("/").pop() || "index.html") + location.search + location.hash);
     location.replace("shell.html?p=" + p);
     return;
+  }
+
+
+  // embed(iframe) のときは iframe 側のヘッダ/ナビを隠す（shell側だけ残す）
+  try{ if(__IS_EMBED) document.documentElement.classList.add("embedded"); }catch(_){ }
+
+  // dev=1 のときだけ開発メモを表示
+  try{ if(__QS.get("dev") === "1") document.documentElement.classList.add("dev"); }catch(_){ }
+
+  // 既定は immersive OFF（効果中だけONにする）
+  if(__IS_EMBED){
+    try{ window.parent && window.parent.postMessage({type:"IMMERSION", active:false}, location.origin); }catch(_){
+      try{ window.parent && window.parent.postMessage({type:"IMMERSION", active:false}, "*"); }catch(__){}
+    }
   }
 
 
@@ -44,31 +53,6 @@
 
   // ========== utilities ==========
   const $id = (id) => document.getElementById(id);
-
-  // Shell/Embed を意識した遷移（SEを途切れさせず、shell のURLも整える）
-  function smartNav(href, sfxKey){
-    const target = String(href || '').trim();
-    if(!target) return;
-
-    // shell 上なら iframe 切替で遷移
-    if(__IS_SHELL && typeof window.__shellSetFrame === 'function'){
-      try{ window.__shellSetFrame(target, true, sfxKey); return; }catch(_){ }
-    }
-
-    // iframe 内なら親に委譲
-    if(__IS_EMBED && window.parent){
-      const payload = { type:'NAV', href: target };
-      if(sfxKey) payload.key = String(sfxKey);
-      try{ window.parent.postMessage(payload, location.origin); return; }catch(_){ }
-      try{ window.parent.postMessage(payload, '*'); return; }catch(_){ }
-    }
-
-    // 直開き
-    if(sfxKey && typeof window.playSfx === 'function'){
-      try{ window.playSfx(String(sfxKey)); }catch(_){ }
-    }
-    location.href = target;
-  }
 
   function todayKey() {
     const d = new Date();
@@ -505,7 +489,7 @@ function resolveOmikujiItem(item){
       // 裏コマンド（必要なら残す）
       if(query === "kuro-n-tomo"){
         alert("認証完了。裏付けされた記録を開示します。");
-        smartNav("deep.html");
+        location.href = "deep.html";
         return;
       }
 
@@ -529,7 +513,7 @@ function resolveOmikujiItem(item){
 
       if(found){
         if(confirm(`「${query}」に関連するページが見つかった。\n移動する？`)){
-          smartNav(found);
+          location.href = found;
         }
         return;
       }
@@ -636,7 +620,70 @@ function resolveOmikujiItem(item){
     };
   }
   // 事前ロード（同じ音は使い回し）
-  const sfxCache = new Map(); // src -> HTMLAudioElement
+  const sfxCache = new Map();
+
+  // ========== audio master toggle ==========
+  const AUDIO_ENABLED_KEY = "audio_enabled";
+
+  function getAudioEnabled(){
+    try{ return localStorage.getItem(AUDIO_ENABLED_KEY) !== "0"; }catch(_){ return true; }
+  }
+
+  function applyAudioEnabled(on){
+    try{ document.documentElement.classList.toggle("audioOff", !on); }catch(_){ }
+
+    // pause/mute in-page audio tags
+    try{
+      document.querySelectorAll("audio").forEach(a=>{
+        try{ a.muted = !on; if(!on) a.pause(); }catch(_){ }
+      });
+    }catch(_){ }
+
+    // stop cached SFX
+    try{
+      for(const a of sfxCache.values()){
+        try{ a.muted = !on; if(!on){ a.pause(); a.currentTime = 0; } }catch(_){ }
+      }
+    }catch(_){ }
+
+    // update toggle button (shell only)
+    const btn = document.getElementById("audioToggle");
+    if(btn){
+      btn.textContent = on ? "音声：ON" : "音声：OFF";
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+      btn.classList.toggle("active", on);
+    }
+  }
+
+  function setAudioEnabled(on){
+    const v = on ? "1" : "0";
+    try{ localStorage.setItem(AUDIO_ENABLED_KEY, v); }catch(_){ }
+    applyAudioEnabled(on);
+  }
+
+  window.getAudioEnabled = getAudioEnabled;
+  window.setAudioEnabled = setAudioEnabled;
+
+  function initAudioToggle(){
+    const btn = document.getElementById("audioToggle");
+    if(!btn) return;
+
+    // initial state
+    applyAudioEnabled(getAudioEnabled());
+
+    btn.addEventListener("click", ()=>{
+      const next = !getAudioEnabled();
+      setAudioEnabled(next);
+      // iframeにも即反映（storageイベントが効かないブラウザ対策）
+      try{
+        const f = document.getElementById("viewFrame");
+        if(f && f.contentWindow){
+          f.contentWindow.postMessage({type:"AUDIO", enabled: next}, location.origin);
+        }
+      }catch(_){ }
+    });
+  }
+ // src -> HTMLAudioElement
 
   function resolveSfxSrc(keyOrPath){
     const s = (keyOrPath || "").trim();
@@ -673,6 +720,7 @@ function resolveOmikujiItem(item){
   window.preloadSfx = preloadSfx;
 
   function playSfx(keyOrPath, volume, opts){
+    try{ if(typeof getAudioEnabled === "function" && !getAudioEnabled()) return; }catch(_){ }
     // embed(iframe) 内なら親(shell)で鳴らす（ページ切替でもSEが途切れない）
     // ※親側（shell.html）は __IS_EMBED=false なのでループしない
     if(__IS_EMBED){
@@ -836,6 +884,27 @@ function resolveOmikujiItem(item){
     restoreOmikuji();
     initSiteSearch();
     initSfxClicks();
+  });
+
+
+  // ========= audio init =========
+  try{ applyAudioEnabled(getAudioEnabled()); }catch(_){ }
+  try{ initAudioToggle(); }catch(_){ }
+
+  // iframe: parentからの即時反映
+  window.addEventListener("message", (ev)=>{
+    const d = ev.data || {};
+    if(!d || typeof d !== "object") return;
+    if(d.type === "AUDIO"){
+      try{ applyAudioEnabled(!!d.enabled); }catch(_){ }
+    }
+  });
+
+  // 別コンテキストで切り替えた時も反映（shell ⇄ iframe）
+  window.addEventListener("storage", (e)=>{
+    if(e && e.key === AUDIO_ENABLED_KEY){
+      try{ applyAudioEnabled(getAudioEnabled()); }catch(_){ }
+    }
   });
 
 })();

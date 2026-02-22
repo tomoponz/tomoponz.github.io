@@ -85,6 +85,13 @@ a:hover{opacity:.92}
   justify-content:flex-end;
 }
 
+
+.navtools{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex:0 0 auto;
+}
 .chip{
   padding:8px 12px;
   border-radius:999px;
@@ -411,3 +418,16 @@ code{
 
 /* iframe 内での無駄な横スクロール抑制 */
 .embedded{ overflow-x:hidden; }
+
+
+/* Immersive mode: hide shell menu so effects feel real */
+.immersive .nav{ display:none !important; }
+.immersive{ overflow:hidden; }
+
+/* Audio toggle */
+.audioOff *{ }
+
+
+/* dev-only notes (hidden for normal visitors) */
+.devOnly{ display:none !important; }
+html.dev .devOnly{ display:block !important; }

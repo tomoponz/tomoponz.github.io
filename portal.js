@@ -628,12 +628,6 @@
 
     // 3) 遷移はドアが開き切ってから
     setTimeout(() => {
-      // shell(iframe) なら親に遷移を委譲（URL/アクティブ表示/SEを維持）
-      if(window.self !== window.top){
-        const payload = { type:"NAV", href:"warp.html" };
-        try{ window.parent && window.parent.postMessage(payload, location.origin); return; }catch(_){ }
-        try{ window.parent && window.parent.postMessage(payload, "*"); return; }catch(_){ }
-      }
       location.href = "warp.html";
     }, 1120);
   }
