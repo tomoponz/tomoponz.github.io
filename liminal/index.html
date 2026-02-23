@@ -30,36 +30,21 @@
     .cam-date { position: absolute; bottom: 40px; right: 40px; font-size: 28px; letter-spacing: 2px; }
     .cam-center-cross { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; opacity: 0.5; }
     @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+  
+    /* FPS UI がカムコーダUIと被らないように（fps-player.js のCSS変数を利用） */
+    :root{ --fps-ui-bottom: 64px; }
+
+    @media (max-width: 520px){
+      .cam-rec{ top:16px; left:16px; font-size:18px; }
+      .cam-battery{ top:16px; right:16px; font-size:16px; padding:2px 6px; }
+      .cam-timecode{ bottom:18px; left:16px; font-size:18px; letter-spacing:1px; }
+      .cam-date{ bottom:18px; right:16px; font-size:18px; letter-spacing:1px; }
+      .cam-center-cross{ font-size:18px; }
+    }
+
   </style>
 
   <script>
-
-    (function(){
-      // achievements-lite: mark page view (this page doesn't load app.js)
-      const ACH_KEY = "tomoponz_ach_v1";
-      function achLoad(){
-        try{
-          const raw = localStorage.getItem(ACH_KEY);
-          if(!raw) return {v:1, pages:{}, counters:{}, unlocked:{}};
-          const o = JSON.parse(raw);
-          if(!o || typeof o !== "object") return {v:1, pages:{}, counters:{}, unlocked:{}};
-          o.v = 1;
-          o.pages = (o.pages && typeof o.pages === "object") ? o.pages : {};
-          o.counters = (o.counters && typeof o.counters === "object") ? o.counters : {};
-          o.unlocked = (o.unlocked && typeof o.unlocked === "object") ? o.unlocked : {};
-          return o;
-        }catch(_){ return {v:1, pages:{}, counters:{}, unlocked:{}}; }
-      }
-      function achSave(s){ try{ localStorage.setItem(ACH_KEY, JSON.stringify(s)); }catch(_){ } }
-      try{
-        const path = String(location.pathname||"").replace(/^\/+/, "");
-        const s = achLoad();
-        s.counters.visits = (Number(s.counters.visits)||0) + 1;
-        s.pages[path] = Date.now();
-        achSave(s);
-      }catch(_){ }
-    })();
-
     // 1. 足音再生
     AFRAME.registerComponent('footstep-sound', {
       init: function () {
@@ -70,6 +55,7 @@
       },
       tick: function () {
         if (!this.audio || !window.audioUnlocked) return;
+        try{ if(localStorage.getItem('audio_enabled') === '0'){ this.audio.pause(); this.isWalking=false; return; } }catch(_){ }
         var currentPos = new THREE.Vector3();
         this.el.object3D.getWorldPosition(currentPos);
         var dx = currentPos.x - this.lastPos.x;
@@ -186,6 +172,7 @@ AFRAME.registerComponent('proximity-loop-sound', {
   },
   tick: function () {
     if (!this.audio || !window.audioUnlocked) return;
+        try{ if(localStorage.getItem('audio_enabled') === '0'){ this.audio.pause(); this.isWalking=false; return; } }catch(_){ }
     var target = this.data.target;
     if (!target) return;
     target.object3D.getWorldPosition(this._vT);
