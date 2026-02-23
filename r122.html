@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>tomoponz｜R-122</title>
+  <meta name="description" content="R-122：年齢確認ゲート…のはずが、生命の神秘へ落ちる" />
+  <link rel="stylesheet" href="style.css?v=20260223">
+  <script defer src="app.js?v=20260223"></script>
+  <style>
+    /* R-122 page-only theme (neon x terminal) */
+    body.page-r122{
+      background:
+        radial-gradient(900px 520px at 15% 10%, rgba(255,0,222,.16), transparent 55%),
+        radial-gradient(900px 520px at 85% 20%, rgba(153,0,255,.14), transparent 55%),
+        radial-gradient(900px 520px at 55% 110%, rgba(0,255,252,.10), transparent 55%),
+        linear-gradient(180deg, #05020a, #060513 60%, #0b1020);
+    }
+    .r122Wrap{ max-width: 980px; margin: 0 auto; padding: 32px 18px 44px; }
+    .gate{
+      border:1px solid rgba(255,255,255,.14);
+      background:
+        linear-gradient(180deg, rgba(255,0,222,.10), rgba(0,0,0,.42)),
+        radial-gradient(600px 280px at 50% 0%, rgba(153,0,255,.22), transparent 60%);
+      border-radius: 22px;
+      box-shadow: 0 30px 120px rgba(0,0,0,.55);
+      padding: 18px;
+      position: relative;
+      overflow:hidden;
+    }
+    .gate::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: var(--noise);
+      background-size: 128px 128px;
+      opacity: .08;
+      mix-blend-mode: overlay;
+      pointer-events:none;
+    }
+    .gate > *{ position:relative; }
+
+    .neonTitle{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+      letter-spacing:.12em;
+      margin: 0 0 8px;
+      font-size: 34px;
+      text-shadow: 0 0 14px rgba(255,0,222,.35), 0 0 28px rgba(153,0,255,.20);
+    }
+    .lure{
+      color: rgba(234,241,255,.88);
+      line-height: 1.75;
+      margin: 0;
+    }
+    .lure b{
+      color: #fff;
+      text-shadow: 0 0 16px rgba(0,255,252,.22);
+    }
+    .gateBtns{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px; }
+    .gateBtns button{ background: rgba(255,255,255,.06); }
+    .small{ font-size: 12px; color: rgba(234,241,255,.70); margin-top: 10px; }
+
+    /* Truth section */
+    #truth{ display:none; margin-top: 14px; }
+    .truthCard{
+      border-radius: 22px;
+      border:1px solid rgba(255,255,255,.14);
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.40), rgba(0,0,0,.22)),
+        radial-gradient(700px 320px at 50% 0%, rgba(0,255,252,.14), transparent 60%);
+      box-shadow: 0 30px 120px rgba(0,0,0,.55);
+      padding: 18px;
+      overflow:hidden;
+      position:relative;
+    }
+    .truthCard::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: var(--noise);
+      background-size: 128px 128px;
+      opacity: .06;
+      mix-blend-mode: overlay;
+      pointer-events:none;
+    }
+    .truthCard > *{ position:relative; }
+
+    .truthTitle{
+      margin: 0 0 10px;
+      font-size: 24px;
+      color: rgba(0,255,252,.92);
+      text-shadow: 0 0 16px rgba(0,255,252,.22);
+    }
+    .truthDesc{
+      margin: 10px 0 0;
+      color: rgba(234,241,255,.86);
+    }
+
+    /* Simple DNA SVG animation */
+    .dna{
+      width: min(520px, 100%);
+      margin: 8px auto 0;
+      display:block;
+      filter: drop-shadow(0 18px 40px rgba(0,0,0,.45));
+    }
+    .dna .helix{
+      stroke: rgba(0,255,252,.85);
+      stroke-width: 3;
+      fill: none;
+      filter: drop-shadow(0 0 10px rgba(0,255,252,.18));
+    }
+    .dna .helix2{
+      stroke: rgba(255,0,222,.70);
+      stroke-width: 3;
+      fill: none;
+      filter: drop-shadow(0 0 10px rgba(255,0,222,.14));
+    }
+    .dna .rung{
+      stroke: rgba(234,241,255,.55);
+      stroke-width: 2;
+      opacity:.9;
+    }
+    .dnaWrap{ overflow:hidden; }
+    .dnaWrap .dna{
+      animation: dnaFloat 2.2s ease-in-out infinite;
+    }
+    @keyframes dnaFloat{
+      0%,100%{ transform: translateY(0px); }
+      50%{ transform: translateY(-6px); }
+    }
+  </style>
+</head>
+
+<body class="page-r122">
+  <header class="nav">
+    <a class="brand" href="index.html" aria-label="tomoponz ホーム">
+      <span class="logo" aria-hidden="true"></span>
+      <span class="brandText">
+        <span class="brandName">tomoponz</span>
+        <span class="brandSub">R-122</span>
+      </span>
+    </a>
+
+    <nav class="navlinks" aria-label="メニュー">
+      <a class="chip" href="gallery.html">ネタ置き場</a>
+      <a class="chip" href="omikuji.html">おみくじ</a>
+      <a class="chip" href="door.html">ドア</a>
+      <a class="chip" href="hachi.html">八百科事典</a>
+      <a class="chip" href="index.html">戻る</a>
+    </nav>
+  </header>
+
+  <main class="r122Wrap">
+    <section class="gate" id="gate">
+      <h1 class="neonTitle">R-122 WARNING</h1>
+      <p class="lure">
+        あなたは <b>122歳以上</b> ですか？<br>
+        これから表示されるのは、生命の最も<b>根源的</b>で<b>剥き出し</b>な姿です。<br>
+        心臓の弱い方は閲覧をお控えください。
+      </p>
+
+      <div class="gateBtns">
+        <button id="enterBtn">入室する（覚悟完了）</button>
+        <a class="btn" href="gallery.html">戻る</a>
+      </div>
+
+      <div class="small">※ジョーク。出てくるのは生物学（DNA）です。</div>
+    </section>
+
+    <section id="truth">
+      <div class="truthCard">
+        <h2 class="truthTitle">究極の結合体：DNA二重螺旋</h2>
+
+        <div class="dnaWrap">
+          <svg class="dna" viewBox="0 0 520 240" role="img" aria-label="DNA Helix">
+            <path class="helix"  d="M40,40 C120,20 180,220 260,200 C340,180 400,20 480,40" />
+            <path class="helix2" d="M40,200 C120,220 180,20 260,40  C340,60 400,220 480,200" />
+            <g>
+              <line class="rung" x1="72"  y1="76"  x2="72"  y2="164"/>
+              <line class="rung" x1="124" y1="54"  x2="124" y2="186"/>
+              <line class="rung" x1="176" y1="92"  x2="176" y2="148"/>
+              <line class="rung" x1="228" y1="168" x2="228" y2="72"/>
+              <line class="rung" x1="280" y1="190" x2="280" y2="50"/>
+              <line class="rung" x1="332" y1="146" x2="332" y2="94"/>
+              <line class="rung" x1="384" y1="62"  x2="384" y2="178"/>
+              <line class="rung" x1="436" y1="80"  x2="436" y2="160"/>
+            </g>
+          </svg>
+        </div>
+
+        <p class="truthDesc">
+          見てください、この完璧な構造美。<br>
+          A–T / G–C が水素結合で結びつき、生命の設計図を保っています。<br>
+          これほど<strong>セーフで</strong>、これほど<strong>根源的</strong>な“結合”が他にあるでしょうか？
+        </p>
+
+        <div class="btnrow" style="margin-top:12px">
+          <button id="toggleBtn">もう一回 “警告” を見る</button>
+          <a class="btn" href="gallery.html">ネタ置き場へ戻る</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function(){
+      const enter = document.getElementById("enterBtn");
+      const gate  = document.getElementById("gate");
+      const truth = document.getElementById("truth");
+      const back  = document.getElementById("toggleBtn");
+
+      function showTruth(){
+        gate.style.display = "none";
+        truth.style.display = "block";
+      }
+      function showGate(){
+        truth.style.display = "none";
+        gate.style.display = "block";
+      }
+
+      enter.addEventListener("click", ()=>{
+        // ちょい“溜め”
+        try{ if(window.playSfx) window.playSfx("omikujiResult", 1.0, {boost:2.2}); }catch(_){}
+        setTimeout(showTruth, 250);
+      });
+      back.addEventListener("click", showGate);
+    })();
+  </script>
+</body>
+</html>
