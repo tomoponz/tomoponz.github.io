@@ -769,6 +769,8 @@ function resolveOmikujiItem(item){
         }
       }
     }catch(_){ }
+    // If all achievements are complete, trigger the ending overlay once
+    try{ if(__isAchComplete(s) && !__tbcAlreadyPlayed()) __requestTbcPlay(); }catch(_){ }
     __achSave(s);
   }
 
@@ -802,6 +804,197 @@ function resolveOmikujiItem(item){
     inc: __achInc,
     reset: ()=>{ try{ localStorage.removeItem(ACH_KEY); }catch(_){ } },
   };
+
+  // ========== "To Be Continued" overlay (all achievements complete) ==========
+  const TBC_PLAYED_KEY = "tbc_played";
+  const TBC_VIDEO_SRC = "/assets/sfx/nc204179_To_Be_Continued.mp4";
+
+  function __isAchComplete(s){
+    try{
+      const total = __ACH_DEFS.length || 0;
+      const unlocked = (s && s.unlocked && typeof s.unlocked === "object") ? s.unlocked : {};
+      const n = Object.keys(unlocked).length;
+      return total > 0 && n >= total;
+    }catch(_){ return false; }
+  }
+
+  function __tbcAlreadyPlayed(){
+    try{ return localStorage.getItem(TBC_PLAYED_KEY) === "1"; }catch(_){ return false; }
+  }
+  function __markTbcPlayed(){
+    try{ localStorage.setItem(TBC_PLAYED_KEY, "1"); }catch(_){ }
+  }
+
+  // Play overlay on the top window (shell). If in iframe, ask parent to play it.
+  function __requestTbcPlay(){
+    if(__tbcAlreadyPlayed()) return;
+    __markTbcPlayed();
+    if(__IS_EMBED){
+      try{ window.parent && window.parent.postMessage({type:"TBC_PLAY"}, location.origin); return; }catch(_){ }
+      try{ window.parent && window.parent.postMessage({type:"TBC_PLAY"}, "*"); return; }catch(_){ }
+    }
+    try{ playToBeContinuedOverlay(); }catch(_){ }
+  }
+
+  function playToBeContinuedOverlay(){
+    // guard
+    if(__tbcAlreadyPlayed() && !document.getElementById("tbcCanvas")) return;
+
+    // respect audio toggle
+    const audioOn = (typeof getAudioEnabled === "function") ? !!getAudioEnabled() : true;
+
+    // inject style once
+    if(!document.getElementById("tbcStyle")){
+      const st = document.createElement("style");
+      st.id = "tbcStyle";
+      st.textContent = `
+        body.tbcSepia main, body.tbcSepia .wrap, body.tbcSepia .shellWrap{
+          filter: sepia(85%) contrast(120%) hue-rotate(-10deg);
+          transition: filter 0.6s ease;
+        }
+        #tbcCanvas{
+          position: fixed;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 2147483647;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity .35s ease;
+        }
+        #tbcCanvas.active{ opacity: 1; }
+        #tbcTap{
+          position: fixed;
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%,-50%);
+          z-index: 2147483647;
+          padding: 12px 14px;
+          border-radius: 14px;
+          border: 1px solid rgba(255,255,255,.18);
+          background: rgba(0,0,0,.55);
+          color: rgba(255,255,255,.92);
+          font-size: 14px;
+          letter-spacing: .05em;
+          backdrop-filter: blur(8px);
+          box-shadow: 0 18px 90px rgba(0,0,0,.65);
+          display:none;
+          pointer-events:auto;
+        }
+      `;
+      document.head.appendChild(st);
+    }
+
+    // create elements
+    let canvas = document.getElementById("tbcCanvas");
+    if(!canvas){
+      canvas = document.createElement("canvas");
+      canvas.id = "tbcCanvas";
+      document.body.appendChild(canvas);
+    }
+    const ctx = canvas.getContext("2d", {willReadFrequently:true});
+
+    let tap = document.getElementById("tbcTap");
+    if(!tap){
+      tap = document.createElement("button");
+      tap.id = "tbcTap";
+      tap.type = "button";
+      tap.textContent = "▶ To Be Continued を再生";
+      document.body.appendChild(tap);
+    }
+
+    const video = document.createElement("video");
+    video.src = TBC_VIDEO_SRC;
+    video.playsInline = true;
+    video.muted = true; // start muted for autoplay policy
+    video.volume = 0.95;
+    video.preload = "auto";
+    video.style.display = "none";
+    document.body.appendChild(video);
+
+    // layout helpers (contain)
+    function resize(){
+      const w = Math.max(1, window.innerWidth|0);
+      const h = Math.max(1, window.innerHeight|0);
+      // render resolution: keep it reasonable on mobile
+      const maxW = 1280;
+      const scale = Math.min(1, maxW / w);
+      canvas.width  = Math.max(1, Math.floor(w * scale));
+      canvas.height = Math.max(1, Math.floor(h * scale));
+    }
+    resize();
+    window.addEventListener("resize", resize, {passive:true});
+
+    document.body.classList.add("tbcSepia");
+    requestAnimationFrame(()=> canvas.classList.add("active"));
+
+    // chroma key (green -> transparent)
+    const KEY = { gMin: 150, rMax: 120, bMax: 120, ratio: 1.25 };
+
+    function drawFrame(){
+      if(video.paused || video.ended) return;
+
+      const cw = canvas.width, ch = canvas.height;
+      ctx.clearRect(0,0,cw,ch);
+
+      // contain draw
+      const vw = video.videoWidth || 16;
+      const vh = video.videoHeight || 9;
+      const s = Math.min(cw / vw, ch / vh);
+      const dw = vw * s, dh = vh * s;
+      const dx = (cw - dw) / 2;
+      const dy = (ch - dh) / 2;
+
+      ctx.drawImage(video, dx, dy, dw, dh);
+
+      const frame = ctx.getImageData(0,0,cw,ch);
+      const d = frame.data;
+      for(let i=0; i<d.length; i+=4){
+        const r = d[i], g = d[i+1], b = d[i+2];
+        if(g > KEY.gMin && r < KEY.rMax && b < KEY.bMax && g > r*KEY.ratio && g > b*KEY.ratio){
+          d[i+3] = 0;
+        }
+      }
+      ctx.putImageData(frame, 0, 0);
+      requestAnimationFrame(drawFrame);
+    }
+
+    function cleanup(){
+      try{ window.removeEventListener("resize", resize); }catch(_){ }
+      try{ canvas.classList.remove("active"); }catch(_){ }
+      try{ document.body.classList.remove("tbcSepia"); }catch(_){ }
+      setTimeout(()=>{
+        try{ video.pause(); }catch(_){ }
+        try{ video.remove(); }catch(_){ }
+        try{ tap.style.display = "none"; }catch(_){ }
+        // canvas stays to avoid layout thrash; keep but hide
+      }, 380);
+    }
+
+    video.addEventListener("ended", cleanup, {once:true});
+    // allow user to close by tapping anywhere after it ends
+    tap.addEventListener("click", ()=>{
+      tap.style.display = "none";
+      video.play().then(()=>{ try{ if(audioOn) video.muted = false; }catch(_){ } drawFrame(); }).catch(()=>{});
+    });
+
+    // Try autoplay
+    video.addEventListener("loadedmetadata", ()=>{
+      const p = video.play();
+      if(p && typeof p.catch === "function"){
+        p.then(()=>{ try{ if(audioOn) video.muted = false; }catch(_){ } drawFrame(); }).catch(()=>{
+          // show manual play button
+          tap.style.display = "block";
+        });
+      }else{
+        drawFrame();
+      }
+    }, {once:true});
+  }
+
+  window.playToBeContinuedOverlay = playToBeContinuedOverlay;
+
+
 
 
   // 既存仕様：ネタ置き場(gallery.html)は、data-sfx を付けてなくても鳴らす
@@ -1803,6 +1996,9 @@ function initDangerEscalation(){
     }
     if(d.type === "STOP_MEDIA"){
       try{ stopAllMedia(); }catch(_){ }
+    }
+    if(d.type === "TBC_PLAY"){
+      try{ playToBeContinuedOverlay(); }catch(_){ }
     }
   });
 
