@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>tomoponz｜スタッフロール</title>
+  <meta name="description" content="このサイトの制作スタッフ（っぽいもの）">
+  <link rel="stylesheet" href="style.css?v=20260223">
+  <script defer src="app.js?v=20260224-1"></script>
+
+  <style>
+    .creditsWrap{ max-width: 980px; margin: 0 auto; }
+    .creditsCard{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 20px 70px rgba(0,0,0,.35);
+    }
+    .creditsGrid{
+      display:grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      margin-top: 14px;
+    }
+    @media (max-width: 860px){ .creditsGrid{ grid-template-columns: 1fr; } }
+    .role{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .role b{ display:block; font-size: 13px; opacity:.85; letter-spacing:.08em; }
+    .role span{ display:block; margin-top:6px; font-size: 16px; }
+    .small{ margin-top: 14px; opacity:.7; font-size: 12px; line-height: 1.8; }
+    .end{ margin-top: 18px; text-align:center; opacity:.85; letter-spacing:.18em; }
+  </style>
+</head>
+
+<body>
+  <header class="nav">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <b>tomoponz</b><br><small id="brandSub">スタッフロール</small>
+      </div>
+    </div>
+
+    <nav class="navlinks">
+      <a class="chip" href="index.html">プロフィール</a>
+      <a class="chip" href="omikuji.html">おみくじ</a>
+      <a class="chip" href="shindan.html">診断</a>
+      <a class="chip" href="gallery.html">ネタ置き場</a>
+      <a class="chip" href="links.html">リンク</a>
+      <a class="chip" href="games.html">ゲーム</a>
+      <a class="chip" href="achievements.html">実績</a>
+      <a class="chip" href="staff.html">スタッフロール</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <section class="hero creditsWrap">
+      <h1 class="h1">STAFF ROLL</h1>
+      <p class="sub">このサイトは、複数の世界観と複数の自我で構成されています。</p>
+
+      <div class="creditsCard">
+        <div class="creditsGrid">
+          <div class="role"><b>DIRECTOR / PRODUCER</b><span>tomoponz</span></div>
+          <div class="role"><b>DESIGN</b><span>Frutiger Aero / Vaporwave / Dreamcore 連合</span></div>
+          <div class="role"><b>ENGINEERING</b><span>HTML / CSS / JS（と、深夜テンション）</span></div>
+          <div class="role"><b>ASSETS</b><span>自作 + フリー素材 + たまに謎の生成物</span></div>
+          <div class="role"><b>SFX</b><span>assets/sfx（押したら鳴る）</span></div>
+          <div class="role"><b>QA</b><span>あなた（バグ報告の鬼）</span></div>
+          <div class="role"><b>SPECIAL THANKS</b><span>見つけてくれた人 / 迷い込んだ人 / 帰れなくなった人</span></div>
+          <div class="role"><b>LEGAL</b><span>このサイトはだいたいネタです</span></div>
+        </div>
+
+        <div class="small">
+          ※ 画像・音声などの権利は各素材の規約に従います。<br>
+          ※ “スタッフロール” は雰囲気です。真面目に読んで真面目に怒らないでください。
+        </div>
+
+        <div class="end">— FIN —</div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

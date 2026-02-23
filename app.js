@@ -138,6 +138,7 @@
       "warp.html": "ワープ",
       "hachi.html": "八百科事典",
       "achievements.html": "実績",
+      "staff.html": "スタッフロール",
       "sweetdeath.html": "甘き死よ",
       "eva.html": "終劇",
       "meigen.html": "名言",
@@ -1172,6 +1173,19 @@ function resolveOmikujiItem(item){
       const a = (e.target && e.target.closest) ? e.target.closest("a[href]") : null;
       const isLink = !!(a && a.getAttribute("href"));
 
+      // r122 は無音（ページ内のリンク/ボタン含めて音を鳴らさない）
+      try{
+        const cur = (location.pathname.split("/").pop() || "").toLowerCase();
+        if(cur === "r122.html") return;
+      }catch(_){ }
+      if(isLink && a){
+        try{
+          const u0 = new URL(a.getAttribute("href"), location.href);
+          const f0 = (u0.pathname.split("/").pop() || "").toLowerCase();
+          if(f0 === "r122.html") return;
+        }catch(_){ }
+      }
+
       // data-sfx があればそれを優先（リンク内の子要素でも拾う）
       let key = "";
       try{ key = (any.getAttribute && any.getAttribute("data-sfx")) ? (any.getAttribute("data-sfx")||"") : ""; }catch(_){}
@@ -1379,55 +1393,31 @@ function initDangerEscalation(){
   }
 
   function createCrackOverlay(){
+    // Mobile crack overlay using uploaded image
     const wrap = document.createElement("div");
     wrap.id = "crackWrap";
-    wrap.style.cssText = "position:fixed;inset:0;z-index:1000000;pointer-events:none;background:rgba(0,0,0,.15)";
-    const c = document.createElement("canvas");
-    c.width = Math.floor(window.innerWidth * devicePixelRatio);
-    c.height = Math.floor(window.innerHeight * devicePixelRatio);
-    c.style.cssText = "width:100%;height:100%;mix-blend-mode:screen;opacity:.95";
-    wrap.appendChild(c);
+    wrap.style.cssText = [
+      "position:fixed","inset:0","z-index:1000000",
+      "pointer-events:none",
+      "background:rgba(0,0,0,.18)",
+      "opacity:0",
+      "transition:opacity .12s ease"
+    ].join(";");
+    const img = document.createElement("div");
+    img.style.cssText = [
+      "position:absolute","inset:0",
+      "background:url('img/hibiware.jpg') center/cover no-repeat",
+      "opacity:.98",
+      "mix-blend-mode:screen"
+    ].join(";");
+    wrap.appendChild(img);
     document.body.appendChild(wrap);
 
-    const ctx = c.getContext("2d");
-    ctx.scale(devicePixelRatio, devicePixelRatio);
+    // fade in quickly
+    requestAnimationFrame(()=>{ wrap.style.opacity = "1"; });
 
-    const W = window.innerWidth, H = window.innerHeight;
-    const cx = W * (0.35 + Math.random()*0.3);
-    const cy = H * (0.35 + Math.random()*0.3);
-
-    function jaggedLine(x1,y1,x2,y2,steps){
-      ctx.beginPath();
-      ctx.moveTo(x1,y1);
-      for(let i=1;i<steps;i++){
-        const t = i/steps;
-        const x = x1 + (x2-x1)*t + (Math.random()-0.5)*12;
-        const y = y1 + (y2-y1)*t + (Math.random()-0.5)*12;
-        ctx.lineTo(x,y);
-      }
-      ctx.lineTo(x2,y2);
-      ctx.stroke();
-    }
-
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "rgba(255,255,255,.85)";
-    for(let i=0;i<18;i++){
-      const ang = (Math.PI*2) * (i/18) + (Math.random()-0.5)*0.25;
-      const len = Math.min(W,H) * (0.55 + Math.random()*0.35);
-      const x2 = cx + Math.cos(ang)*len;
-      const y2 = cy + Math.sin(ang)*len;
-      jaggedLine(cx,cy,x2,y2,10 + Math.floor(Math.random()*12));
-    }
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = "rgba(200,240,255,.45)";
-    for(let i=0;i<26;i++){
-      const x1 = Math.random()*W, y1 = Math.random()*H;
-      const x2 = x1 + (Math.random()-0.5)*220;
-      const y2 = y1 + (Math.random()-0.5)*220;
-      jaggedLine(x1,y1,x2,y2,6 + Math.floor(Math.random()*8));
-    }
-
-    setTimeout(()=>{ wrap.style.transition="opacity .5s"; wrap.style.opacity="0"; }, 800);
+    // keep visible until just before navigation; then fade out
+    setTimeout(()=>{ wrap.style.opacity = "0"; }, 900);
     setTimeout(()=>{ wrap.remove(); }, 1400);
   }
 

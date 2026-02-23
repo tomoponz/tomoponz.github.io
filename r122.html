@@ -410,7 +410,7 @@
         </div>
 
         <div class="phLogo" aria-hidden="true">
-          <span class="porn">Porn</span><span class="hub">hub</span>
+          <span class="porn">Parn</span><span class="hub">hub</span>
         </div>
 
         <h1 class="gateH1">このサイトはアダルトサイトです。</h1>
@@ -544,11 +544,6 @@
           punch:"オチ：シナプス間隙を飛び交う神経伝達物質。これこそが我々の『快感』の正体です。"
         }
       ];
-
-      function play(key, vol=1.0){
-        try{ if(window.playSfx) window.playSfx(key, vol); }catch(_){}
-      }
-
       function showSite(){
         try{ localStorage.setItem(LS_KEY, "1"); }catch(_){}
         gate.classList.add("fadeOut");
@@ -564,11 +559,11 @@
       }
 
       enter.addEventListener("click", ()=>{
-        play("osuna", 0.7);
+
         showSite();
       });
       exitBtn.addEventListener("click", ()=>{
-        play("profile", 0.5);
+
         goOut();
       });
 
@@ -649,7 +644,7 @@
 
       // AIボタン：雑に“解析”してオチへ誘導
       document.getElementById("aiBtn").addEventListener("click", ()=>{
-        play("neta", 0.6);
+
         openModal(VIDS[0]);
       });
     })();
