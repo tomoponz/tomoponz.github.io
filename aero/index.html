@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Aero OS 2007 - Ultimate Clutter</title>
-  <link rel="stylesheet" href="style.css?v=20260223-2">
+  <link rel="stylesheet" href="style.css">
   <script defer src="../app.js"></script>
   <script defer src="../assets/js/security-lite.js?v=20260222"></script>
 </head>
@@ -274,8 +274,14 @@ Root: Wake_Up_Now</textarea>
 
     // ★ ごみ箱を空にするギミック ★
     function emptyTrash() {
+      // UI: empty
       document.getElementById('trash-contents').innerHTML = '<p style="color:#888; font-size:12px; margin-top:20px;">ごみ箱は空です</p>';
       document.getElementById('desktop-trash-icon').style.opacity = '0.5'; // デスクトップのアイコンを薄くする（空の表現）
+
+      // Gate: sweetdeath.html can be opened ONLY via this button
+      try{ localStorage.setItem('tpz_gate_sweetdeath_v1', String(Date.now())); }catch(_){ }
+      // go
+      try{ window.location.href = '../vaporwave/sweetdeath.html'; }catch(_){ }
     }
 
     // ===== Media Player (実再生) =====
