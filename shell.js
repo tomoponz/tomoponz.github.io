@@ -117,7 +117,26 @@
       return;
     }
 
-    if(d.type === "IMMERSION" && typeof d.active === "boolean"){
+    
+    if(d.type === "MUSIC"){
+      try{
+        const mc = window.musicCtrl;
+        if(!mc) return;
+
+        if(Array.isArray(d.playlist) && d.playlist.length){
+          mc.setPlaylist(d.playlist, (typeof d.idx === "number" ? d.idx : (mc.getIndex ? mc.getIndex() : 0)));
+        }
+
+        const cmd = String(d.cmd || "");
+        if(cmd === "toggle") mc.toggle(1.0, {boost:2.2});
+        else if(cmd === "next") mc.next(1.0, {boost:2.2, restart:true});
+        else if(cmd === "prev") mc.prev(1.0, {boost:2.2, restart:true});
+        else if(cmd === "stop") mc.stop();
+      }catch(_){}
+      return;
+    }
+
+if(d.type === "IMMERSION" && typeof d.active === "boolean"){
       try{ document.documentElement.classList.toggle("immersive", !!d.active); }catch(_){ }
       return;
     }

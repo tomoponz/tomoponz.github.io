@@ -13,6 +13,9 @@
   --vio:#B69CFF;
   --shadow: 0 20px 70px rgba(0,0,0,.45);
   --r:18px;
+  --noise:url("img/noise_128.png");
+  --paper:url("img/paper_texture.png");
+  --omikuji:url("img/omikuji.png");
 }
 
 *{box-sizing:border-box}
@@ -165,11 +168,15 @@ a:hover{opacity:.92}
   content:"";
   position:absolute; inset:-2px;
   background:
+    var(--noise),
     radial-gradient(380px 220px at 20% 10%, rgba(124,203,255,.18), transparent 60%),
     radial-gradient(320px 220px at 90% 20%, rgba(182,156,255,.18), transparent 60%),
     radial-gradient(320px 220px at 60% 120%, rgba(124,255,178,.12), transparent 60%);
   opacity:.85;
   pointer-events:none;
+  background-size:128px 128px, auto, auto, auto;
+  background-repeat:repeat, no-repeat, no-repeat, no-repeat;
+  mix-blend-mode: overlay;
 }
 .hero > *{position:relative}
 
@@ -195,7 +202,10 @@ a:hover{opacity:.92}
   padding:16px;
   border-radius:var(--r);
   border:1px solid rgba(255,255,255,.12);
-  background:rgba(255,255,255,.04);
+  background-image: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03)), var(--paper);
+  background-size: auto, 1200px auto;
+  background-blend-mode: overlay;
+  background-color: rgba(255,255,255,.04);
   box-shadow:0 18px 60px rgba(0,0,0,.25);
 }
 .card h2{margin:0 0 8px;font-size:16px}
@@ -438,11 +448,39 @@ html.dev .devOnly{ display:block !important; }
 .achProg{ height: 10px; border-radius: 999px; overflow:hidden; border:1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); margin-top: 10px; }
 .achBar{ height:100%; width:0%; background: rgba(255,255,255,.55); }
 
+
+/* ========== Omikuji page decoration (uses img/omikuji.png) ========== */
+body[data-page="omikuji"] .hero{
+  border-color: rgba(255,210,124,.25);
+}
+body[data-page="omikuji"] .hero::after{
+  content:"";
+  position:absolute;
+  right:14px;
+  top:14px;
+  width:72px;
+  height:72px;
+  background: var(--omikuji) no-repeat center/contain;
+  opacity:.85;
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,.35));
+  pointer-events:none;
+}
+
+
+/* ===== HOME FX safety + polish (append) ===== */
+body.home::before,
+body.home::after{
+  z-index:-1;
+}
+.glitch:hover{ filter: saturate(1.15); }
+.glitch:hover::before,
+.glitch:hover::after{ mix-blend-mode: screen; }
+
+
 /* =========================
    HOME: hacker typing + glitch + vivid theme
    ========================= */
 
-/* homeだけ色味を強める（他ページは現状維持） */
 body.home{
   background:
     radial-gradient(900px 520px at 12% 8%, rgba(124,255,178,.22), transparent 60%),
@@ -451,7 +489,6 @@ body.home{
     linear-gradient(180deg, #050712, #070A12 60%, #0B1020);
 }
 
-/* うっすらスキャンライン＋ノイズ */
 body.home::before{
   content:"";
   position:fixed; inset:0;
@@ -463,9 +500,12 @@ body.home::before{
       rgba(255,255,255,.05) 1px,
       transparent 1px,
       transparent 4px
-    );
+    ),
+    var(--noise);
   opacity:.07;
   mix-blend-mode: overlay;
+  background-size:auto, 128px 128px;
+  background-repeat:repeat, repeat;
 }
 body.home::after{
   content:"";
@@ -478,29 +518,20 @@ body.home::after{
   filter: blur(0.6px);
 }
 
-/* homeカード/ヒーローを少し“発光”寄りに */
 .home .hero{
   border-color: rgba(124,203,255,.22);
   background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
 }
 .home .card{
   background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
-  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-}
-.home .card:hover{
-  transform: translateY(-2px);
-  border-color: rgba(124,255,178,.22);
-  box-shadow: 0 26px 90px rgba(0,0,0,.35);
 }
 
-/* ターミナルっぽいタイトル */
 .home .hero .h1,
 .home .brand b{
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
   letter-spacing: .10em;
 }
 
-/* カーソル */
 .hacker-cursor{
   display:inline-block;
   margin-left:6px;
@@ -513,7 +544,6 @@ body.home::after{
   50%,100%{ opacity:0; }
 }
 
-/* hoverグリッチ（ジジジッ） */
 .glitch{
   position:relative;
   display:inline-block;
@@ -553,200 +583,7 @@ body.home::after{
   100%{ transform: translate(1px,1px); }
 }
 
-/* 減速設定なら演出オフ */
 @media (prefers-reduced-motion: reduce){
   .hacker-cursor{ animation:none; opacity:0; }
   .glitch::before, .glitch::after{ display:none !important; }
-}
-
-/* ===== HOME FX safety + polish (append) ===== */
-
-/* 背景レイヤーは確実に背面へ（クリック/スクロール事故防止） */
-body.home::before,
-body.home::after{
-  z-index:-1;
-}
-
-/* さらにグリッチを“ジジジッ”っぽく（任意：見た目安定） */
-.glitch:hover{
-  filter: saturate(1.15);
-}
-.glitch:hover::before,
-.glitch:hover::after{
-  mix-blend-mode: screen;
-}
-
-/* =========================
-   DESIGN BOOST v2 (all pages)
-   末尾に追記：全ページの見栄え底上げ + おみくじ演出強化
-   ========================= */
-
-/* ---- 全ページ：カード/ヒーローに“デザインの縁取り”を付ける ---- */
-.hero,
-.card{
-  border: 1px solid transparent;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03)) padding-box,
-    linear-gradient(135deg,
-      rgba(124,203,255,.38),
-      rgba(182,156,255,.22),
-      rgba(124,255,178,.18)
-    ) border-box;
-}
-
-/* ヒーローに“薄い光の帯” */
-.hero::after{
-  content:"";
-  position:absolute;
-  left:-20%;
-  top:-30%;
-  width:140%;
-  height:180%;
-  pointer-events:none;
-  background:
-    radial-gradient(420px 240px at 18% 22%, rgba(124,203,255,.16), transparent 60%),
-    radial-gradient(420px 240px at 82% 28%, rgba(182,156,255,.14), transparent 60%),
-    radial-gradient(420px 240px at 55% 88%, rgba(124,255,178,.10), transparent 60%);
-  opacity:.9;
-  mix-blend-mode: screen;
-}
-
-/* カード：ホバーで少し浮く（全ページ） */
-.card{
-  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-}
-.card:hover{
-  transform: translateY(-2px);
-  box-shadow: 0 26px 90px rgba(0,0,0,.35);
-}
-
-/* ボタン：ガラスっぽさ + 縁のグラデ */
-button,.btn{
-  border:1px solid transparent;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03)) padding-box,
-    linear-gradient(135deg,
-      rgba(124,255,178,.30),
-      rgba(124,203,255,.22),
-      rgba(182,156,255,.18)
-    ) border-box;
-  box-shadow: 0 14px 40px rgba(0,0,0,.18);
-}
-button:hover,.btn:hover{
-  transform: translateY(-1px);
-  box-shadow: 0 18px 55px rgba(0,0,0,.25);
-}
-
-/* 見出し：ちょい発光（やりすぎない） */
-.h1, .card h2{
-  text-shadow: 0 10px 35px rgba(0,0,0,.35);
-}
-
-/* フォーカス可視化（操作感UP） */
-:focus-visible{
-  outline: 2px solid rgba(124,203,255,.55);
-  outline-offset: 3px;
-  border-radius: 10px;
-}
-
-/* スクロールバー（Windows/Chromium系で雰囲気UP） */
-@media (min-width: 520px){
-  ::-webkit-scrollbar{ width: 10px; height:10px; }
-  ::-webkit-scrollbar-thumb{
-    background: rgba(255,255,255,.14);
-    border: 1px solid rgba(255,255,255,.10);
-    border-radius: 999px;
-  }
-  ::-webkit-scrollbar-thumb:hover{ background: rgba(255,255,255,.20); }
-  ::-webkit-scrollbar-track{ background: rgba(0,0,0,.18); }
-}
-
-/* ---- おみくじ専用：結果を“御籤紙”にする（IDで当てるので他ページに影響なし） ---- */
-#omikujiBox{
-  margin-top: 12px;
-  padding: 14px 14px 14px 14px;
-  border-radius: 16px;
-  position: relative;
-  overflow: hidden;
-
-  border: 1px solid rgba(255,255,255,.14);
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.07), rgba(0,0,0,.22)),
-    repeating-linear-gradient(
-      to bottom,
-      rgba(255,255,255,.05),
-      rgba(255,255,255,.05) 1px,
-      transparent 1px,
-      transparent 5px
-    );
-  box-shadow: 0 22px 70px rgba(0,0,0,.35);
-  animation: fortuneIn .42s ease both;
-}
-
-/* 左端の“朱印帯” */
-#omikujiBox::before{
-  content:"";
-  position:absolute;
-  left:0; top:0; bottom:0;
-  width: 10px;
-  background: linear-gradient(180deg, rgba(255,124,124,.65), rgba(255,210,124,.35));
-  opacity: .9;
-}
-
-/* うっすら光玉 */
-#omikujiBox::after{
-  content:"";
-  position:absolute;
-  inset:-40px;
-  pointer-events:none;
-  background:
-    radial-gradient(240px 180px at 25% 25%, rgba(124,203,255,.18), transparent 60%),
-    radial-gradient(240px 180px at 80% 40%, rgba(182,156,255,.15), transparent 60%),
-    radial-gradient(240px 180px at 55% 85%, rgba(124,255,178,.12), transparent 60%);
-  opacity:.85;
-}
-
-/* 結果ピル：でかく＋“御籤のラベル感” */
-#omikujiRank{
-  font-size: 14px;
-  letter-spacing: .06em;
-  padding: 8px 12px;
-  border-radius: 999px;
-}
-
-/* ランク別に“光り方”を強化 */
-#omikujiRank.rank-toxic{
-  box-shadow: 0 0 0 3px rgba(255,124,124,.10), 0 12px 45px rgba(255,124,124,.10);
-}
-#omikujiRank.rank-good{
-  box-shadow: 0 0 0 3px rgba(124,203,255,.10), 0 12px 45px rgba(124,203,255,.10);
-}
-#omikujiRank.rank-ultra{
-  box-shadow: 0 0 0 3px rgba(124,255,178,.12), 0 16px 65px rgba(124,255,178,.14);
-  animation: ultraGlow 1.8s ease-in-out infinite;
-}
-
-#omikujiMsg{
-  font-size: 16px;
-  color: rgba(234,241,255,.92);
-}
-#omikujiTips{
-  font-size: 14px;
-  color: rgba(234,241,255,.78);
-}
-
-@keyframes fortuneIn{
-  from{ opacity:0; transform: translateY(8px) scale(.985); }
-  to{ opacity:1; transform: translateY(0) scale(1); }
-}
-@keyframes ultraGlow{
-  0%,100%{ filter: saturate(1.05); }
-  50%{ filter: saturate(1.35); }
-}
-
-/* 減速設定なら演出控えめ */
-@media (prefers-reduced-motion: reduce){
-  .card:hover, button:hover, .btn:hover{ transform:none !important; }
-  #omikujiBox{ animation:none !important; }
-  #omikujiRank.rank-ultra{ animation:none !important; }
 }

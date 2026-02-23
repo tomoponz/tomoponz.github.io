@@ -30,6 +30,7 @@
     return;
   }
 
+
   // embed(iframe) のときは iframe 側のヘッダ/ナビを隠す（shell側だけ残す）
   try{ if(__IS_EMBED) document.documentElement.classList.add("embedded"); }catch(_){ }
 
@@ -39,9 +40,10 @@
   // 既定は immersive OFF（効果中だけONにする）
   if(__IS_EMBED){
     try{ window.parent && window.parent.postMessage({type:"IMMERSION", active:false}, location.origin); }catch(_){
-      try{ window.parent && window.parent.postMessage({type:"IMMERSION", active:false}, "*"); }catch(__){ }
+      try{ window.parent && window.parent.postMessage({type:"IMMERSION", active:false}, "*"); }catch(__){}
     }
   }
+
 
   // ========== security-lite (deterrence only) ==========
   // 静的サイトでは本当の意味で「ソースを隠す」ことはできない。
@@ -75,6 +77,33 @@
   function clamp(n, a, b) {
     return Math.max(a, Math.min(b, n));
   }
+
+  // ========== page meta (body class / dataset) ==========
+  function applyPageMeta(){
+    try{
+      // 通常は location.pathname から判定。shell は ?p= の中身で判定
+      let rel = (location.pathname || "/index.html").replace(/^\/+/, "") || "index.html";
+      const fileLc = (rel.split("/").pop() || "index.html").toLowerCase();
+      if(fileLc === "shell.html"){
+        const p = new URLSearchParams(location.search).get("p");
+        if(p){
+          try{
+            const decoded = decodeURIComponent(p);
+            const pPath = (decoded.split(/[?#]/)[0] || "").replace(/^\/+/, "");
+            if(pPath) rel = pPath;
+          }catch(_){}
+        }
+      }
+      const baseFile = (rel.split("/").pop() || "index.html").toLowerCase();
+      const base = baseFile.replace(/\.html?$/i,"") || "index";
+      if(document.body){
+        document.body.dataset.page = base;
+        document.body.classList.add("page-" + base);
+        if(base === "index") document.body.classList.add("home");
+      }
+    }catch(_){}
+  }
+
 
   // ========== NAV (統一) ==========
   function setActiveNav() {
@@ -142,8 +171,9 @@
     });
   }
 
-  // 外部（shell.js）から呼べるように
+// 外部（shell.js）から呼べるように
   window.setActiveNav = setActiveNav;
+
 
   // ========== quote（今日の一言：偉人(author)撤去） ==========
   // 使うのは「ベース（quotes_base.js）」＋「追加（user_quotes.js）」のみ
@@ -193,7 +223,6 @@
   }
   // ボタン等から呼ぶ可能性があるので公開
   window.setRandomQuote = setRandomQuote;
-
   // ========== omikuji (21 types) ==========
   // 重みは 10000 基準（= 0.01% 単位）
   const OMIKUJI_POOL = [
@@ -227,17 +256,19 @@
     { rank: "凶とか大吉とか、そんなことはどうでもよくて、今世は無敵です。", cls: "rank-ultra", w: 1, msgs: ["理不尽さすら踏み台にするモードに入った。今の君は“強制クリア”のターン。", "今日だけは世界がバグって君を通す。遠慮なく通れ。", "無敵。問題が問題にならない。やれ。"], tipsList: ["勧め：怖い所へ一歩。", "開運：やるべき一撃を今日放て（提出・連絡・着手）。", "保険：自分の勝ち筋に乗れ。"] },
   ];
 
-  function pickOne(v){
-    if(Array.isArray(v) && v.length) return v[Math.floor(Math.random()*v.length)];
-    return v;
-  }
 
-  function resolveOmikujiItem(item){
-    // store resolved msg/tips so daily result is stable
-    const msg = pickOne(item.msgs || item.msg);
-    const tips = pickOne(item.tipsList || item.tips);
-    return { ...item, msg, tips };
-  }
+
+function pickOne(v){
+  if(Array.isArray(v) && v.length) return v[Math.floor(Math.random()*v.length)];
+  return v;
+}
+
+function resolveOmikujiItem(item){
+  // store resolved msg/tips so daily result is stable
+  const msg = pickOne(item.msgs || item.msg);
+  const tips = pickOne(item.tipsList || item.tips);
+  return { ...item, msg, tips };
+}
 
   function showOmikuji(picked) {
     const box = $id("omikujiBox");
@@ -559,7 +590,7 @@
     });
   }
 
-  // ========== sfx: クリック音（汎用） ==========
+    // ========== sfx: クリック音（汎用） ==========
   // ✅おすすめ：音声は  assets/sfx/  にまとめる（例: assets/sfx/umahii.mp3）
   // ただし「今すぐ動かしたい」場合は、現状どおりサイト直下に置いてもOK。
   //
@@ -574,7 +605,7 @@
 
   // ここに音を追加（キー→ファイル）
   // ※フォルダ運用にしたら、値を assets/sfx/... に変えるだけ
-  const SFX_MAP = {
+    const SFX_MAP = {
     // クリック/遷移
     neta: "/assets/sfx/nc170231_nnnn,nanikore.wav",
     profile: "/assets/sfx/nc316178_naniwositennnou.mp3",
@@ -589,7 +620,7 @@
 
     // ミニゲーム
     msBoom: "/assets/sfx/nc288712_kannkyouhakaihakimotiizoi(BGM delete).mp3",
-    g2048Stuck: "/assets/sfx/nc38022_warattehaikenai#U3010dede-nn#U3011koukaonn.mp3",
+    g2048Stuck: "/assets/sfx/nc38022_warattehaikenai【dede-nn】koukaonn.mp3",
 
     // 隠し/演出
     doorWarp: "/assets/sfx/nc126285_doragonnbo-ru_syunnkannidounokoukaonn.wav",
@@ -628,6 +659,7 @@
   }
   // shell.js から呼ぶ用
   window.__stopLongNavSfxFor = stopLongNavSfxFor;
+
 
   // ========== achievements (localStorage only) ==========
   // 目的：サーバ無しで「探索したくなる」実績システムを追加
@@ -762,9 +794,11 @@
     reset: ()=>{ try{ localStorage.removeItem(ACH_KEY); }catch(_){ } },
   };
 
+
   // 既存仕様：ネタ置き場(gallery.html)は、data-sfx を付けてなくても鳴らす
   const GALLERY_AUTO_SFX_KEY = "neta";
   const GALLERY_AUTO_DELAY_MS = 380;
+
 
   // Quiet SFX boost (WebAudio GainNode). Works even if fps-player.js is not loaded.
   // Usage: window.__boostAudio(audioEl, 2.8)
@@ -776,7 +810,7 @@
       const AC = window.AudioContext || window.webkitAudioContext;
       if(!AC) return null;
       try{ __boostCtx = new AC(); }catch(_){ return null; }
-      const resume = ()=>{ try{ __boostCtx.resume().catch(()=>{}); }catch(_){ } };
+      const resume = ()=>{ try{ __boostCtx.resume().catch(()=>{}); }catch(_){} };
       document.addEventListener("pointerdown", resume, {once:true, capture:true});
       document.addEventListener("touchstart", resume, {once:true, capture:true, passive:true});
       return __boostCtx;
@@ -787,7 +821,7 @@
       if(!ctx) return false;
       const g = Math.max(1, Number(gainValue) || 1);
       if(__boosted.has(audioEl)){
-        try{ __boosted.get(audioEl).gain.gain.value = g; }catch(_){ }
+        try{ __boosted.get(audioEl).gain.gain.value = g; }catch(_){}
         return true;
       }
       try{
@@ -800,7 +834,6 @@
       }catch(_){ return false; }
     };
   }
-
   // 事前ロード（同じ音は使い回し）
   const sfxCache = new Map();
 
@@ -887,6 +920,7 @@
       }catch(_){ }
     });
   }
+ // src -> HTMLAudioElement
 
   function resolveSfxSrc(keyOrPath){
     const s = (keyOrPath || "").trim();
@@ -925,7 +959,6 @@
   function playSfx(keyOrPath, volume, opts){
     try{ if(typeof getAudioEnabled === "function" && !getAudioEnabled()) return; }catch(_){ }
     const __k = String(keyOrPath||"" ).trim();
-
     // embed(iframe) 内なら親(shell)で鳴らす（ページ切替でもSEが途切れない）
     // ※親側（shell.html）は __IS_EMBED=false なのでループしない
     if(__IS_EMBED){
@@ -988,6 +1021,146 @@
 
   // 外からも呼べるように（任意）
   window.playSfx = playSfx;
+
+
+  // ========== Music Controller (single BGM channel) ==========
+  // 目的：長尺音声の同時再生（被り）を防止し、再生/停止/次曲/前曲を提供
+  const musicCtrl = (function(){
+    let playlist = [];
+    let idx = 0;
+    let audio = null;
+
+    function stop(){
+      if(audio){
+        try{ audio.pause(); audio.currentTime = 0; }catch(_){}
+      }
+    }
+    function setPlaylist(list, startIndex){
+      playlist = Array.isArray(list) ? list.filter(Boolean).map(String) : [];
+      idx = (typeof startIndex === "number" && isFinite(startIndex)) ? (startIndex|0) : 0;
+      if(idx < 0) idx = 0;
+      if(idx >= playlist.length) idx = 0;
+    }
+    function currentKey(){ return (playlist && playlist.length) ? playlist[idx] : ""; }
+
+    function playKey(key, vol, opts){
+      const k = String(key||"").trim();
+      if(!k) return;
+
+      // audio toggle 尊重
+      try{ if(typeof getAudioEnabled === "function" && !getAudioEnabled()) return; }catch(_){}
+
+      // 既存の音を止めて差し替え
+      if(audio && audio.__musicKey !== k){
+        stop();
+      }
+
+      const src = resolveSfxSrc(k);
+      if(!src) return;
+      const a = getAudio(src);
+      if(!a) return;
+
+      audio = a;
+      audio.__musicKey = k;
+      try{ a.loop = true; }catch(_){}
+
+      const o = (opts && typeof opts === "object") ? opts : {};
+      const boost = Number(o.boost || 1);
+
+      try{
+        if(boost > 1 && window.__boostAudio){
+          try{ window.__boostAudio(a, boost); }catch(__){}
+        }
+        const v =
+          (typeof vol === "number" && isFinite(vol)) ? vol :
+          (typeof o.volume === "number" && isFinite(o.volume)) ? o.volume :
+          undefined;
+        if(v != null) a.volume = clamp(v, 0, 1);
+      }catch(_){}
+
+      try{
+        if(o && o.restart) a.currentTime = 0;
+        a.play().catch(()=>{});
+      }catch(_){}
+    }
+
+    function playIndex(nextIndex, vol, opts){
+      if(!playlist.length) return;
+      idx = ((nextIndex % playlist.length) + playlist.length) % playlist.length;
+      playKey(playlist[idx], vol, opts);
+    }
+    function toggle(vol, opts){
+      if(!audio){
+        const k = currentKey();
+        if(k) playKey(k, vol, opts);
+        return;
+      }
+      try{
+        if(audio.paused) audio.play().catch(()=>{});
+        else audio.pause();
+      }catch(_){}
+    }
+    function next(vol, opts){ if(playlist.length) playIndex(idx+1, vol, opts); }
+    function prev(vol, opts){ if(playlist.length) playIndex(idx-1, vol, opts); }
+    function getIndex(){ return idx; }
+
+    return { setPlaylist, playKey, toggle, next, prev, stop, getIndex, currentKey };
+  })();
+
+  window.musicCtrl = musicCtrl;
+
+  // ========== Aero WMP UI (prev/next + no-overlap) ==========
+  function initAeroWmpUI(){
+    const playBtn = document.getElementById("wmpPlayBtn");
+    if(!playBtn) return;
+
+    const win = document.getElementById("wmp-win") || playBtn.closest(".aero-window") || document;
+    const btns = Array.from(win.querySelectorAll(".player-btn"));
+    const prevBtn = btns.find(b=> (b.textContent||"").includes("⏮")) || null;
+    const nextBtn = btns.find(b=> (b.textContent||"").includes("⏭")) || null;
+
+    const titleEl = win.querySelector(".player-title") || win.querySelector("h4");
+    const artistEl = win.querySelector(".player-artist") || win.querySelector("span");
+
+    const PL = ["aeroTrack","aeroPlay"];
+    const META = {
+      aeroTrack:{ title:"Uiiissudo-mosyamude-su.mp3", artist:"Frutiger Aero Soundtrack" },
+      aeroPlay:{ title:"Yaranaika_se_koukaonn.mp3", artist:"Frutiger Aero Soundtrack" },
+    };
+
+    function updateMeta(i){
+      const key = PL[i] || "";
+      const m = META[key] || {};
+      if(titleEl) titleEl.textContent = m.title || "—";
+      if(artistEl) artistEl.textContent = m.artist || "";
+    }
+
+    function send(cmd){
+      // iframe（shellの中）なら親(shell)で鳴らす（ページ切替でも被らない）
+      if(__IS_EMBED){
+        try{ window.parent && window.parent.postMessage({type:"MUSIC", cmd, playlist:PL}, location.origin); return; }catch(_){}
+        try{ window.parent && window.parent.postMessage({type:"MUSIC", cmd, playlist:PL}, "*"); return; }catch(__){}
+      }
+      // 単独表示
+      if(cmd === "init"){ musicCtrl.setPlaylist(PL, 0); updateMeta(0); return; }
+      if(cmd === "toggle"){ musicCtrl.toggle(1.0, {boost:2.2}); return; }
+      if(cmd === "next"){ musicCtrl.next(1.0, {boost:2.2, restart:true}); updateMeta(musicCtrl.getIndex()); return; }
+      if(cmd === "prev"){ musicCtrl.prev(1.0, {boost:2.2, restart:true}); updateMeta(musicCtrl.getIndex()); return; }
+      if(cmd === "stop"){ musicCtrl.stop(); return; }
+    }
+
+    // 既存 data-sfx が残っていても被らないように消す（念のため）
+    try{ playBtn.removeAttribute("data-sfx"); }catch(_){}
+    try{ playBtn.removeAttribute("data-sfx-volume"); }catch(_){}
+
+    send("init");
+    updateMeta(0);
+
+    playBtn.addEventListener("click", (e)=>{ e.preventDefault(); send("toggle"); });
+    if(prevBtn) prevBtn.addEventListener("click", (e)=>{ e.preventDefault(); send("prev"); });
+    if(nextBtn) nextBtn.addEventListener("click", (e)=>{ e.preventDefault(); send("next"); });
+  }
+
 
   function initSfxClicks(){
     // 一部ブラウザで「最初のユーザー操作」以降でないと音が鳴らないので、
@@ -1138,343 +1311,342 @@
       setTimeout(()=>{ location.href = hrefAbs; }, delay);
     }, true);
   }
-
   /* =========================
-     OSUNA: Escalation Add-on
-     - overrides existing dangerBtn handlers by cloning
-     - adds fake BSOD + mobile crack canvas
-  ========================= */
-  function initDangerEscalation(){
-    const btn0 = document.getElementById("dangerBtn");
-    if(!btn0) return;
+   OSUNA: Escalation Add-on
+   - overrides existing dangerBtn handlers by cloning
+   - adds fake BSOD + mobile crack canvas
+========================= */
+function initDangerEscalation(){
+  const btn0 = document.getElementById("dangerBtn");
+  if(!btn0) return;
 
-    // 既存のイベントを全消しして上書き（追記だけで差し替え可能）
-    const btn = btn0.cloneNode(true);
-    btn0.parentNode.replaceChild(btn, btn0);
+  // 既存のイベントを全消しして上書き（追記だけで差し替え可能）
+  const btn = btn0.cloneNode(true);
+  btn0.parentNode.replaceChild(btn, btn0);
 
-    const isMobile = (window.matchMedia && window.matchMedia("(max-width:780px)").matches) || ("ontouchstart" in window);
+  const isMobile = (window.matchMedia && window.matchMedia("(max-width:780px)").matches) || ("ontouchstart" in window);
 
-    function postImmersion(active){
-      try{
-        if(window.top !== window.self){
-          window.parent.postMessage({type:"IMMERSION", active: !!active}, location.origin);
+  function postImmersion(active){
+    try{
+      if(window.top !== window.self){
+        window.parent.postMessage({type:"IMMERSION", active: !!active}, location.origin);
+      }
+    }catch(_){}
+  }
+
+  function navTo(href){
+    try{
+      if(window.top !== window.self){
+        window.parent.postMessage({type:"NAV", href: href}, location.origin);
+        return;
+      }
+    }catch(_){}
+    location.href = href;
+  }
+
+  function play(key, vol=1.0, opts){
+    try{ if(window.playSfx) window.playSfx(key, vol, opts); }catch(_){}
+  }
+
+  function createBSOD(){
+    const bs = document.createElement("div");
+    bs.id = "fakeBSOD";
+    bs.style.cssText = [
+      "position:fixed","inset:0","z-index:999999",
+      "background:#0b2ea6","color:#fff",
+      "display:flex","align-items:flex-start","justify-content:flex-start",
+      "padding:48px 42px","font-family:Consolas, 'Courier New', monospace"
+    ].join(";");
+    bs.innerHTML = `
+      <div style="max-width:80ch; opacity:.95;">
+        <div style="font-size:46px; font-weight:700; letter-spacing:2px;">:(</div>
+        <div style="margin-top:18px; font-size:18px; line-height:1.7;">
+          <b>FATAL ERROR</b><br>
+          A problem has been detected and the system has been shut down to prevent damage.<br>
+          <br>
+          TECHNICAL INFORMATION:<br>
+          *** STOP: 0x${Math.floor(Math.random()*0xFFFFFF).toString(16).toUpperCase().padStart(6,"0")}<br>
+          *** SYSTEM_HALTED<br>
+          <br>
+          Collecting data… ${Math.floor(10+Math.random()*80)}%<br>
+          Restarting…
+        </div>
+      </div>
+    `;
+    document.body.appendChild(bs);
+    return bs;
+  }
+
+  function createCrackOverlay(){
+    const wrap = document.createElement("div");
+    wrap.id = "crackWrap";
+    wrap.style.cssText = "position:fixed;inset:0;z-index:1000000;pointer-events:none;background:rgba(0,0,0,.15)";
+    const c = document.createElement("canvas");
+    c.width = Math.floor(window.innerWidth * devicePixelRatio);
+    c.height = Math.floor(window.innerHeight * devicePixelRatio);
+    c.style.cssText = "width:100%;height:100%;mix-blend-mode:screen;opacity:.95";
+    wrap.appendChild(c);
+    document.body.appendChild(wrap);
+
+    const ctx = c.getContext("2d");
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+
+    const W = window.innerWidth, H = window.innerHeight;
+    const cx = W * (0.35 + Math.random()*0.3);
+    const cy = H * (0.35 + Math.random()*0.3);
+
+    function jaggedLine(x1,y1,x2,y2,steps){
+      ctx.beginPath();
+      ctx.moveTo(x1,y1);
+      for(let i=1;i<steps;i++){
+        const t = i/steps;
+        const x = x1 + (x2-x1)*t + (Math.random()-0.5)*12;
+        const y = y1 + (y2-y1)*t + (Math.random()-0.5)*12;
+        ctx.lineTo(x,y);
+      }
+      ctx.lineTo(x2,y2);
+      ctx.stroke();
+    }
+
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(255,255,255,.85)";
+    for(let i=0;i<18;i++){
+      const ang = (Math.PI*2) * (i/18) + (Math.random()-0.5)*0.25;
+      const len = Math.min(W,H) * (0.55 + Math.random()*0.35);
+      const x2 = cx + Math.cos(ang)*len;
+      const y2 = cy + Math.sin(ang)*len;
+      jaggedLine(cx,cy,x2,y2,10 + Math.floor(Math.random()*12));
+    }
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(200,240,255,.45)";
+    for(let i=0;i<26;i++){
+      const x1 = Math.random()*W, y1 = Math.random()*H;
+      const x2 = x1 + (Math.random()-0.5)*220;
+      const y2 = y1 + (Math.random()-0.5)*220;
+      jaggedLine(x1,y1,x2,y2,6 + Math.floor(Math.random()*8));
+    }
+
+    setTimeout(()=>{ wrap.style.transition="opacity .5s"; wrap.style.opacity="0"; }, 800);
+    setTimeout(()=>{ wrap.remove(); }, 1400);
+  }
+
+  btn.addEventListener("mouseenter", ()=>{
+    btn.style.transform = "translate(2px, -2px)";
+    setTimeout(()=> btn.style.transform = "translate(-2px, 2px)", 50);
+    setTimeout(()=> btn.style.transform = "translate(0, 0)", 100);
+  });
+
+  btn.addEventListener("click", ()=>{
+    // クリック直後の効果音（なければ無視される）
+    play("osuna", 1.0);
+
+    // 演出中はメニューを隠す（shell側が対応していれば効く）
+    postImmersion(true);
+
+    setTimeout(()=>{
+      if(!confirm("警告：絶対に押すなと言いましたよね？本当に実行しますか？")) { postImmersion(false); return; }
+      if(!confirm("後悔しますよ。本当にいいんですね？")) { postImmersion(false); return; }
+      if(!confirm("最終警告です。この先、何が起きても一切の責任を負いません。")) { postImmersion(false); return; }
+
+      const st = document.createElement("style");
+      st.textContent = `
+        @keyframes violent-shake {
+          0% { transform: translate(2px, 1px) rotate(0deg); }
+          10% { transform: translate(-1px, -2px) rotate(-1deg); }
+          20% { transform: translate(-3px, 0px) rotate(1deg); }
+          30% { transform: translate(3px, 2px) rotate(0deg); }
+          40% { transform: translate(1px, -1px) rotate(1deg); }
+          50% { transform: translate(-1px, 2px) rotate(-1deg); }
+          60% { transform: translate(-3px, 1px) rotate(0deg); }
+          70% { transform: translate(3px, 1px) rotate(-1deg); }
+          80% { transform: translate(-1px, -1px) rotate(1deg); }
+          90% { transform: translate(1px, 2px) rotate(0deg); }
+          100% { transform: translate(1px, -2px) rotate(-1deg); }
         }
-      }catch(_){}
-    }
-
-    function navTo(href){
-      try{
-        if(window.top !== window.self){
-          window.parent.postMessage({type:"NAV", href: href}, location.origin);
-          return;
+        body.horror-glitch{
+          animation: violent-shake 0.1s infinite;
+          filter: invert(1) contrast(150%) hue-rotate(180deg);
+          background:#000 !important;
+          cursor: crosshair !important;
         }
-      }catch(_){}
-      location.href = href;
-    }
+        body.horror-glitch *{ cursor: crosshair !important; }
+        #hackOverlay{
+          position:fixed; inset:0; background:rgba(0,0,0,.55);
+          z-index: 9000; pointer-events:none;
+        }
+        #hackOverlay .cmd{
+          position:absolute; left:12px; right:12px; bottom:12px; top:12px;
+          border:1px solid rgba(255,255,255,.18); border-radius:14px; overflow:hidden;
+          box-shadow:0 18px 60px rgba(0,0,0,.55);
+        }
+        #hackOverlay .bar{
+          height:34px; background:linear-gradient(to right, #111, #2a2a2a);
+          color:#eaeaea; font: 12px/34px Tahoma, 'MS UI Gothic', sans-serif;
+          padding:0 10px; display:flex; justify-content:space-between; opacity:.95;
+        }
+        #hackOverlay .screen{
+          position:absolute; left:0; right:0; top:34px; bottom:0;
+          padding:10px 12px;
+          font: 12px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+          color:#67ff6b; opacity:.55; white-space:pre-wrap; overflow:hidden;
+          text-shadow:0 0 10px rgba(80,255,80,.15);
+        }
+        #hackOverlay .cursor{display:inline-block; width:10px; animation:blink 1s infinite;}
+        @keyframes blink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
+      `;
+      document.head.appendChild(st);
+      document.body.classList.add("horror-glitch");
 
-    function play(key, vol=1.0, opts){
-      try{ if(window.playSfx) window.playSfx(key, vol, opts); }catch(_){}
-    }
-
-    function createBSOD(){
-      const bs = document.createElement("div");
-      bs.id = "fakeBSOD";
-      bs.style.cssText = [
-        "position:fixed","inset:0","z-index:999999",
-        "background:#0b2ea6","color:#fff",
-        "display:flex","align-items:flex-start","justify-content:flex-start",
-        "padding:48px 42px","font-family:Consolas, 'Courier New', monospace"
-      ].join(";");
-      bs.innerHTML = `
-        <div style="max-width:80ch; opacity:.95;">
-          <div style="font-size:46px; font-weight:700; letter-spacing:2px;">:(</div>
-          <div style="margin-top:18px; font-size:18px; line-height:1.7;">
-            <b>FATAL ERROR</b><br>
-            A problem has been detected and the system has been shut down to prevent damage.<br>
-            <br>
-            TECHNICAL INFORMATION:<br>
-            *** STOP: 0x${Math.floor(Math.random()*0xFFFFFF).toString(16).toUpperCase().padStart(6,"0")}<br>
-            *** SYSTEM_HALTED<br>
-            <br>
-            Collecting data… ${Math.floor(10+Math.random()*80)}%<br>
-            Restarting…
-          </div>
+      const hackOverlay = document.createElement("div");
+      hackOverlay.id = "hackOverlay";
+      hackOverlay.innerHTML = `
+        <div class="cmd">
+          <div class="bar"><span>cmd.exe - SYSTEM</span><span>◻︎  ×</span></div>
+          <div class="screen" id="hackScreen"></div>
         </div>
       `;
-      document.body.appendChild(bs);
-      return bs;
-    }
+      document.body.appendChild(hackOverlay);
 
-    function createCrackOverlay(){
-      const wrap = document.createElement("div");
-      wrap.id = "crackWrap";
-      wrap.style.cssText = "position:fixed;inset:0;z-index:1000000;pointer-events:none;background:rgba(0,0,0,.15)";
-      const c = document.createElement("canvas");
-      c.width = Math.floor(window.innerWidth * devicePixelRatio);
-      c.height = Math.floor(window.innerHeight * devicePixelRatio);
-      c.style.cssText = "width:100%;height:100%;mix-blend-mode:screen;opacity:.95";
-      wrap.appendChild(c);
-      document.body.appendChild(wrap);
+      const hackScreen = hackOverlay.querySelector("#hackScreen");
+      const lines = [
+        "C:\\\\Windows\\\\System32> init.sys --force --silent",
+        "[+] collecting entropy... ok",
+        "[+] scanning memory pages... 0x00000000 -> 0x00FFFFFF",
+        "[!] signature mismatch: 0xDEAD BEEF (retry)",
+        "[+] patching hooks: ntoskrnl.exe ...",
+        "[+] dumping tokens: 12 found",
+        "[+] negotiating channel: AES-256-GCM",
+        "[+] uploading fragments: 1/9 2/9 3/9 4/9",
+        "[!] I SEE YOU",
+        "[+] writing...",
+        "",
+      ];
+      let hl=0, hc=0, cur="";
+      const typeTimer = setInterval(()=>{
+        const line = lines[hl] ?? ("0x"+Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,"0").toUpperCase());
+        if(hc < line.length){ cur += line[hc++]; }
+        else { cur += "\n"; hl++; hc=0; }
+        if(cur.length > 6000) cur = cur.slice(cur.length-6000);
+        hackScreen.innerHTML = cur + "<span class='cursor'>█</span>";
+      }, 22);
 
-      const ctx = c.getContext("2d");
-      ctx.scale(devicePixelRatio, devicePixelRatio);
+      const creepy = [
+        "メモリが\"read\"になることはできませんでした。",
+        "システムファイルが破損しています。",
+        "なぜ押したの？",
+        "警告したはずです",
+        "データ消去中...",
+        "I  S E E  Y O U",
+        "う し ろ を ふ り む か な い で",
+        "助けて助けて助けて助けて助けて",
+        "もう手遅れです"
+      ];
+      let errorCount = 0;
 
-      const W = window.innerWidth, H = window.innerHeight;
-      const cx = W * (0.35 + Math.random()*0.3);
-      const cy = H * (0.35 + Math.random()*0.3);
+      // 既存の windows error sound があれば鳴る（無ければ無視）
+      const playErr = ()=>{
+        try{
+          const se = new Audio(encodeURI("assets/sfx/windows error sound.m4a"));
+          se.volume = 0.6;
+          se.playbackRate = Math.max(0.2, 1.0 - (errorCount * 0.02) + (Math.random() * 0.2 - 0.1));
+          se.play().catch(()=>{});
+        }catch(_){}
+      };
 
-      function jaggedLine(x1,y1,x2,y2,steps){
-        ctx.beginPath();
-        ctx.moveTo(x1,y1);
-        for(let i=1;i<steps;i++){
-          const t = i/steps;
-          const x = x1 + (x2-x1)*t + (Math.random()-0.5)*12;
-          const y = y1 + (y2-y1)*t + (Math.random()-0.5)*12;
-          ctx.lineTo(x,y);
-        }
-        ctx.lineTo(x2,y2);
-        ctx.stroke();
-      }
+      const createFakeError = ()=>{
+        playErr();
+        errorCount++;
 
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "rgba(255,255,255,.85)";
-      for(let i=0;i<18;i++){
-        const ang = (Math.PI*2) * (i/18) + (Math.random()-0.5)*0.25;
-        const len = Math.min(W,H) * (0.55 + Math.random()*0.35);
-        const x2 = cx + Math.cos(ang)*len;
-        const y2 = cy + Math.sin(ang)*len;
-        jaggedLine(cx,cy,x2,y2,10 + Math.floor(Math.random()*12));
-      }
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = "rgba(200,240,255,.45)";
-      for(let i=0;i<26;i++){
-        const x1 = Math.random()*W, y1 = Math.random()*H;
-        const x2 = x1 + (Math.random()-0.5)*220;
-        const y2 = y1 + (Math.random()-0.5)*220;
-        jaggedLine(x1,y1,x2,y2,6 + Math.floor(Math.random()*8));
-      }
+        const div = document.createElement("div");
+        div.style.position = "fixed";
+        div.style.left = Math.random() * (window.innerWidth - 300) + "px";
+        div.style.top = Math.random() * (window.innerHeight - 150) + "px";
+        div.style.width = "320px";
 
-      setTimeout(()=>{ wrap.style.transition="opacity .5s"; wrap.style.opacity="0"; }, 800);
-      setTimeout(()=>{ wrap.remove(); }, 1400);
-    }
+        const isLate = errorCount > 20;
+        div.style.backgroundColor = isLate ? "#4a0000" : "#ece9d8";
+        div.style.border = isLate ? "2px solid #ff0000" : "2px solid #0055ea";
+        div.style.boxShadow = "5px 5px 15px rgba(0,0,0,0.8)";
+        div.style.color = isLate ? "#ff0000" : "#000";
+        div.style.zIndex = String(Math.floor(Math.random() * 10000) + 10000);
+        div.style.fontFamily = "Tahoma, 'MS UI Gothic', sans-serif";
 
-    btn.addEventListener("mouseenter", ()=>{
-      btn.style.transform = "translate(2px, -2px)";
-      setTimeout(()=> btn.style.transform = "translate(-2px, 2px)", 50);
-      setTimeout(()=> btn.style.transform = "translate(0, 0)", 100);
-    });
+        const code = Math.floor(Math.random() * 16777215).toString(16).toUpperCase().padStart(6,'0');
+        let msgText = (errorCount > 5) ? creepy[Math.floor(Math.random()*creepy.length)] : creepy[0];
+        if(errorCount > 30) msgText = "死死死死死死死死死死死死死";
 
-    btn.addEventListener("click", ()=>{
-      // クリック直後の効果音（なければ無視される）
-      play("osuna", 1.0);
-
-      // 演出中はメニューを隠す（shell側が対応していれば効く）
-      postImmersion(true);
-
-      setTimeout(()=>{
-        if(!confirm("警告：絶対に押すなと言いましたよね？本当に実行しますか？")) { postImmersion(false); return; }
-        if(!confirm("後悔しますよ。本当にいいんですね？")) { postImmersion(false); return; }
-        if(!confirm("最終警告です。この先、何が起きても一切の責任を負いません。")) { postImmersion(false); return; }
-
-        const st = document.createElement("style");
-        st.textContent = `
-          @keyframes violent-shake {
-            0% { transform: translate(2px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(3px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(1px, 2px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
-          }
-          body.horror-glitch{
-            animation: violent-shake 0.1s infinite;
-            filter: invert(1) contrast(150%) hue-rotate(180deg);
-            background:#000 !important;
-            cursor: crosshair !important;
-          }
-          body.horror-glitch *{ cursor: crosshair !important; }
-          #hackOverlay{
-            position:fixed; inset:0; background:rgba(0,0,0,.55);
-            z-index: 9000; pointer-events:none;
-          }
-          #hackOverlay .cmd{
-            position:absolute; left:12px; right:12px; bottom:12px; top:12px;
-            border:1px solid rgba(255,255,255,.18); border-radius:14px; overflow:hidden;
-            box-shadow:0 18px 60px rgba(0,0,0,.55);
-          }
-          #hackOverlay .bar{
-            height:34px; background:linear-gradient(to right, #111, #2a2a2a);
-            color:#eaeaea; font: 12px/34px Tahoma, 'MS UI Gothic', sans-serif;
-            padding:0 10px; display:flex; justify-content:space-between; opacity:.95;
-          }
-          #hackOverlay .screen{
-            position:absolute; left:0; right:0; top:34px; bottom:0;
-            padding:10px 12px;
-            font: 12px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
-            color:#67ff6b; opacity:.55; white-space:pre-wrap; overflow:hidden;
-            text-shadow:0 0 10px rgba(80,255,80,.15);
-          }
-          #hackOverlay .cursor{display:inline-block; width:10px; animation:blink 1s infinite;}
-          @keyframes blink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
-        `;
-        document.head.appendChild(st);
-        document.body.classList.add("horror-glitch");
-
-        const hackOverlay = document.createElement("div");
-        hackOverlay.id = "hackOverlay";
-        hackOverlay.innerHTML = `
-          <div class="cmd">
-            <div class="bar"><span>cmd.exe - SYSTEM</span><span>◻︎  ×</span></div>
-            <div class="screen" id="hackScreen"></div>
+        const title = isLate ? "FATAL ERROR" : "System Error";
+        const barBg = isLate ? "linear-gradient(to right, #000, #2a0000)" : "linear-gradient(to right, #0058e6, #3a93ff)";
+        div.innerHTML = `
+          <div style="background:${barBg}; color:#fff; padding:4px 8px; font-size:13px; font-weight:bold; display:flex; justify-content:space-between; user-select:none;">
+            <span>${title}</span>
+            <span class="x" style="background:#e04343; border-radius:3px; padding:0 6px; cursor:pointer;">×</span>
           </div>
-        `;
-        document.body.appendChild(hackOverlay);
-
-        const hackScreen = hackOverlay.querySelector("#hackScreen");
-        const lines = [
-          "C:\\\\Windows\\\\System32> init.sys --force --silent",
-          "[+] collecting entropy... ok",
-          "[+] scanning memory pages... 0x00000000 -> 0x00FFFFFF",
-          "[!] signature mismatch: 0xDEAD BEEF (retry)",
-          "[+] patching hooks: ntoskrnl.exe ...",
-          "[+] dumping tokens: 12 found",
-          "[+] negotiating channel: AES-256-GCM",
-          "[+] uploading fragments: 1/9 2/9 3/9 4/9",
-          "[!] I SEE YOU",
-          "[+] writing...",
-          "",
-        ];
-        let hl=0, hc=0, cur="";
-        const typeTimer = setInterval(()=>{
-          const line = lines[hl] ?? ("0x"+Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,"0").toUpperCase());
-          if(hc < line.length){ cur += line[hc++]; }
-          else { cur += "\n"; hl++; hc=0; }
-          if(cur.length > 6000) cur = cur.slice(cur.length-6000);
-          hackScreen.innerHTML = cur + "<span class='cursor'>█</span>";
-        }, 22);
-
-        const creepy = [
-          "メモリが\"read\"になることはできませんでした。",
-          "システムファイルが破損しています。",
-          "なぜ押したの？",
-          "警告したはずです",
-          "データ消去中...",
-          "I  S E E  Y O U",
-          "う し ろ を ふ り む か な い で",
-          "助けて助けて助けて助けて助けて",
-          "もう手遅れです"
-        ];
-        let errorCount = 0;
-
-        // 既存の windows error sound があれば鳴る（無ければ無視）
-        const playErr = ()=>{
-          try{
-            const se = new Audio(encodeURI("assets/sfx/windows error sound.m4a"));
-            se.volume = 0.6;
-            se.playbackRate = Math.max(0.2, 1.0 - (errorCount * 0.02) + (Math.random() * 0.2 - 0.1));
-            se.play().catch(()=>{});
-          }catch(_){}
-        };
-
-        const createFakeError = ()=>{
-          playErr();
-          errorCount++;
-
-          const div = document.createElement("div");
-          div.style.position = "fixed";
-          div.style.left = Math.random() * (window.innerWidth - 300) + "px";
-          div.style.top = Math.random() * (window.innerHeight - 150) + "px";
-          div.style.width = "320px";
-
-          const isLate = errorCount > 20;
-          div.style.backgroundColor = isLate ? "#4a0000" : "#ece9d8";
-          div.style.border = isLate ? "2px solid #ff0000" : "2px solid #0055ea";
-          div.style.boxShadow = "5px 5px 15px rgba(0,0,0,0.8)";
-          div.style.color = isLate ? "#ff0000" : "#000";
-          div.style.zIndex = String(Math.floor(Math.random() * 10000) + 10000);
-          div.style.fontFamily = "Tahoma, 'MS UI Gothic', sans-serif";
-
-          const code = Math.floor(Math.random() * 16777215).toString(16).toUpperCase().padStart(6,'0');
-          let msgText = (errorCount > 5) ? creepy[Math.floor(Math.random()*creepy.length)] : creepy[0];
-          if(errorCount > 30) msgText = "死死死死死死死死死死死死死";
-
-          const title = isLate ? "FATAL ERROR" : "System Error";
-          const barBg = isLate ? "linear-gradient(to right, #000, #2a0000)" : "linear-gradient(to right, #0058e6, #3a93ff)";
-          div.innerHTML = `
-            <div style="background:${barBg}; color:#fff; padding:4px 8px; font-size:13px; font-weight:bold; display:flex; justify-content:space-between; user-select:none;">
-              <span>${title}</span>
-              <span class="x" style="background:#e04343; border-radius:3px; padding:0 6px; cursor:pointer;">×</span>
-            </div>
-            <div style="padding:14px 14px 16px; display:flex; gap:12px; align-items:flex-start;">
-              <div style="width:36px;height:36px;border-radius:8px;background:${isLate?'#ff0000':'#0055ea'};display:grid;place-items:center;color:#fff;font-weight:bold;">!</div>
-              <div style="flex:1;">
-                <div style="font-size:${isLate?'16px':'13px'}; font-weight:${isLate?'bold':'normal'}; line-height:1.35;">
-                  ${isLate ? 'Fatal Error' : 'An exception has occurred.'}<br>
-                  0x${code} — ${msgText}
-                </div>
-                <div style="margin-top:10px; font-size:11px; opacity:.8;">If this problem persists, contact your system administrator.</div>
-                <div style="margin-top:12px; text-align:right;">
-                  <button class="ok" style="min-width:88px; padding:5px 16px; cursor:pointer; color:black; border:1px solid rgba(0,0,0,.25); background:#f2f2f2;">OK</button>
-                </div>
+          <div style="padding:14px 14px 16px; display:flex; gap:12px; align-items:flex-start;">
+            <div style="width:36px;height:36px;border-radius:8px;background:${isLate?'#ff0000':'#0055ea'};display:grid;place-items:center;color:#fff;font-weight:bold;">!</div>
+            <div style="flex:1;">
+              <div style="font-size:${isLate?'16px':'13px'}; font-weight:${isLate?'bold':'normal'}; line-height:1.35;">
+                ${isLate ? 'Fatal Error' : 'An exception has occurred.'}<br>
+                0x${code} — ${msgText}
+              </div>
+              <div style="margin-top:10px; font-size:11px; opacity:.8;">If this problem persists, contact your system administrator.</div>
+              <div style="margin-top:12px; text-align:right;">
+                <button class="ok" style="min-width:88px; padding:5px 16px; cursor:pointer; color:black; border:1px solid rgba(0,0,0,.25); background:#f2f2f2;">OK</button>
               </div>
             </div>
-          `;
-          document.body.appendChild(div);
+          </div>
+        `;
+        document.body.appendChild(div);
 
-          const multiply = (e)=>{
-            e.preventDefault(); e.stopPropagation();
-            createFakeError(); createFakeError(); createFakeError();
-          };
-          div.querySelector(".x").addEventListener("click", multiply);
-          div.querySelector(".ok").addEventListener("click", multiply);
+        const multiply = (e)=>{
+          e.preventDefault(); e.stopPropagation();
+          createFakeError(); createFakeError(); createFakeError();
         };
+        div.querySelector(".x").addEventListener("click", multiply);
+        div.querySelector(".ok").addEventListener("click", multiply);
+      };
 
-        // 連鎖
-        let initCount=0;
-        const chaos = setInterval(()=>{
-          createFakeError();
-          initCount++;
-          if(initCount>10) clearInterval(chaos);
-        }, 200);
+      // 連鎖
+      let initCount=0;
+      const chaos = setInterval(()=>{
+        createFakeError();
+        initCount++;
+        if(initCount>10) clearInterval(chaos);
+      }, 200);
 
-        // Finale → BSOD → (mobile crack) → horrorへ
+      // Finale → BSOD → (mobile crack) → horrorへ
+      setTimeout(()=>{
+        play("nigasanai", 1.0, {boost:2.8}); // なくてもOK（存在すれば鳴る）
+
+        const finale = document.createElement("div");
+        finale.style.cssText = "position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.92);display:grid;place-items:center;font-family:serif;";
+        finale.innerHTML = "<div style='text-align:center;'><div style='color:#ff2b2b; font-size:52px; letter-spacing:6px;'>逃 が さ な い</div><div style='margin-top:10px; color:#aaa; font-size:12px;'>SYSTEM OVERRIDE</div></div>";
+        document.body.appendChild(finale);
+
+        clearInterval(typeTimer);
+
         setTimeout(()=>{
-          play("nigasanai", 1.0, {boost:2.8}); // なくてもOK（存在すれば鳴る）
-
-          const finale = document.createElement("div");
-          finale.style.cssText = "position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.92);display:grid;place-items:center;font-family:serif;";
-          finale.innerHTML = "<div style='text-align:center;'><div style='color:#ff2b2b; font-size:52px; letter-spacing:6px;'>逃 が さ な い</div><div style='margin-top:10px; color:#aaa; font-size:12px;'>SYSTEM OVERRIDE</div></div>";
-          document.body.appendChild(finale);
-
-          clearInterval(typeTimer);
+          finale.remove();
+          createBSOD();
 
           setTimeout(()=>{
-            finale.remove();
-            createBSOD();
+            if(isMobile) createCrackOverlay();
+            setTimeout(()=>{ navTo("horror.html"); }, isMobile ? 1100 : 700);
+          }, 1400);
 
-            setTimeout(()=>{
-              if(isMobile) createCrackOverlay();
-              setTimeout(()=>{ navTo("horror.html"); }, isMobile ? 1100 : 700);
-            }, 1400);
+        }, 1600);
 
-          }, 1600);
+      }, 6000);
 
-        }, 6000);
+    }, 100);
+  });
+}
 
-      }, 100);
-    });
-  }
+
 
   /* =========================
      HOME: hacker typing + glitch
      - body.home のときだけ発動
-     - タイトル(t...to...tomoponz) タイピング
-     - hoverでグリッチ（CSS側の .glitch を使用）
   ========================= */
   function initHomeHackerFx(){
     if(!document.body.classList.contains("home")) return;
@@ -1487,7 +1659,6 @@
       if(!el) return null;
       const next = el.nextElementSibling;
       if(next && next.classList.contains("hacker-cursor")) return next;
-
       const cur = document.createElement("span");
       cur.className = "hacker-cursor";
       cur.textContent = "▍";
@@ -1542,16 +1713,13 @@
       el.dataset.text = text;
     }
 
-    // 対象：上のブランドと、ヒーローのタイトル、プロフィール見出し
     const brandTitle = document.querySelector(".brand b");
     const brandSub   = document.querySelector(".brand small");
     const heroTitle  = document.querySelector(".hero .h1");
-    const profileH2  = document.querySelector(".card h2"); // 最初のカード（プロフィール）
+    const profileH2  = document.querySelector(".card h2");
 
-    // hoverグリッチ対象
     [brandTitle, brandSub, heroTitle, profileH2].forEach(setGlitch);
 
-    // タイピング（brand → hero の順）
     (async ()=>{
       const t = (heroTitle?.textContent || brandTitle?.textContent || "tomoponz").trim() || "tomoponz";
       if(brandTitle) await typeInto(brandTitle, t);
@@ -1559,18 +1727,20 @@
     })();
   }
 
-  // ========== init ==========
+// ========== init ==========
   document.addEventListener("DOMContentLoaded", ()=>{
+    applyPageMeta();
     setActiveNav();
     setDailyQuote();   // USER_QUOTES があるならそれだけで回る
     restoreOmikuji();
     try{ window.ACH && typeof window.ACH.notePage === "function" && window.ACH.notePage(); }catch(_){ }
     initSiteSearch();
     initSfxClicks();
+    initAeroWmpUI();
     initDangerEscalation();
-
-    initHomeHackerFx(); // ←追加：ホーム演出
+    initHomeHackerFx();
   });
+
 
   // ========= audio init =========
   try{ applyAudioEnabled(getAudioEnabled()); }catch(_){ }
