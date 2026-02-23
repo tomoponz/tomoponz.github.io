@@ -13,9 +13,6 @@
   --vio:#B69CFF;
   --shadow: 0 20px 70px rgba(0,0,0,.45);
   --r:18px;
-  --noise:url("img/noise_128.png");
-  --paper:url("img/paper_texture.png");
-  --omikuji:url("img/omikuji.png");
 }
 
 *{box-sizing:border-box}
@@ -441,193 +438,133 @@ html.dev .devOnly{ display:block !important; }
 .achProg{ height: 10px; border-radius: 999px; overflow:hidden; border:1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); margin-top: 10px; }
 .achBar{ height:100%; width:0%; background: rgba(255,255,255,.55); }
 
+/* =========================================================
+   READABILITY FIX: paper/noise を“前面に出しすぎない”
+   - 文字の可読性を最優先（紙テクスチャで読めない問題対策）
+   - テクスチャは「薄く」「局所的」に使う
+   参考：NN/g (glassmorphism readability), W3C WCAG contrast, scrim
+   ========================================================= */
 
-/* =========================
-   HOME: hacker typing + glitch + vivid theme (v2)
-   - body.home を index.html の <body class="home"> に付けると発動
-   ========================= */
-body.home{
+/* hero のノイズ/混色が強くなりすぎた場合の保険：radialだけに戻す */
+.hero:before{
   background:
-    radial-gradient(900px 520px at 12% 8%, rgba(124,255,178,.22), transparent 60%),
-    radial-gradient(900px 520px at 85% 12%, rgba(124,203,255,.22), transparent 60%),
-    radial-gradient(900px 520px at 65% 110%, rgba(182,156,255,.20), transparent 60%),
-    linear-gradient(180deg, #050712, #070A12 60%, #0B1020);
-}
-body.home::before{
-  content:"";
-  position:fixed; inset:0;
-  pointer-events:none;
-  z-index:-1;
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      rgba(255,255,255,.05),
-      rgba(255,255,255,.05) 1px,
-      transparent 1px,
-      transparent 4px
-    );
-  opacity:.06;
-  mix-blend-mode: overlay;
-}
-body.home::after{
-  content:"";
-  position:fixed; inset:-2px;
-  pointer-events:none;
-  z-index:-1;
-  background:
-    radial-gradient(900px 420px at 50% 0%, rgba(124,203,255,.10), transparent 60%),
-    radial-gradient(900px 520px at 20% 100%, rgba(182,156,255,.08), transparent 60%);
-  opacity:.55;
-  filter: blur(0.6px);
+    radial-gradient(380px 220px at 20% 10%, rgba(124,203,255,.18), transparent 60%),
+    radial-gradient(320px 220px at 90% 20%, rgba(182,156,255,.18), transparent 60%),
+    radial-gradient(320px 220px at 60% 120%, rgba(124,255,178,.12), transparent 60%);
+  mix-blend-mode: normal;
+  opacity: .70;
 }
 
-.home .hero .h1,
-.home .brand b{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
-  letter-spacing: .10em;
-}
-
-/* カーソル */
-.hacker-cursor{
-  display:inline-block;
-  margin-left:6px;
-  opacity:.85;
-  animation: hackerBlink 1.05s steps(1,end) infinite;
-  vertical-align: baseline;
-}
-@keyframes hackerBlink{
-  0%,49%{ opacity:1; }
-  50%,100%{ opacity:0; }
-}
-
-/* hoverグリッチ（ジジジッ） */
-.glitch{
-  position:relative;
-  display:inline-block;
-}
-.glitch::before,
-.glitch::after{
-  content: attr(data-text);
-  position:absolute;
-  left:0; top:0;
-  width:100%;
-  opacity:0;
-  pointer-events:none;
-  white-space:pre;
-}
-.glitch:hover::before{
-  opacity:.85;
-  transform: translate(-1px, -1px);
-  text-shadow: -2px 0 rgba(124,203,255,.95);
-  clip-path: inset(0 0 55% 0);
-  animation: glitchA .33s steps(2,end) infinite;
-  mix-blend-mode: screen;
-}
-.glitch:hover::after{
-  opacity:.85;
-  transform: translate(1px, 1px);
-  text-shadow: 2px 0 rgba(182,156,255,.95);
-  clip-path: inset(45% 0 0 0);
-  animation: glitchB .41s steps(2,end) infinite;
-  mix-blend-mode: screen;
-}
-@keyframes glitchA{
-  0%{ transform: translate(-1px,-1px); }
-  50%{ transform: translate(-2px,0px); }
-  100%{ transform: translate(-1px,-1px); }
-}
-@keyframes glitchB{
-  0%{ transform: translate(1px,1px); }
-  50%{ transform: translate(2px,-1px); }
-  100%{ transform: translate(1px,1px); }
-}
-
-/* =========================
-   DESIGN BOOST v2 (all pages)
-   - “かっこいいけど読める”を優先：テクスチャの上に必ずスクリーン/暗幕を敷く
-   ========================= */
-
-/* ヒーロー：文字が載る領域に暗幕（テキスト over 画像対策） */
-.hero{
-  background:
-    linear-gradient(180deg, rgba(0,0,0,.22), rgba(0,0,0,.06)),
-    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-}
-.hero .h1, .hero .sub{
-  text-shadow: 0 2px 10px rgba(0,0,0,.55);
-}
-
-/* カード：紙を直貼りしない（読みにくくなるので） */
+/* card は紙直貼りを禁止：紙は専用ID/クラスだけにする */
 .card{
-  position:relative;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-.card::before{
-  content:"";
-  position:absolute; inset:0;
-  pointer-events:none;
-  border-radius: inherit;
-  background: var(--noise);
-  background-size: 128px 128px;
-  opacity: .04;               /* ←ここが強いと読めなくなる */
-  mix-blend-mode: overlay;
-}
-.card > *{ position:relative; }
-
-/* ボタン：ガラス感は維持してコントラスト増 */
-button,.btn{
-  border:1px solid rgba(255,255,255,.18);
-  background: rgba(255,255,255,.06);
-  box-shadow: 0 14px 40px rgba(0,0,0,.18);
-}
-button:hover,.btn:hover{
-  background: rgba(255,255,255,.10);
-  transform: translateY(-1px);
+  background: rgba(255,255,255,.04) !important;
+  background-image: none !important;
+  background-blend-mode: normal !important;
 }
 
-/* =========================
-   OMIKUJI readability fix + paper texture (only inside result box)
-   ========================= */
-.page-omikuji .hero::after{
+/* おみくじ結果（紙）だけ：暗幕を敷いて白文字を読ませる */
+#omikujiBox{
+  background-image:
+    linear-gradient(180deg, rgba(0,0,0,.62), rgba(0,0,0,.46)),
+    url("img/paper_texture.png");
+  background-size: auto, 1400px auto;
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
+  background-blend-mode: multiply;
+  color: var(--tx);
+}
+#omikujiMsg, #omikujiTips{ text-shadow: 0 2px 14px rgba(0,0,0,.55); }
+
+/* =========================================================
+   EVA-LIKE MENU THEME（黒ベース＋色帯＋ミニマル）
+   - シェル（shell.html）のメニューが一気に締まる
+   ========================================================= */
+
+.nav{
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: linear-gradient(180deg, rgba(0,0,0,.92), rgba(0,0,0,.78));
+  border-bottom: 1px solid rgba(255,255,255,.14);
+}
+
+/* 下に色帯 */
+.nav::after{
   content:"";
   position:absolute;
-  right:14px;
-  top:14px;
-  width:64px;
-  height:64px;
-  background: var(--omikuji) no-repeat center/contain;
-  opacity:.9;
-  filter: drop-shadow(0 10px 20px rgba(0,0,0,.35));
-  pointer-events:none;
-}
-
-#omikujiBox{
-  /* 古い紙は “薄く”＋上に暗幕で文字を守る */
+  left:0; right:0; bottom:-1px;
+  height: 10px;
   background:
-    linear-gradient(180deg, rgba(0,0,0,.62), rgba(0,0,0,.38)),
-    var(--paper),
-    repeating-linear-gradient(
-      to bottom,
-      rgba(255,255,255,.05),
-      rgba(255,255,255,.05) 1px,
-      transparent 1px,
-      transparent 5px
+    linear-gradient(90deg,
+      #2a2a2a 0%,   #2a2a2a 22%,
+      #b31b1b 22%,  #b31b1b 42%,
+      #f07a1a 42%,  #f07a1a 64%,
+      #1aa3c8 64%,  #1aa3c8 82%,
+      #f2f2f2 82%,  #f2f2f2 100%
     );
-  background-size: auto, 1200px auto, auto;
-  background-blend-mode: normal, multiply, overlay;
+  opacity:.95;
 }
 
-#omikujiMsg, #omikujiTips{
-  color: rgba(234,241,255,.88) !important;
-  text-shadow: 0 1px 0 rgba(0,0,0,.55);
+.brandName{ font-weight: 800; letter-spacing: .06em; }
+.brandSub{ opacity:.70; }
+
+/* “メニューリンク”だけテキスト化（他のchipは壊さない） */
+.navlinks{ gap: 18px; }
+.navlinks .chip{
+  border: none;
+  background: transparent;
+  padding: 10px 4px;
+  border-radius: 0;
+  font-size: 13px;
+  color: rgba(234,241,255,.86);
+  letter-spacing: .04em;
+  box-shadow: none;
+}
+.navlinks .chip:hover{
+  background: transparent;
+  color: #fff;
+  transform: none;
+}
+.navlinks .chip.active{
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  color: #fff;
+  position:relative;
+}
+.navlinks .chip.active::after{
+  content:"";
+  position:absolute;
+  left:0; right:0; bottom:0;
+  height: 2px;
+  background: rgba(255,255,255,.92);
 }
 
-/* 減速設定なら演出オフ */
-@media (prefers-reduced-motion: reduce){
-  .hacker-cursor{ animation:none; opacity:0; }
-  .glitch::before, .glitch::after{ display:none !important; }
-  .card:hover, button:hover, .btn:hover{ transform:none !important; }
+/* 検索ボックス：白箱をやめてダークUIに統一 */
+.nav-search{
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 12px;
+}
+.nav-search input{
+  color: rgba(234,241,255,.92);
+  width: 240px;
+  font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
+}
+.nav-search input::placeholder{ color: rgba(234,241,255,.55); }
+.nav-search button{
+  background: rgba(255,153,0,.18);
+  color: rgba(255,255,255,.95);
+}
+.nav-search button:hover{ background: rgba(255,153,0,.28); }
+
+/* focus-visible を強めに（黒UIでは重要） */
+:focus-visible{
+  outline: 2px solid rgba(255,153,0,.75);
+  outline-offset: 3px;
+}
+
+@media (max-width:780px){
+  .navlinks{ gap: 10px; }
+  .chip{ padding: 10px 2px; }
+  .nav::after{ height: 8px; }
 }

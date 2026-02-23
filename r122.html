@@ -6,193 +6,112 @@
   <title>R-122｜Gate</title>
   <meta name="description" content="R-122 年齢確認ゲート（オチは生命の神秘）" />
 
-  <!-- 既存共通 -->
   <link rel="stylesheet" href="style.css?v=20260223">
   <script defer src="app.js?v=20260223"></script>
 
-  <!-- R122 専用（このページだけ雰囲気を寄せる） -->
   <style>
     :root{
-      --r122-bg:#0a0a0a;
-      --r122-panel:#111;
-      --r122-panel2:#141414;
-      --r122-text:#f2f2f2;
-      --r122-sub:rgba(242,242,242,.78);
-      --r122-dim:rgba(242,242,242,.62);
-      --r122-ac:#ff9900;
-      --r122-ac2:#ffb84d;
-      --r122-bd:rgba(255,153,0,.75);
-      --r122-shadow: 0 26px 100px rgba(0,0,0,.55);
-      --r122-r:18px;
+      --rbg:#060606;
+      --rpanel:#0f0f10;
+      --rpanel2:#141416;
+      --rtx:#f2f2f2;
+      --rmut:rgba(242,242,242,.78);
+      --rdim:rgba(242,242,242,.62);
+      --rac:#ff9900;
+      --rac2:#ffb84d;
+      --rbd:rgba(255,153,0,.72);
+      --rshadow: 0 30px 120px rgba(0,0,0,.62);
+      --rr:18px;
     }
 
-    /* このページは shell でも単体でも “ゲート画面” にする */
     body{
+      margin:0;
       background:
         radial-gradient(900px 520px at 50% 0%, rgba(255,153,0,.10), transparent 60%),
-        radial-gradient(900px 520px at 10% 100%, rgba(124,203,255,.10), transparent 60%),
-        linear-gradient(180deg, #050505, var(--r122-bg));
-    }
-    .wrap{ max-width: 1100px; }
-
-    .r122Gate{
-      min-height: calc(100vh - 120px);
-      display:grid;
-      place-items:center;
-      padding: 28px 16px 56px;
+        radial-gradient(900px 520px at 15% 100%, rgba(124,203,255,.10), transparent 60%),
+        linear-gradient(180deg, #040404, var(--rbg));
+      color: var(--rtx);
     }
 
-    .r122Box{
+    .rwrap{ max-width: 1100px; margin:0 auto; padding: 26px 16px 56px; }
+
+    /* 画面中央の“ゲート枠” */
+    .gateStage{ min-height: calc(100vh - 120px); display:grid; place-items:center; }
+
+    .gateBox{
       width: min(860px, 100%);
-      background: linear-gradient(180deg, rgba(20,20,20,.94), rgba(10,10,10,.94));
-      border: 2px solid rgba(255,153,0,.55);
-      border-radius: var(--r122-r);
-      box-shadow: var(--r122-shadow);
-      padding: 34px 30px 28px;
+      border: 2px solid var(--rbd);
+      border-radius: var(--rr);
+      background: linear-gradient(180deg, rgba(18,18,18,.94), rgba(6,6,6,.94));
+      box-shadow: var(--rshadow);
+      padding: 34px 30px 26px;
       position:relative;
       overflow:hidden;
     }
-
-    /* うっすらノイズ（あなたの img/noise_128.png を使う） */
-    .r122Box::before{
+    .gateBox::before{
       content:"";
       position:absolute; inset:0;
       background: url("img/noise_128.png") repeat;
-      opacity:.18;
+      opacity:.12;
       mix-blend-mode: overlay;
       pointer-events:none;
     }
+    .gateInner{ position:relative; }
 
-    .r122Inner{ position:relative; }
+    .rlogo{ display:flex; align-items:center; justify-content:center; gap:10px; user-select:none; }
+    .rlogo .a{ font-size:46px; font-weight:900; letter-spacing:.02em; }
+    .rlogo .b{ font-size:30px; font-weight:900; background: var(--rac); color:#111; padding: 8px 12px; border-radius: 6px; }
 
-    .r122Logo{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-      margin-bottom: 12px;
-      font-weight:900;
-      letter-spacing:.02em;
-      user-select:none;
-    }
-    .r122Logo .markA{
-      color: var(--r122-text);
-      font-size: 44px;
-      line-height:1;
-    }
-    .r122Logo .markB{
-      background: var(--r122-ac);
-      color: #111;
-      font-size: 30px;
-      line-height:1;
-      padding: 8px 12px;
-      border-radius: 6px;
-      box-shadow: 0 12px 40px rgba(255,153,0,.16);
-    }
+    .rh1{ margin: 12px 0 14px; text-align:center; font-size: 34px; }
 
-    .r122H1{
-      margin: 10px 0 14px;
-      font-size: 34px;
-      text-align:center;
-      color: var(--r122-text);
-      letter-spacing:.01em;
-    }
-
-    .r122NoticeBtn{
+    .noticeBtn{
       display:block;
       margin: 0 auto 16px;
       padding: 10px 18px;
       border-radius: 10px;
       border: 2px solid rgba(255,153,0,.70);
       background: rgba(255,153,0,.08);
-      color: var(--r122-text);
+      color: var(--rtx);
       font-weight: 800;
       cursor: default;
-      box-shadow: 0 14px 45px rgba(0,0,0,.35);
+      width: fit-content;
     }
 
-    .r122P{
-      margin: 0 auto;
-      max-width: 70ch;
-      color: var(--r122-sub);
-      line-height: 1.8;
-      font-size: 15px;
-      text-align:left;
-    }
+    .rp{ margin: 0 auto; max-width: 72ch; color: var(--rmut); line-height: 1.9; font-size: 15px; }
+    .ry{ margin-top: 12px; text-align:center; color: var(--rac2); font-weight: 900; letter-spacing:.05em; }
 
-    .r122Yellow{
-      margin-top: 10px;
-      text-align:center;
-      color: var(--r122-ac2);
-      font-weight: 900;
-      letter-spacing:.04em;
-      text-shadow: 0 12px 40px rgba(255,153,0,.15);
-    }
+    .btns{ display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px; }
+    @media (max-width: 640px){ .btns{ grid-template-columns: 1fr; } .rh1{ font-size: 26px; } .gateBox{ padding: 26px 18px 20px; } }
 
-    .r122Btns{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-top: 18px;
-    }
-    @media (max-width: 620px){
-      .r122Btns{ grid-template-columns: 1fr; }
-      .r122H1{ font-size: 26px; }
-      .r122Logo .markA{ font-size: 38px; }
-      .r122Logo .markB{ font-size: 26px; }
-      .r122Box{ padding: 26px 18px 20px; }
-    }
-
-    .r122Btn{
+    .btnGate{
       padding: 14px 16px;
       border-radius: 10px;
       border: 2px solid rgba(255,153,0,.85);
       background: rgba(0,0,0,.35);
-      color: var(--r122-text);
+      color: var(--rtx);
       font-weight: 900;
       font-size: 16px;
       cursor:pointer;
-      transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
-      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+      transition: transform .12s ease, background .12s ease;
     }
-    .r122Btn:hover{
-      transform: translateY(-1px);
-      background: rgba(255,153,0,.08);
-    }
-    .r122Btn.ghost{
-      border-color: rgba(255,153,0,.55);
-      background: rgba(0,0,0,.18);
-      color: rgba(242,242,242,.88);
-    }
+    .btnGate:hover{ transform: translateY(-1px); background: rgba(255,153,0,.08); }
+    .btnGate.ghost{ border-color: rgba(255,153,0,.55); background: rgba(0,0,0,.18); color: rgba(242,242,242,.88); }
 
-    .r122Foot{
-      margin-top: 18px;
-      color: var(--r122-dim);
-      font-size: 13px;
-      text-align:center;
-    }
-    .r122Foot a{
-      color: var(--r122-ac2);
-      text-decoration: underline;
-      text-underline-offset: 3px;
-    }
+    .foot{ margin-top: 18px; text-align:center; color: var(--rdim); font-size: 13px; }
+    .foot a{ color: var(--rac2); text-decoration: underline; text-underline-offset: 3px; }
 
-    /* ========== TRUTH (DNA) ========== */
-    .r122Truth{
-      display:none;
-      min-height: calc(100vh - 120px);
-      padding: 28px 16px 56px;
-    }
-    .r122Truth.show{ display:block; }
+    /* 入室後（TRUTH）も同じ黒×オレンジ路線 */
+    .truthStage{ display:none; }
+    .truthStage.show{ display:block; }
 
     .truthBox{
-      max-width: 980px;
+      width: min(980px, 100%);
       margin: 0 auto;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.22));
-      box-shadow: var(--r122-shadow);
-      padding: 20px 18px;
+      border: 2px solid rgba(255,153,0,.55);
+      border-radius: var(--rr);
+      background: linear-gradient(180deg, rgba(14,14,14,.96), rgba(6,6,6,.96));
+      box-shadow: var(--rshadow);
+      padding: 22px 18px;
       position:relative;
       overflow:hidden;
     }
@@ -200,222 +119,171 @@
       content:"";
       position:absolute; inset:0;
       background: url("img/noise_128.png") repeat;
-      opacity:.10;
+      opacity:.08;
       mix-blend-mode: overlay;
       pointer-events:none;
     }
     .truthInner{ position:relative; }
 
-    .truthTop{
-      display:flex;
-      gap:12px;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:space-between;
-    }
-    .truthTitle{
-      margin:0;
-      font-size: 22px;
-      letter-spacing:.02em;
-    }
-    .truthSub{
-      margin: 6px 0 0;
-      color: rgba(234,241,255,.78);
-      font-size: 13px;
-    }
+    .truthTop{ display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; }
+    .truthTitle{ margin:0; font-size: 22px; letter-spacing:.02em; }
+    .truthTitle b{ color: var(--rac2); }
+    .truthSub{ margin: 6px 0 0; color: rgba(242,242,242,.72); font-size: 13px; }
 
-    /* “DNAっぽい”軽量アニメ（画像いらず） */
+    .truthBtns{ display:flex; gap:10px; flex-wrap:wrap; }
+    .truthBtns a{
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.04);
+      color: var(--rtx);
+      text-decoration:none;
+    }
+    .truthBtns a:hover{ background: rgba(255,153,0,.10); }
+
+    /* DNAビジュアル（画像不要の軽量SVG） */
     .dnaStage{
       margin-top: 14px;
+      height: 260px;
       border-radius: 16px;
       border: 1px solid rgba(255,255,255,.12);
       background:
-        radial-gradient(520px 260px at 20% 20%, rgba(124,203,255,.18), transparent 60%),
-        radial-gradient(520px 260px at 80% 30%, rgba(182,156,255,.16), transparent 60%),
-        radial-gradient(520px 260px at 50% 120%, rgba(124,255,178,.12), transparent 60%),
-        rgba(0,0,0,.28);
+        radial-gradient(520px 260px at 20% 20%, rgba(255,153,0,.12), transparent 60%),
+        radial-gradient(520px 260px at 80% 30%, rgba(124,203,255,.12), transparent 60%),
+        rgba(0,0,0,.35);
       overflow:hidden;
       position:relative;
-      height: 240px;
     }
-    .dnaStage .strand{
-      position:absolute; top: 20px; bottom: 20px;
-      width: 50%;
-      filter: drop-shadow(0 18px 30px rgba(0,0,0,.45));
-      opacity:.95;
-    }
-    .dnaStage .left{ left: 10%; }
-    .dnaStage .right{ right: 10%; transform: scaleX(-1); }
-
     .dnaStage svg{ width: 100%; height: 100%; }
-    .truthText{
-      margin-top: 14px;
-      color: rgba(234,241,255,.88);
-      line-height: 1.9;
-      font-size: 15px;
-    }
+    .dnaGlow{ filter: drop-shadow(0 12px 22px rgba(0,0,0,.55)); }
+
+    .truthText{ margin-top: 14px; color: rgba(242,242,242,.88); line-height: 1.95; font-size: 15px; }
+    .truthText .key{ color: var(--rac2); font-weight: 900; }
 
     /* フェード */
-    .fadeOut{ animation: r122FadeOut .35s ease forwards; }
-    @keyframes r122FadeOut{
-      to{ opacity:0; transform: translateY(-8px) scale(.99); }
-    }
+    .fadeOut{ animation: rFade .35s ease forwards; }
+    @keyframes rFade{ to{ opacity:0; transform: translateY(-8px) scale(.99); } }
   </style>
 </head>
 
-<body data-page="r122">
+<body>
+  <main class="rwrap">
 
-  <!-- 共通ナビ（いつもの） -->
-  <header class="nav">
-    <a class="brand" href="index.html">
-      <span class="logo"></span>
-      <span class="brandText">
-        <b class="brandName">tomoponz</b>
-        <small class="brandSub" id="brandSub">R-122</small>
-      </span>
-    </a>
-
-    <nav class="navlinks">
-      <a class="chip" href="gallery.html" data-sfx="neta">ネタ置き場</a>
-      <a class="chip" href="omikuji.html">おみくじ</a>
-      <a class="chip" href="links.html">リンク</a>
-    </nav>
-
-    <div class="navtools">
-      <div class="nav-search">
-        <input id="searchInput" placeholder="検索キーワードを入力してください">
-        <button id="searchBtn">検索</button>
-      </div>
-      <button id="audioToggle" class="chip" type="button">音声：ON</button>
-    </div>
-  </header>
-
-  <main class="wrap">
     <!-- GATE -->
-    <section class="r122Gate" id="gate">
-      <div class="r122Box" role="dialog" aria-modal="true" aria-labelledby="r122h1">
-        <div class="r122Inner">
-          <div class="r122Logo" aria-hidden="true">
-            <span class="markA">R122</span>
-            <span class="markB">GATE</span>
+    <section class="gateStage" id="gate">
+      <div class="gateBox" role="dialog" aria-modal="true" aria-labelledby="r122h1">
+        <div class="gateInner">
+          <div class="rlogo" aria-hidden="true">
+            <span class="a">R122</span>
+            <span class="b">GATE</span>
           </div>
 
-          <h1 class="r122H1" id="r122h1">このサイトはR-122禁です。</h1>
+          <h1 class="rh1" id="r122h1">このページは <span style="color:var(--rac)">R-122禁</span> です。</h1>
 
-          <div class="r122NoticeBtn">Notice to Users</div>
+          <div class="noticeBtn">Notice to Users</div>
 
-          <p class="r122P">
-            このページには、<b style="color:#fff">年齢制限のある雰囲気</b>が含まれています。<br>
-            クリックすることにより、あなたは <b style="color:#fff">122歳以上</b>、
-            またはあなたがアクセスしている司法管轄区の “成人” 年齢を満たしていることを確認し、
-            <b style="color:#fff">生命の神秘</b>を閲覧することに同意するものとします。
+          <p class="rp">
+            このページには、年齢制限のある雰囲気が含まれています。クリックすることにより、あなたは <b style="color:#fff">122歳以上</b>、
+            またはアクセスしている司法管轄区の成人年齢を満たしていることを確認し、<b style="color:#fff">生命の神秘</b>を閲覧することに同意するものとします。
           </p>
 
-          <div class="r122Yellow">“法執行機関への通知”（ほうしっこうきかんへのつうち）</div>
+          <div class="ry">“法執行機関への通知”（ほうしっこうきかんへのつうち）</div>
 
-          <div class="r122Btns">
-            <button class="r122Btn" id="enterBtn" type="button">私は122歳以上です - 入室</button>
-            <button class="r122Btn ghost" id="exitBtn" type="button">私は122歳未満です - 出口</button>
+          <div class="btns">
+            <button class="btnGate" id="enterBtn" type="button">私は122歳以上です - 入室</button>
+            <button class="btnGate ghost" id="exitBtn" type="button">私は122歳未満です - 出口</button>
           </div>
 
-          <div class="r122Foot">
-            ペアレンタルコントロールについては <a href="links.html">リンク</a> を参照。<br>
-            （※オチ：ここは成人向けではなく、<b>DNA</b>です。）
+          <div class="foot">
+            （※オチ：ここは成人向けではなく <b>DNA</b> です）
           </div>
         </div>
       </div>
     </section>
 
     <!-- TRUTH -->
-    <section class="r122Truth" id="truth" aria-live="polite">
+    <section class="truthStage" id="truth" aria-live="polite">
       <div class="truthBox">
         <div class="truthInner">
           <div class="truthTop">
             <div>
-              <h2 class="truthTitle">究極の結合体：DNA二重螺旋</h2>
-              <div class="truthSub">AとT / GとC —— 水素結合の“硬派なセクシー”</div>
+              <h2 class="truthTitle">究極の結合体：<b>DNA</b>二重螺旋</h2>
+              <div class="truthSub">A–T / G–C —— 水素結合の“硬派なセクシー”</div>
             </div>
-            <div class="btnrow">
-              <a class="btn" href="gallery.html" data-sfx="neta">ネタ置き場へ戻る</a>
-              <a class="btn" href="index.html">ホーム</a>
+            <div class="truthBtns">
+              <a href="gallery.html">ネタ置き場へ</a>
+              <a href="index.html">ホーム</a>
             </div>
           </div>
 
           <div class="dnaStage" aria-hidden="true">
-            <div class="strand left">
-              <svg viewBox="0 0 200 200" preserveAspectRatio="none">
-                <path d="M20,10 C160,40 40,80 180,110 C40,140 160,170 20,190"
-                      fill="none" stroke="rgba(124,203,255,.95)" stroke-width="4"/>
-                <path d="M30,10 C170,40 50,80 190,110 C50,140 170,170 30,190"
-                      fill="none" stroke="rgba(182,156,255,.85)" stroke-width="2"/>
-                <!-- rungs -->
-                <g stroke="rgba(255,255,255,.35)" stroke-width="2">
-                  <line x1="36" y1="22" x2="96" y2="30"/>
-                  <line x1="58" y1="46" x2="120" y2="54"/>
-                  <line x1="84" y1="70" x2="140" y2="80"/>
-                  <line x1="110" y1="96" x2="160" y2="108"/>
-                  <line x1="92" y1="120" x2="145" y2="132"/>
-                  <line x1="62" y1="146" x2="120" y2="158"/>
-                  <line x1="40" y1="170" x2="98" y2="180"/>
-                </g>
-              </svg>
-            </div>
+            <svg viewBox="0 0 1200 260" preserveAspectRatio="none" class="dnaGlow">
+              <defs>
+                <linearGradient id="g1" x1="0" x2="1">
+                  <stop offset="0" stop-color="rgba(255,153,0,.75)"/>
+                  <stop offset="1" stop-color="rgba(124,203,255,.65)"/>
+                </linearGradient>
+                <linearGradient id="g2" x1="0" x2="1">
+                  <stop offset="0" stop-color="rgba(255,184,77,.65)"/>
+                  <stop offset="1" stop-color="rgba(182,156,255,.55)"/>
+                </linearGradient>
+              </defs>
 
-            <div class="strand right">
-              <svg viewBox="0 0 200 200" preserveAspectRatio="none">
-                <path d="M20,10 C160,40 40,80 180,110 C40,140 160,170 20,190"
-                      fill="none" stroke="rgba(124,255,178,.85)" stroke-width="4"/>
-                <path d="M30,10 C170,40 50,80 190,110 C50,140 170,170 30,190"
-                      fill="none" stroke="rgba(124,203,255,.65)" stroke-width="2"/>
-                <g stroke="rgba(255,255,255,.30)" stroke-width="2">
-                  <line x1="36" y1="22" x2="96" y2="30"/>
-                  <line x1="58" y1="46" x2="120" y2="54"/>
-                  <line x1="84" y1="70" x2="140" y2="80"/>
-                  <line x1="110" y1="96" x2="160" y2="108"/>
-                  <line x1="92" y1="120" x2="145" y2="132"/>
-                  <line x1="62" y1="146" x2="120" y2="158"/>
-                  <line x1="40" y1="170" x2="98" y2="180"/>
-                </g>
-              </svg>
-            </div>
+              <!-- strands -->
+              <path d="M40,20 C240,70 360,30 520,90 C700,160 830,80 980,150 C1090,200 1140,210 1160,240"
+                    fill="none" stroke="url(#g1)" stroke-width="6" opacity=".9"/>
+              <path d="M40,240 C260,200 340,240 520,170 C700,100 860,180 980,110 C1100,60 1140,40 1160,20"
+                    fill="none" stroke="url(#g2)" stroke-width="4" opacity=".85"/>
+
+              <!-- rungs -->
+              <g stroke="rgba(255,255,255,.28)" stroke-width="2">
+                <line x1="140" y1="55" x2="160" y2="205"/>
+                <line x1="260" y1="70" x2="290" y2="190"/>
+                <line x1="390" y1="55" x2="420" y2="205"/>
+                <line x1="520" y1="90" x2="540" y2="170"/>
+                <line x1="650" y1="145" x2="670" y2="115"/>
+                <line x1="780" y1="110" x2="800" y2="150"/>
+                <line x1="910" y1="155" x2="940" y2="95"/>
+                <line x1="1040" y1="190" x2="1060" y2="70"/>
+              </g>
+            </svg>
           </div>
 
           <div class="truthText">
             見てください、この完璧な螺旋構造。<br>
-            A-T、G-Cが水素結合で「固く結び合い」、生命の設計図を保存します。<br>
-            —— これほど硬派で美しい“結合”が他にあるでしょうか？
+            <span class="key">A</span> と <span class="key">T</span>、<span class="key">G</span> と <span class="key">C</span> が水素結合で「固く結び合い」、
+            生命の設計図を保存します。<br>
+            —— これほど美しい“結合”が他にあるでしょうか？
           </div>
         </div>
       </div>
     </section>
+
   </main>
 
   <script>
     (function(){
-      const gate = document.getElementById("gate");
-      const truth = document.getElementById("truth");
-      const enter = document.getElementById("enterBtn");
-      const exit  = document.getElementById("exitBtn");
+      const gate = document.getElementById('gate');
+      const truth = document.getElementById('truth');
+      const enter = document.getElementById('enterBtn');
+      const exit  = document.getElementById('exitBtn');
 
       function showTruth(){
-        // SFX（あれば鳴る）
-        try{ window.playSfx && window.playSfx("neta", 0.7); }catch(_){}
-        gate.classList.add("fadeOut");
+        try{ window.playSfx && window.playSfx('neta', 0.6); }catch(_){ }
+        gate.classList.add('fadeOut');
         setTimeout(()=>{
-          gate.style.display = "none";
-          truth.classList.add("show");
-          // ちょいスクロール
-          try{ window.scrollTo({top:0, behavior:"smooth"}); }catch(_){}
+          gate.style.display = 'none';
+          truth.classList.add('show');
+          try{ window.scrollTo({top:0, behavior:'smooth'}); }catch(_){ }
         }, 320);
       }
-
       function goOut(){
-        try{ window.playSfx && window.playSfx("profile", 0.6); }catch(_){}
-        location.href = "gallery.html";
+        try{ window.playSfx && window.playSfx('profile', 0.5); }catch(_){ }
+        location.href = 'gallery.html';
       }
 
-      enter.addEventListener("click", showTruth);
-      exit.addEventListener("click", goOut);
+      enter.addEventListener('click', showTruth);
+      exit.addEventListener('click', goOut);
     })();
   </script>
 </body>
