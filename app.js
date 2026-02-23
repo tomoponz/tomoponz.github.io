@@ -621,7 +621,7 @@ function resolveOmikujiItem(item){
 
     // ミニゲーム
     msBoom: "/assets/sfx/nc288712_kannkyouhakaihakimotiizoi(BGM delete).mp3",
-    g2048Stuck: "/assets/sfx/nc38022_warattehaikenai【dede-nn】koukaonn.mp3",
+    g2048Stuck: "/assets/sfx/nc38022_warattehaikenai#U3010dede-nn#U3011koukaonn.mp3",
 
     // 隠し/演出
     doorWarp: "/assets/sfx/nc126285_doragonnbo-ru_syunnkannidounokoukaonn.wav",
@@ -828,7 +828,6 @@ function resolveOmikujiItem(item){
   // Play overlay on the top window (shell). If in iframe, ask parent to play it.
   function __requestTbcPlay(){
     if(__tbcAlreadyPlayed()) return;
-    __markTbcPlayed();
     if(__IS_EMBED){
       try{ window.parent && window.parent.postMessage({type:"TBC_PLAY"}, location.origin); return; }catch(_){ }
       try{ window.parent && window.parent.postMessage({type:"TBC_PLAY"}, "*"); return; }catch(_){ }
@@ -837,8 +836,12 @@ function resolveOmikujiItem(item){
   }
 
   function playToBeContinuedOverlay(){
-    // guard
-    if(__tbcAlreadyPlayed() && !document.getElementById("tbcCanvas")) return;
+    // guard (double start)
+    if(window.__tbcPlaying) return;
+    window.__tbcPlaying = true;
+
+    // mark as played (prevent repeated triggers across pages)
+    try{ if(!__tbcAlreadyPlayed()) __markTbcPlayed(); }catch(_){ }
 
     // respect audio toggle
     const audioOn = (typeof getAudioEnabled === "function") ? !!getAudioEnabled() : true;
@@ -960,6 +963,7 @@ function resolveOmikujiItem(item){
     }
 
     function cleanup(){
+      try{ window.__tbcPlaying = false; }catch(_){ }
       try{ window.removeEventListener("resize", resize); }catch(_){ }
       try{ canvas.classList.remove("active"); }catch(_){ }
       try{ document.body.classList.remove("tbcSepia"); }catch(_){ }
