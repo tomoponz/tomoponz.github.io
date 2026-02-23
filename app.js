@@ -1461,6 +1461,7 @@ function initDangerEscalation(){
     try{ window.ACH && typeof window.ACH.notePage === "function" && window.ACH.notePage(); }catch(_){ }
     initSiteSearch();
     initSfxClicks();
+    initDangerEscalation();
   });
 
 
