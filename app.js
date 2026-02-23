@@ -612,7 +612,7 @@ function resolveOmikujiItem(item){
     hachi: "/assets/sfx/nc245505_deeeeeeeeenn.mp3",
     shindan: "/assets/sfx/nc170234_honntokanaa.wav",
 
-    links: "/assets/sfx/nc93329_xfairu.wav",
+    achievements: "/assets/sfx/nc93329_xfairu.wav",
     games: "/assets/sfx/nc108262_RSEonngennbann_hosinoka-bixi_gekitotugurumere-su.mp3",
 
     // おみくじ
@@ -638,7 +638,7 @@ function resolveOmikujiItem(item){
   };
 
   // 長いナビ音（リンク/ゲームなど）は「別ページへ移動したら停止」したい
-  const LONG_NAV_SFX_KEYS = new Set(["games","links"]);
+  const LONG_NAV_SFX_KEYS = new Set(["games","achievements"]);
   function __stopAudio(a){
     try{ a.pause(); a.currentTime = 0; }catch(_){ }
   }
@@ -649,7 +649,7 @@ function resolveOmikujiItem(item){
       if(!a || !key) return;
       const allow =
         (key === "games" && nextPage === "games.html") ||
-        (key === "links" && nextPage === "links.html");
+        (key === "achievements" && nextPage === "achievements.html");
       if(!allow){
         __stopAudio(a);
         window.__longNavSfxKey = "";
@@ -745,47 +745,6 @@ function resolveOmikujiItem(item){
         return Math.min(1, n / 2);
       },
       hint:"vaporwave"},
-  
-    {id:"gallery", title:"ネタ置き場", desc:"ネタ置き場を開く。", check:(s)=> !!((s.pages||{})["gallery.html"]),
-      progress:(s)=> ((s.pages||{})["gallery.html"]?1:0),
-      hint:"gallery.html"},
-    {id:"r122gate", title:"R-122通過", desc:"R-122 を開く。", check:(s)=> !!((s.pages||{})["r122.html"]),
-      progress:(s)=> ((s.pages||{})["r122.html"]?1:0),
-      hint:"R-122"},
-    {id:"hachi", title:"八百科事典", desc:"八百科事典を開く。", check:(s)=> !!((s.pages||{})["hachi.html"]),
-      progress:(s)=> ((s.pages||{})["hachi.html"]?1:0),
-      hint:"hachi"},
-    {id:"tetris", title:"テトリス参戦", desc:"テトリスを開く。", check:(s)=> !!((s.pages||{})["tetris.html"]),
-      progress:(s)=> ((s.pages||{})["tetris.html"]?1:0),
-      hint:"tetris"},
-    {id:"dreamcore", title:"夢の入口", desc:"Dreamcore を開く。", check:(s)=> !!((s.pages||{})["dreamcore/index.html"]),
-      progress:(s)=> ((s.pages||{})["dreamcore/index.html"]?1:0),
-      hint:"dreamcore"},
-    {id:"liminal", title:"Liminal", desc:"迷い道（Backrooms）へ落ちる。", check:(s)=> !!((s.pages||{})["liminal/index.html"]),
-      progress:(s)=> ((s.pages||{})["liminal/index.html"]?1:0),
-      hint:"liminal"},
-    {id:"awake", title:"AWAKE", desc:"モンスターから逃げ切る。", check:(s)=> !!((s.pages||{})["dreamcore/special/index.html"]) || !!((s.pages||{})["special/index.html"]),
-      progress:(s)=> (((s.pages||{})["dreamcore/special/index.html"] || (s.pages||{})["special/index.html"])?1:0),
-      hint:"逃げ切れ"},
-    {id:"virtualDesk", title:"Ｖ Ｉ Ｒ Ｔ Ｕ Ａ Ｌ", desc:"VIRTUAL DESKTOP を起動。", check:(s)=> !!((s.pages||{})["vaporwave/index.html"]),
-      progress:(s)=> ((s.pages||{})["vaporwave/index.html"]?1:0),
-      hint:"Aero → CD"},
-    {id:"endcard", title:"終 劇", desc:"終劇に到達。", check:(s)=> !!((s.pages||{})["vaporwave/eva.html"]),
-      progress:(s)=> ((s.pages||{})["vaporwave/eva.html"]?1:0),
-      hint:"VIRTUALタブ0"},
-    {id:"sweetdeath", title:"甘き死よ、来たれ", desc:"禁断のカバーへ。", check:(s)=> !!((s.pages||{})["vaporwave/sweetdeath.html"]),
-      progress:(s)=> ((s.pages||{})["vaporwave/sweetdeath.html"]?1:0),
-      hint:"ごみ箱を空にする"},
-    {id:"walkman", title:"WALKMAN", desc:"× を押して起動。", check:(s)=> !!((s.pages||{})["vaporwave/walkman.html"]),
-      progress:(s)=> ((s.pages||{})["vaporwave/walkman.html"]?1:0),
-      hint:"AWAKENING.exe の ×"},
-    {id:"explore15", title:"地図作成", desc:"15ページ以上を訪問。", check:(s)=> Object.keys(s.pages||{}).length >= 15,
-      progress:(s)=> Math.min(1, Object.keys(s.pages||{}).length / 15),
-      hint:"まだ広い"},
-    {id:"explore25", title:"巡礼", desc:"25ページ以上を訪問。", check:(s)=> Object.keys(s.pages||{}).length >= 25,
-      progress:(s)=> Math.min(1, Object.keys(s.pages||{}).length / 25),
-      hint:"全部踏め"},
-
   ];
 
   function __achEvalAndSave(s){
@@ -1243,13 +1202,14 @@ function resolveOmikujiItem(item){
         } else if(dest === "shindan.html"){
           key = "shindan";
           autoDelay = 180;
-        } else if(dest === "games.html"){
+                } else if(dest === "games.html"){
           key = "games";
           autoDelay = 180;
-        } else if(dest === "links.html"){
-          key = "links";
+        } else if(dest === "achievements.html"){
+          key = "achievements";
           autoDelay = 180;
         } else if(dest === "warp.html"){
+
           key = "doorWarp";
           autoDelay = 0;
         }
@@ -1587,8 +1547,19 @@ function initDangerEscalation(){
       // 既存の windows error sound があれば鳴る（無ければ無視）
       const playErr = ()=>{
         try{
+          if(typeof getAudioEnabled === "function" && !getAudioEnabled()) return;
+        }catch(_){ }
+        try{
+          // playSfx が使えるならそれを優先（音声OFF尊重・キャッシュ管理）
+          if(typeof playSfx === "function"){
+            playSfx("assets/sfx/windows error sound.m4a", 0.6, { volume:0.6 });
+            return;
+          }
+        }catch(_){ }
+        try{
           const se = new Audio(encodeURI("assets/sfx/windows error sound.m4a"));
           se.volume = 0.6;
+          se.muted = (typeof getAudioEnabled === "function") ? (!getAudioEnabled()) : false;
           se.playbackRate = Math.max(0.2, 1.0 - (errorCount * 0.02) + (Math.random() * 0.2 - 0.1));
           se.play().catch(()=>{});
         }catch(_){}
