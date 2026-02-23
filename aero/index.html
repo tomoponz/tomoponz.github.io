@@ -113,19 +113,20 @@
       </div>
       <div style="padding: 15px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(to bottom, #333, #111);">
         <div>
-          <h4 id="wmpTitle" style="margin: 0; font-size: 14px; color: #55e6ff;">—</h4>
+          <h4 id="wmpTitle" style="margin: 0; font-size: 14px; color: #55e6ff;">Uiiissudo-mosyamude-su.mp3</h4>
           <span id="wmpArtist" style="font-size: 11px; color: #aaa;">Frutiger Aero Soundtrack</span>
         </div>
         <div style="display: flex; gap: 10px;">
-          <button class="player-btn" id="wmpPrevBtn" title="前の曲">⏮</button>
-          <button class="player-btn" id="wmpPlayBtn" title="再生/停止" style="transform: scale(1.2);">▶</button>
-          <button class="player-btn" id="wmpNextBtn" title="次の曲">⏭</button>
+          <button class="player-btn" id="wmpPrevBtn">⏮</button>
+          <button class="player-btn" id="wmpPlayBtn" style="transform: scale(1.2);">▶</button>
+          <button class="player-btn" id="wmpNextBtn">⏭</button>
         </div>
       </div>
     </div>
   </div>
 
-  <audio id="wmpAudio" preload="auto"></audio>
+  <!-- WMPはこの1本だけを制御（曲切替で被りを防ぐ） -->
+  <audio id="wmpAudio" preload="auto" loop></audio>
 
 
   <div class="aero-window" id="notepad-win-1" style="display: none; width: 400px; height: 300px;" onmousedown="bringToFront('notepad-win-1')">
@@ -247,81 +248,8 @@ Root: Wake_Up_Now</textarea>
       bringToFront(id); 
     }
     
-    function closeAeroWindow(id) { document.getElementById(id).style.display = 'none'; if(id==='wmp-win'){ try{ window.__stopWmp && window.__stopWmp(); }catch(_){} } }
+    function closeAeroWindow(id) { document.getElementById(id).style.display = 'none'; }
     function bringToFront(id) { highestZIndex++; document.getElementById(id).style.zIndex = highestZIndex; }
-
-    // ===== WMP: single-audio playlist (prevents overlap) =====
-    (function(){
-      const audio = document.getElementById("wmpAudio");
-      const titleEl = document.getElementById("wmpTitle");
-      const artistEl = document.getElementById("wmpArtist");
-      const playBtn = document.getElementById("wmpPlayBtn");
-      const prevBtn = document.getElementById("wmpPrevBtn");
-      const nextBtn = document.getElementById("wmpNextBtn");
-
-      if(!audio || !playBtn || !prevBtn || !nextBtn || !titleEl || !artistEl) return;
-
-      const tracks = [
-        { src: "../assets/sfx/nc123011_uiiissudo-mosyamude-su.mp3", title: "Uiiissudo-mosyamude-su.mp3", artist: "Frutiger Aero Soundtrack" },
-        { src: "../assets/sfx/nc28445_yaranaika_se_koukaonn.mp3",  title: "Yaranaika_se_koukaonn.mp3",  artist: "Frutiger Aero Soundtrack" },
-      ];
-      let idx = 0;
-
-      function setMeta(i){
-        const t = tracks[i] || tracks[0];
-        titleEl.textContent = t.title || "—";
-        artistEl.textContent = t.artist || "";
-      }
-
-      function load(i){
-        idx = ((i % tracks.length) + tracks.length) % tracks.length;
-        const t = tracks[idx];
-        setMeta(idx);
-        // stop before swapping (prevents overlap)
-        try{ audio.pause(); audio.currentTime = 0; }catch(_){}
-        audio.src = t.src;
-        try{ audio.load(); }catch(_){}
-      }
-
-      function play(){
-        if(!audio.src) load(idx);
-        audio.play().catch(()=>{});
-        playBtn.textContent = "⏸";
-      }
-      function pause(){
-        try{ audio.pause(); }catch(_){}
-        playBtn.textContent = "▶";
-      }
-      function toggle(){
-        if(audio.paused) play(); else pause();
-      }
-      function next(){
-        load(idx+1); play();
-      }
-      function prev(){
-        load(idx-1); play();
-      }
-      function stop(){
-        try{ audio.pause(); audio.currentTime = 0; }catch(_){}
-        playBtn.textContent = "▶";
-      }
-
-      // expose for closeAeroWindow
-      window.__stopWmp = stop;
-
-      // init
-      setMeta(0);
-      audio.loop = true;
-      audio.addEventListener('ended', ()=>{ playBtn.textContent = '▶'; });
-
-      playBtn.addEventListener("click", (e)=>{ e.preventDefault(); toggle(); });
-      nextBtn.addEventListener("click", (e)=>{ e.preventDefault(); next(); });
-      prevBtn.addEventListener("click", (e)=>{ e.preventDefault(); prev(); });
-
-      // stop when leaving page
-      window.addEventListener("beforeunload", stop);
-    })();
-
 
     // ドラッグ処理
     const windows = document.querySelectorAll('.aero-window');
@@ -352,35 +280,79 @@ Root: Wake_Up_Now</textarea>
 
     // ===== Media Player (実再生) =====
     (function initAeroPlayer(){
-      const btn = document.getElementById("wmpPlayBtn");
-      const audio = document.getElementById("aeroTrack");
-      if(!btn || !audio) return;
+      const playBtn = document.getElementById("wmpPlayBtn");
+      const prevBtn = document.getElementById("wmpPrevBtn");
+      const nextBtn = document.getElementById("wmpNextBtn");
+      const titleEl = document.getElementById("wmpTitle");
+      const artistEl = document.getElementById("wmpArtist");
+      const audio = document.getElementById("wmpAudio");
+      if(!playBtn || !prevBtn || !nextBtn || !audio) return;
+
+      // 2曲プレイリスト（同時再生=0にする）
+      const PL = [
+        { src: "../assets/sfx/nc123011_uiiissudo-mosyamude-su.mp3", title:"Uiiissudo-mosyamude-su.mp3", artist:"Frutiger Aero Soundtrack" },
+        { src: "../assets/sfx/nc28445_yaranaika_se_koukaonn.mp3", title:"Yaranaika_se_koukaonn.mp3", artist:"Frutiger Aero Soundtrack" },
+      ];
+      let idx = 0;
+
+      function postStopMediaToParent(){
+        // shellで鳴ってる長い音（SFX/BGM）を止める
+        try{ window.parent && window.parent.postMessage({type:"STOP_MEDIA"}, location.origin); }catch(_){
+          try{ window.parent && window.parent.postMessage({type:"STOP_MEDIA"}, "*"); }catch(__){}
+        }
+      }
+
+      function sync(){
+        playBtn.textContent = (!audio.paused && !audio.ended) ? "⏸" : "▶";
+      }
+
+      function applyTrack(i, autoplay){
+        idx = ((i % PL.length) + PL.length) % PL.length;
+        const t = PL[idx];
+        if(!t) return;
+
+        // 先に止める（被り防止）
+        try{ audio.pause(); audio.currentTime = 0; }catch(_){ }
+        audio.src = t.src;
+        try{ audio.load(); }catch(_){ }
+        if(titleEl) titleEl.textContent = t.title;
+        if(artistEl) artistEl.textContent = t.artist;
+
+        if(autoplay){
+          const on = (typeof window.getAudioEnabled === "function") ? window.getAudioEnabled() : true;
+          if(on){
+            postStopMediaToParent();
+            audio.play().catch(()=>{});
+          }
+        }
+        sync();
+      }
 
       // 音声ON/OFF（サイト共通）に追従
-      function apply(){
+      function applyAudio(){
         const on = (typeof window.getAudioEnabled === "function") ? window.getAudioEnabled() : true;
         audio.muted = !on;
         if(!on){ try{ audio.pause(); }catch(_){} }
         sync();
       }
-      function sync(){
-        btn.textContent = (!audio.paused && !audio.ended) ? "⏸" : "▶";
-      }
 
-      // 初期反映
-      apply();
+      // 初期曲
+      applyTrack(0, false);
+      applyAudio();
 
-      btn.addEventListener("click", ()=>{
+      playBtn.addEventListener("click", ()=>{
         const on = (typeof window.getAudioEnabled === "function") ? window.getAudioEnabled() : true;
         if(!on){ sync(); return; }
-
         if(audio.paused){
+          postStopMediaToParent();
           audio.play().catch(()=>{});
         }else{
           audio.pause();
         }
         sync();
       });
+      prevBtn.addEventListener("click", ()=> applyTrack(idx-1, true));
+      nextBtn.addEventListener("click", ()=> applyTrack(idx+1, true));
 
       audio.addEventListener("play", sync);
       audio.addEventListener("pause", sync);
@@ -396,7 +368,7 @@ Root: Wake_Up_Now</textarea>
       });
 
       window.addEventListener("storage", (ev)=>{
-        if(ev && ev.key === "audio_enabled") apply();
+        if(ev && ev.key === "audio_enabled") applyAudio();
       });
 
       // タブを離れたら停止（スマホの暴走防止）
