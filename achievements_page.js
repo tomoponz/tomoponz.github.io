@@ -31,6 +31,10 @@
     const pages = Object.keys(state.pages || {}).length;
     const visits = Number((state.counters||{}).visits || 0);
 
+    // If all achievements are unlocked, show a special roadmap link
+    const isComplete = (total > 0 && unlockedCount >= total);
+
+
     const sum = document.getElementById('achSummary');
     if(sum){
       sum.innerHTML = '';
@@ -38,6 +42,13 @@
       const b2 = el('span','badge'); b2.textContent = `訪問ページ：${pages}`;
       const b3 = el('span','badge'); b3.textContent = `訪問回数：${visits}`;
       sum.appendChild(b1); sum.appendChild(b2); sum.appendChild(b3);
+      if(isComplete){
+        const a = el('a','badge');
+        a.href = 'roadmap.html';
+        a.style.textDecoration = 'none';
+        a.innerHTML = `👑 <b>コンプリート</b>：全体ロードマップ`;
+        sum.appendChild(a);
+      }
     }
 
     const grid = document.getElementById('achGrid');

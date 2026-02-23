@@ -61,6 +61,35 @@
       line-height: 1.6;
     }
   </style>
+
+  <style>
+    .ytPlayerWrap{
+      margin-top: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 18px;
+      background: rgba(0,0,0,.22);
+      padding: 12px;
+    }
+    .ytPlayerTop{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin-bottom: 10px;
+    }
+    .ytPlayerBox{
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 14px;
+      overflow:hidden;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.35);
+    }
+    .ytPlayerBox iframe{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      border:0;
+    }
+  </style>
+
 </head>
 <body>
   <header class="nav">
@@ -119,7 +148,23 @@
             <p class="t">Now Playing</p>
             <p class="s" id="nowPlayingSub">YouTubeリンクからサムネ生成</p>
           </div>
-        </a>
+        
+        <!-- ▶ ページ内再生（外部に飛ばない） -->
+        <div class="ytPlayerWrap" id="ytPlayerWrap" hidden>
+          <div class="ytPlayerTop">
+            <b>Now Playing</b>
+            <button class="btnlike" id="ytCloseBtn" type="button">× 閉じる</button>
+          </div>
+          <div class="ytPlayerBox">
+            <iframe id="ytIframe" src="" title="YouTube player"
+              allow="autoplay; encrypted-media; picture-in-picture"
+              allowfullscreen></iframe>
+          </div>
+          <div class="muted" style="margin-top:8px">
+            ※外部に飛ばずにこのページ内で再生します（YouTubeへ行きたい場合はボタンを使ってください）。
+          </div>
+        </div>
+</a>
 
         <div class="btnrow" style="margin-top:12px">
           <a class="btn primary" id="nowPlayingLink" href="https://youtu.be/WUlMjK_VKhA" target="_blank" rel="noopener">Now Playing（YouTube）</a>
@@ -182,6 +227,63 @@
     }
 
     window.addEventListener("DOMContentLoaded", setNowPlayingThumb);
+
+    function openInlinePlayer(mode){
+      const wrap = document.getElementById("ytPlayerWrap");
+      const iframe = document.getElementById("ytIframe");
+      if(!wrap || !iframe) return;
+
+      const nowUrl = (document.getElementById("nowPlayingLink")||{}).href || "";
+      const listUrl = "https://youtube.com/playlist?list=PL89MD5rmOuuJbpCYMMW8hB3rBRtNmq7lF";
+
+      let src = "";
+      if(mode === "playlist"){
+        try{
+          const u = new URL(listUrl);
+          const list = u.searchParams.get("list") || "";
+          if(list) src = `https://www.youtube-nocookie.com/embed/videoseries?list=${encodeURIComponent(list)}&autoplay=1&rel=0`;
+        }catch(_){}
+      }else{
+        const id = getYouTubeId(nowUrl);
+        if(id) src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=1&rel=0`;
+      }
+
+      if(!src) return;
+      iframe.src = src;
+      wrap.hidden = false;
+      try{ wrap.scrollIntoView({behavior:"smooth", block:"start"}); }catch(_){}
+    }
+
+    function closeInlinePlayer(){
+      const wrap = document.getElementById("ytPlayerWrap");
+      const iframe = document.getElementById("ytIframe");
+      if(iframe) iframe.src = "";
+      if(wrap) wrap.hidden = true;
+    }
+
+    window.addEventListener("DOMContentLoaded", ()=>{
+      const thumb = document.getElementById("nowPlayingThumb");
+      const nowBtn = document.getElementById("nowPlayingLink");
+      const closeBtn = document.getElementById("ytCloseBtn");
+      const playlistBtn = Array.from(document.querySelectorAll('a.btn')).find(a=>a.textContent.includes("プレイリスト"));
+
+      function hijack(a, mode){
+        if(!a) return;
+        a.addEventListener("click", (ev)=>{
+          // shift/ctrl/ middle click is still external
+          if(ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.button === 1) return;
+          ev.preventDefault();
+          openInlinePlayer(mode);
+        });
+      }
+
+      hijack(thumb, "video");
+      hijack(nowBtn, "video");
+      hijack(playlistBtn, "playlist");
+
+      if(closeBtn) closeBtn.addEventListener("click", closeInlinePlayer);
+    });
+
   </script>
 </body>
 </html>

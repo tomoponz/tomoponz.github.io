@@ -638,6 +638,14 @@ function resolveOmikujiItem(item){
     osuna: "/assets/sfx/nanikore.wav",
   };
 
+  // SFX volume overrides (the file itself is loud, so tune it here)
+  const SFX_VOL = {
+    // "xfairu" (nc93329_xfairu.wav) is very loud on Windows. Keep it calm.
+    achievements: 0.18,
+  };
+
+
+
   // 長いナビ音（リンク/ゲームなど）は「別ページへ移動したら停止」したい
   const LONG_NAV_SFX_KEYS = new Set(["games","achievements"]);
   function __stopAudio(a){
@@ -848,19 +856,56 @@ function resolveOmikujiItem(item){
   function applyAudioEnabled(on){
     try{ document.documentElement.classList.toggle("audioOff", !on); }catch(_){ }
 
-    // pause/mute in-page audio tags
+    // pause/mute in-page media tags
     try{
-      document.querySelectorAll("audio").forEach(a=>{
-        try{ a.muted = !on; if(!on) a.pause(); }catch(_){ }
+      document.querySelectorAll("audio,video").forEach(m=>{
+        try{
+          m.muted = !on;
+          if(!on){ m.pause(); m.currentTime = 0; }
+        }catch(_){ }
       });
     }catch(_){ }
 
     // stop cached SFX
     try{
       for(const a of sfxCache.values()){
-        try{ a.muted = !on; if(!on){ a.pause(); a.currentTime = 0; } }catch(_){ }
+        try{
+          a.muted = !on;
+          if(!on){ a.pause(); a.currentTime = 0; }
+        }catch(_){ }
       }
     }catch(_){ }
+
+    // A-Frame sound components (best-effort)
+    try{
+      document.querySelectorAll("[sound]").forEach(el=>{
+        try{
+          const c = el.components && el.components.sound;
+          if(!c) return;
+          if(!on){
+            // store current volume to restore later
+            if(el.dataset && el.dataset.prevSoundVol == null){
+              try{ el.dataset.prevSoundVol = String(c.data && typeof c.data.volume === "number" ? c.data.volume : 1); }catch(_){ }
+            }
+            try{ el.setAttribute("sound", "volume", 0); }catch(_){ }
+            try{ c.pauseSound && c.pauseSound(); }catch(_){ }
+            try{ c.stopSound && c.stopSound(); }catch(_){ }
+          }else{
+            const prev = el.dataset ? Number(el.dataset.prevSoundVol) : NaN;
+            const vol = (isFinite(prev) ? prev : 1);
+            try{ el.setAttribute("sound", "volume", Math.max(0, Math.min(1, vol))); }catch(_){ }
+          }
+        }catch(_){ }
+      });
+    }catch(_){ }
+
+    // stop long navigation SFX immediately when turning off
+    if(!on){
+      try{
+        const prev = window.__longNavSfxAudio;
+        if(prev){ prev.pause(); prev.currentTime = 0; }
+      }catch(_){ }
+    }
 
     // update toggle button (shell only)
     const btn = document.getElementById("audioToggle");
@@ -870,7 +915,6 @@ function resolveOmikujiItem(item){
       btn.classList.toggle("active", on);
     }
   }
-
   // ========== stop media (BGM) ==========
   // 目的：shell(iframe方式)でページを切り替えるとき、BGMだけは即停止させる
   // ※SEは短いので基本そのまま。ループしている音だけ止める。
@@ -897,6 +941,7 @@ function resolveOmikujiItem(item){
     const v = on ? "1" : "0";
     try{ localStorage.setItem(AUDIO_ENABLED_KEY, v); }catch(_){ }
     applyAudioEnabled(on);
+    try{ window.dispatchEvent(new CustomEvent("audiochange", {detail:{enabled:!!on}})); }catch(_){ }
   }
 
   window.getAudioEnabled = getAudioEnabled;
@@ -1012,6 +1057,7 @@ function resolveOmikujiItem(item){
       const v =
         (typeof volume === "number" && isFinite(volume)) ? volume :
         (typeof o.volume === "number" && isFinite(o.volume)) ? o.volume :
+        (SFX_VOL && __k && (typeof SFX_VOL[__k] === "number")) ? SFX_VOL[__k] :
         undefined;
       if(v != null) a.volume = clamp(v, 0, 1);
 

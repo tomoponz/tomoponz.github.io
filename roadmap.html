@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>tomoponz｜全体ロードマップ</title>
+  <meta name="description" content="実績コンプリート者専用：サイト全体の導線・隠し要素ロードマップ" />
+  <link rel="stylesheet" href="style.css?v=20260224-2">
+  <script defer src="app.js?v=20260224-2"></script>
+  <style>
+    .lockBox{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
+      border-radius: 18px;
+      padding: 16px;
+      margin-top: 12px;
+    }
+    .roadGrid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media (max-width: 900px){ .roadGrid{ grid-template-columns:1fr; } }
+    .node{
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 18px;
+      background: rgba(255,255,255,.03);
+      padding: 14px;
+    }
+    .node h3{ margin:0 0 6px; font-size: 16px; }
+    .node p{ margin:0; opacity:.82; line-height:1.8; font-size: 13px; }
+    .node code{ opacity:.9; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="index.html" aria-label="tomoponz ホーム">
+      <span class="logo" aria-hidden="true"></span>
+      <span class="brandText">
+        <span class="brandName">tomoponz</span>
+        <span class="brandSub" id="brandSub"></span>
+      </span>
+    </a>
+    <nav class="navlinks">
+      <a class="chip" href="index.html">プロフィール</a>
+      <a class="chip" href="gallery.html">ネタ置き場</a>
+      <a class="chip" href="achievements.html">実績</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1 class="h1">全体ロードマップ</h1>
+      <p class="sub">※実績コンプリート者専用。サイト内の“分岐”を一枚絵にしたもの。</p>
+    </section>
+
+    <section class="lockBox" id="lockBox">
+      <b id="gateTitle">検証中…</b>
+      <div id="gateBody" class="muted" style="margin-top:6px">実績データを読み込んでいます。</div>
+      <div class="btnrow" style="margin-top:10px">
+        <a class="btn" href="achievements.html">実績へ戻る</a>
+        <a class="btn" href="gallery.html">ネタ置き場へ</a>
+      </div>
+    </section>
+
+    <section class="roadGrid" id="roadGrid" style="display:none">
+      <div class="node">
+        <h3>入口：Shell</h3>
+        <p><code>shell.html</code> から全ページに移動。音声トグルはここが親。</p>
+      </div>
+      <div class="node">
+        <h3>隠し：黒歴史</h3>
+        <p>Konami → 封印解除 → <code>kuro.html</code> 開放。</p>
+      </div>
+      <div class="node">
+        <h3>R-122（Parn hub）</h3>
+        <p><code>r122.html</code>：年齢確認風。中身は生命の神秘。</p>
+      </div>
+      <div class="node">
+        <h3>VIRTUAL → EVA</h3>
+        <p>Vaporwaveで “VIRTUAL” タブを全部消した時だけ <code>eva.html</code> へ。</p>
+      </div>
+      <div class="node">
+        <h3>Aero → Sweetdeath</h3>
+        <p>Aeroの「ごみ箱を空にする」ボタンからのみ <code>sweetdeath.html</code>。</p>
+      </div>
+      <div class="node">
+        <h3>Dreamcore → Walkman</h3>
+        <p>Monster逃走後ページの × ボタンからのみ <code>walkman.html</code>。</p>
+      </div>
+      <div class="node">
+        <h3>Backrooms（Liminal）</h3>
+        <p><code>liminal/index.html</code>：WASD移動、矢印視点（スマホは操作パッド）。</p>
+      </div>
+      <div class="node">
+        <h3>ミニゲーム</h3>
+        <p>テトリス／マインスイーパ／2048 など。爆発や詰みで実績が進む。</p>
+      </div>
+    </section>
+
+    <div class="footer">© tomoponz</div>
+  </main>
+
+  <script>
+    (function(){
+      function isComplete(){
+        const ACH = window.ACH;
+        if(!ACH || typeof ACH.getState !== "function") return false;
+        const s = ACH.getState();
+        const defs = (typeof ACH.getDefinitions === "function") ? ACH.getDefinitions() : [];
+        const total = defs.length || 0;
+        const unlocked = s.unlocked || {};
+        const unlockedCount = Object.keys(unlocked).length;
+        return total > 0 && unlockedCount >= total;
+      }
+
+      function run(){
+        const ok = isComplete();
+        const box = document.getElementById("lockBox");
+        const title = document.getElementById("gateTitle");
+        const body = document.getElementById("gateBody");
+        const grid = document.getElementById("roadGrid");
+        if(ok){
+          title.textContent = "ACCESS GRANTED";
+          body.textContent = "実績コンプリートを確認。ロードマップを表示します。";
+          if(grid) grid.style.display = "grid";
+        }else{
+          title.textContent = "ACCESS DENIED";
+          body.textContent = "実績が未コンプリートです。先に実績を埋めてください。";
+          if(grid) grid.style.display = "none";
+        }
+      }
+
+      // wait for app.js
+      let tries = 0;
+      const t = setInterval(()=>{
+        tries++;
+        if(window.ACH || tries > 40){
+          clearInterval(t);
+          run();
+        }
+      }, 50);
+    })();
+  </script>
+</body>
+</html>
