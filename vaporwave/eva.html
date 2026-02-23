@@ -275,6 +275,72 @@
       });
     })();
 
+
+    // 隠し導線：TVの赤い電源ボタン連打（ヒントは出さない）
+    // 5回 → sweetdeath.html（ただし 9回まで続けたら walkman.html を優先）
+    (function(){
+      const power = document.querySelector(".power-btn");
+      if(!power) return;
+
+      let count = 0;
+      let last = 0;
+      let t = null;
+
+      const reset = ()=>{
+        count = 0;
+        last = 0;
+        if(t){ clearTimeout(t); t = null; }
+      };
+
+      const go = (rel)=>{
+        try{
+          // immersive解除
+          postToShell({type:"IMMERSION", active:false});
+          if(window.parent && window.parent !== window){
+            postToShell({type:"NAV", href: new URL(rel, location.href).href});
+          }else{
+            location.href = rel;
+          }
+        }catch(_){
+          location.href = rel;
+        }
+      };
+
+      const hit = ()=>{
+        const now = Date.now();
+        // 連打判定：間が空いたらリセット
+        if(now - last > 1200){
+          count = 0;
+          if(t){ clearTimeout(t); t = null; }
+        }
+        last = now;
+        count++;
+
+        if(count === 5){
+          // 9回が来る可能性があるので少し待つ
+          if(t) clearTimeout(t);
+          t = setTimeout(()=>{
+            if(count === 5) go("sweetdeath.html");
+            reset();
+          }, 900);
+        }else if(count === 9){
+          if(t) clearTimeout(t);
+          go("walkman.html");
+          reset();
+        }
+      };
+
+      const onPress = (e)=>{
+        try{ e.stopPropagation(); }catch(_){}
+        hit();
+      };
+
+      // click/touch/pointer に対応（スマホも）
+      power.addEventListener("click", onPress, true);
+      power.addEventListener("pointerdown", onPress, true);
+      power.addEventListener("touchstart", onPress, {capture:true, passive:true});
+    })();
+
   </script>
 </body>
 </html>
