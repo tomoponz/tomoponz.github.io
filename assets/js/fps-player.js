@@ -253,6 +253,44 @@ window.__boostAudio = __boostAudio;
   }
 
   function buildUI(){
+  // ===== audio gate (respects localStorage audio_enabled) =====
+  function __fpsAudioEnabled(){
+    try{ return localStorage.getItem("audio_enabled") !== "0"; }catch(_){ return true; }
+  }
+  function __fpsApplyAudioGate(){
+    const on = __fpsAudioEnabled();
+    try{
+      document.querySelectorAll("audio,video").forEach(m=>{
+        try{
+          m.muted = !on;
+          if(!on){ m.pause(); m.currentTime = 0; }
+        }catch(_){ }
+      });
+    }catch(_){ }
+
+    // A-Frame sound (best-effort)
+    try{
+      document.querySelectorAll("[sound]").forEach(el=>{
+        try{
+          const c = el.components && el.components.sound;
+          if(!c) return;
+          if(!on){
+            try{ el.setAttribute("sound","volume",0); }catch(_){}
+            try{ c.pauseSound && c.pauseSound(); }catch(_){}
+            try{ c.stopSound && c.stopSound(); }catch(_){}
+          }else{
+            // do nothing: page scripts may set proper volumes
+          }
+        }catch(_){ }
+      });
+    }catch(_){ }
+  }
+  // initial + react to changes
+  try{ window.addEventListener("audiochange", __fpsApplyAudioGate); }catch(_){ }
+  try{ window.addEventListener("storage", (e)=>{ if(e && e.key==="audio_enabled") __fpsApplyAudioGate(); }); }catch(_){ }
+  try{ window.addEventListener("message", (ev)=>{ const d=ev.data||{}; if(d && d.type==="AUDIO"){ __fpsApplyAudioGate(); } }); }catch(_){ }
+  try{ __fpsApplyAudioGate(); }catch(_){ }
+
     if (document.getElementById('fps-ui')) return;
     injectStyles();
     const s = getSettings();
@@ -572,13 +610,13 @@ window.__boostAudio = __boostAudio;
       // keyboard
       if (this.keys['ArrowLeft'])  this.yaw += lookSpeed * delta;
       if (this.keys['ArrowRight']) this.yaw -= lookSpeed * delta;
-      if (this.keys['ArrowUp'])    this.pitch -= lookSpeed * delta;
-      if (this.keys['ArrowDown'])  this.pitch += lookSpeed * delta;
+      if (this.keys['ArrowUp'])    this.pitch += lookSpeed * delta;
+      if (this.keys['ArrowDown'])  this.pitch -= lookSpeed * delta;
 
       // touch look
       if (lookMode === 'stick'){
         this.yaw   -= (this.jLookX * lookSpeed * 1.6) * delta;
-        this.pitch += (this.jLookY * lookSpeed * 1.6) * delta;
+        this.pitch -= (this.jLookY * lookSpeed * 1.6) * delta;
       } else {
         if (this.padL) this.yaw += lookSpeed * delta;
         if (this.padR) this.yaw -= lookSpeed * delta;
