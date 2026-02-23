@@ -13,33 +13,6 @@
   <script defer src="../assets/js/security-lite.js?v=20260222"></script>
   
   <script>
-
-    (function(){
-      // achievements-lite: mark page view (this page doesn't load app.js)
-      const ACH_KEY = "tomoponz_ach_v1";
-      function achLoad(){
-        try{
-          const raw = localStorage.getItem(ACH_KEY);
-          if(!raw) return {v:1, pages:{}, counters:{}, unlocked:{}};
-          const o = JSON.parse(raw);
-          if(!o || typeof o !== "object") return {v:1, pages:{}, counters:{}, unlocked:{}};
-          o.v = 1;
-          o.pages = (o.pages && typeof o.pages === "object") ? o.pages : {};
-          o.counters = (o.counters && typeof o.counters === "object") ? o.counters : {};
-          o.unlocked = (o.unlocked && typeof o.unlocked === "object") ? o.unlocked : {};
-          return o;
-        }catch(_){ return {v:1, pages:{}, counters:{}, unlocked:{}}; }
-      }
-      function achSave(s){ try{ localStorage.setItem(ACH_KEY, JSON.stringify(s)); }catch(_){ } }
-      try{
-        const path = String(location.pathname||"").replace(/^\/+/, "");
-        const s = achLoad();
-        s.counters.visits = (Number(s.counters.visits)||0) + 1;
-        s.pages[path] = Date.now();
-        achSave(s);
-      }catch(_){ }
-    })();
-
     // ==========================================
     // ★ 壁の当たり判定
     // ==========================================
@@ -115,6 +88,26 @@ AFRAME.registerComponent('face-player-y', {
     this.el.object3D.rotation.y = yaw;
   }
 });
+
+
+
+// ★ 追跡スプライト：プレイヤーへ“完全に”正面を向ける（Yaw+Pitch、Rollなし）
+AFRAME.registerComponent('face-player', {
+  schema: { target: { type: 'selector', default: '#main-cam' } },
+  init: function(){ this._vT = new THREE.Vector3(); this._vS = new THREE.Vector3(); },
+  tick: function(){
+    if (!window.isPlaying) return;
+    const t = this.data.target;
+    if (!t) return;
+    t.object3D.getWorldPosition(this._vT);
+    this.el.object3D.getWorldPosition(this._vS);
+    // lookAt は up=(0,1,0) で回転を作るので、基本ロールは入らない
+    try{
+      this.el.object3D.lookAt(this._vT);
+      this.el.object3D.rotation.z = 0;
+    }catch(_){ }
+  }
+});
 </script>
 
   <style>
@@ -152,11 +145,12 @@ AFRAME.registerComponent('face-player-y', {
         <a-light type="point" color="#fff" intensity="1.2" distance="60" position="0 0 0"></a-light>
       </a-entity>
 
-      <a-entity id="monster" position="130 1.6 10" face-player-y>
-        <!-- リアル目玉テクスチャ（img/eye.png） -->
-        <a-sphere radius="2.05" color="#ffffff" material="roughness:0.35; metalness:0.0"></a-sphere>
-        <!-- 目のテクスチャは“正面”に配置（以前は背面に置いていたため見えにくかった） -->
-        <a-plane width="4.8" height="4.8" position="0 0 2.12" rotation="0 0 0" look-at-player-y
+            <a-entity id="monster" position="130 1.6 10">
+        <!-- 画像が“追ってくる”版：球体は廃止し、スプライト(平面)だけにする -->
+        <a-plane id="monster-sprite"
+                 width="5.2" height="5.2"
+                 position="0 0 0"
+                 face-player
                  material="src:#tex-eye; transparent:true; alphaTest:0.05; side:double; shader:flat;"></a-plane>
         <a-light type="point" color="#ffffff" intensity="1.4" distance="35" position="0 0 0"></a-light>
         <a-light type="point" color="red" intensity="2.2" distance="25" position="0 0 0"></a-light>
@@ -388,7 +382,7 @@ function updateChaseAudio(dist){
         const manhattan = Math.abs(pc.x - mc.x) + Math.abs(pc.z - mc.z);
 
         // 距離 or 同/隣セルなら捕獲（隅の当たり抜け対策）
-        if (dist < 3.4 || (manhattan <= 1 && dist < 6.0)) { gameOver(); return; }
+        if (dist < 3.2 || (manhattan <= 1 && dist < 5.6)) { gameOver(); return; }
         
         // 怪物が近づくと画面が赤くなる
         if (dist < 30) { 
