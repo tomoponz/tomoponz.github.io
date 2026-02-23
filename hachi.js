@@ -10,6 +10,51 @@
   const API = `${WIKI_BASE}/api.php`;
   const SITE = "ja.uncyclopedia.info"; // fallback用
 
+  // ===== 怪異（ローカル）：1/50 =====
+  const ANOMALY_RATE = 1 / 50;
+  const ANOMALIES = [
+    {
+      title: "■■■について",
+      note: "表示中：■■■（ローカル資料）",
+      html: `
+        <p>この項目は閲覧権限が不足しています。</p>
+        <p>しかし、あなたはすでに<strong>読んでしまった</strong>。</p>
+        <hr>
+        <pre style="white-space:pre-wrap; background:rgba(0,0,0,.22); padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,.10);">
+■■■■■■■■■■■■■■■■■■
+■■■  記録番号: 0xDEAD-BEEF  ■■■
+■■■  観測ログ: 欠損         ■■■
+■■■■■■■■■■■■■■■■■■
+
+・「ランダム」を押した回数が一致しない
+・本文内検索をすると文字の並びが変わる
+・閉じても、次に開いた時、続きから始まる
+
+――――――――――――――――――
+見つけないでください
+        </pre>
+      `
+    },
+    {
+      title: "文字化け資料（復元不能）",
+      note: "表示中：復元不能（ローカル資料）",
+      html: `
+        <p>復元処理に失敗しました。</p>
+        <p class="note">※外部APIは呼び出していません。</p>
+        <pre style="white-space:pre-wrap; background:rgba(0,0,0,.22); padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,.10);">
+ã‚ãªãŸã¯ã€€ã“ã“ã«ã€€ã„ã‚‹
+ã„ã¾ã¯ã€€ã“ã“ã«ã€€ã„ãªã„
+
+[ERR] parse.text: NULL
+[WARN] callback: missing
+[INFO] retry: 0
+[INFO] retry: 0
+[INFO] retry: 0
+        </pre>
+      `
+    }
+  ];
+
   const el = (id) => document.getElementById(id);
 
   function log(line){
@@ -242,6 +287,42 @@
     return total;
   }
 
+  // ===== 怪異描画（APIを呼ばない） =====
+  function renderAnomaly(){
+    const a = ANOMALIES[Math.floor(Math.random() * ANOMALIES.length)];
+
+    const titleEl = el("articleTitle");
+    const noteEl  = el("articleNote");
+    const box     = el("articleContent");
+
+    if(titleEl) titleEl.textContent = a.title;
+    if(noteEl)  noteEl.textContent  = a.note;
+    if(box)     box.innerHTML = a.html;
+
+    // 本文内検索が効くように
+    articleOriginalHTML = a.html;
+
+    const q = el("q");
+    if(q) q.value = a.title;
+
+    // 「本家で開く」はランダムへ（怪異はローカルなので）
+    const open = el("btnOpen");
+    if(open){
+      open.href = `${WIKI_BASE}/wiki/Special:Random`;
+      open.setAttribute("target", "_blank");
+      open.setAttribute("rel", "noopener");
+    }
+
+    // nav検索が入ってたら、そのまま本文内検索も走らせる
+    const navQ = el("searchInput")?.value || "";
+    if(navQ.trim()){
+      const hits = highlightInArticle(navQ);
+      if(noteEl) noteEl.textContent = `${a.note}｜本文内検索「${navQ}」：${hits}件`;
+    }
+
+    log("anomaly: local render (no api)");
+  }
+
   // ===== 記事読み込み =====
   async function loadArticle(title){
     const t = normTitle(title || "メインページ") || "メインページ";
@@ -301,6 +382,12 @@
   }
 
   async function loadRandom(){
+    // 1/50で怪異（APIを呼ばない）
+    if(Math.random() < ANOMALY_RATE){
+      renderAnomaly();
+      return;
+    }
+
     try{
       log("random: query…");
       const data = await jsonp(apiRandomUrl(), 7000);
@@ -321,7 +408,7 @@
 
     const pageMode = String(oldInp.dataset.searchMode || oldBtn.dataset.searchMode || "").toLowerCase() === "page";
 
-    // app.js のサイト内検索リスナーを消すため clone して差し替え（ただし page モードなら app.js 側が付かないので不要）
+    // app.js のサイト内検索リスナーを消すため clone して差し替え
     const inp = pageMode ? oldInp : oldInp.cloneNode(true);
     const btn = pageMode ? oldBtn : oldBtn.cloneNode(true);
     if(!pageMode){
