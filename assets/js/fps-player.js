@@ -560,9 +560,19 @@ window.__boostAudio = __boostAudio;
       this.yaw = (this.el.object3D.rotation.y || 0);
 
       window.addEventListener('keydown', (e) => {
+        const t = e.target;
+        const tag = (t && t.tagName) ? t.tagName.toLowerCase() : "";
+        const isTyping = (tag === "input" || tag === "textarea" || (t && t.isContentEditable));
+        if(isTyping) return;
+
         this.keys[e.code] = true;
         if (e.code === 'Space') this.jumpQueued = true;
-      });
+
+        // prevent page scroll / browser shortcuts while looking around
+        if (e.code === 'Space' || e.code.startsWith('Arrow')){
+          try{ e.preventDefault(); }catch(_){}
+        }
+      }, {passive:false});
       window.addEventListener('keyup', (e) => { this.keys[e.code] = false; });
 
       // touch UI wiring
@@ -610,8 +620,8 @@ window.__boostAudio = __boostAudio;
       // keyboard
       if (this.keys['ArrowLeft'])  this.yaw += lookSpeed * delta;
       if (this.keys['ArrowRight']) this.yaw -= lookSpeed * delta;
-      if (this.keys['ArrowUp'])    this.pitch += lookSpeed * delta;
-      if (this.keys['ArrowDown'])  this.pitch -= lookSpeed * delta;
+      if (this.keys['ArrowUp'])    this.pitch -= lookSpeed * delta;
+      if (this.keys['ArrowDown'])  this.pitch += lookSpeed * delta;
 
       // touch look
       if (lookMode === 'stick'){
