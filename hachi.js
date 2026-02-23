@@ -10,8 +10,8 @@
   const API = `${WIKI_BASE}/api.php`;
   const SITE = "ja.uncyclopedia.info"; // fallback用
 
-  // ===== 怪異（ローカル）：1/50 =====
-  const ANOMALY_RATE = 1 / 50;
+  // ===== 怪異（ローカル）：1/20 =====
+  const ANOMALY_RATE = 1 / 20;
   const ANOMALIES = [
     {
       title: "■■■について",
