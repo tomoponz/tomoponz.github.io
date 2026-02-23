@@ -558,3 +558,20 @@ body.home::after{
   .hacker-cursor{ animation:none; opacity:0; }
   .glitch::before, .glitch::after{ display:none !important; }
 }
+
+/* ===== HOME FX safety + polish (append) ===== */
+
+/* 背景レイヤーは確実に背面へ（クリック/スクロール事故防止） */
+body.home::before,
+body.home::after{
+  z-index:-1;
+}
+
+/* さらにグリッチを“ジジジッ”っぽく（任意：見た目安定） */
+.glitch:hover{
+  filter: saturate(1.15);
+}
+.glitch:hover::before,
+.glitch:hover::after{
+  mix-blend-mode: screen;
+}
