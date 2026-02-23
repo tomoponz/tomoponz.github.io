@@ -67,6 +67,7 @@ a:hover{opacity:.92}
 .logo{
   width:40px;height:40px;border-radius:14px;
   background:
+    url("img/Dobby.png") center/cover no-repeat,
     radial-gradient(12px 12px at 30% 30%, rgba(124,255,178,.75), transparent 60%),
     radial-gradient(14px 14px at 65% 65%, rgba(124,203,255,.75), transparent 60%),
     linear-gradient(135deg, rgba(182,156,255,.55), rgba(124,203,255,.20));
