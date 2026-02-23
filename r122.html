@@ -6,8 +6,8 @@
   <title>R-122｜Gate</title>
   <meta name="description" content="R-122 年齢確認ゲート（オチは生命の神秘）" />
 
-  <link rel="stylesheet" href="style.css?v=20260223-2">
-  <script defer src="app.js?v=20260223"></script>
+  <link rel="stylesheet" href="style.css?v=20260223-3">
+  <script defer src="app.js?v=20260223-3"></script>
 
   <style>
     :root{
@@ -40,129 +40,256 @@
 
     .gateBox{
       width: min(860px, 100%);
-      border: 2px solid var(--rbd);
-      border-radius: var(--rr);
-      background: linear-gradient(180deg, rgba(18,18,18,.94), rgba(6,6,6,.94));
+      background: linear-gradient(180deg, rgba(20,20,22,.88), rgba(10,10,10,.88));
+      border: 1px solid rgba(255,153,0,.22);
+      border-radius: calc(var(--rr) + 10px);
       box-shadow: var(--rshadow);
-      padding: 34px 30px 26px;
       position:relative;
       overflow:hidden;
     }
     .gateBox::before{
       content:"";
-      position:absolute; inset:0;
-      background: url("img/noise_128.png") repeat;
-      opacity:.12;
-      mix-blend-mode: overlay;
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(680px 260px at 20% 0%, rgba(255,153,0,.18), transparent 70%),
+        radial-gradient(680px 260px at 90% 100%, rgba(124,203,255,.12), transparent 70%);
+      filter: blur(0.2px);
       pointer-events:none;
     }
-    .gateInner{ position:relative; }
+    .gateInner{ position:relative; padding: 22px 20px 18px; }
 
-    .rlogo{ display:flex; align-items:center; justify-content:center; gap:10px; user-select:none; }
-    .rlogo .a{ font-size:46px; font-weight:900; letter-spacing:.02em; }
-    .rlogo .b{ font-size:30px; font-weight:900; background: var(--rac); color:#111; padding: 8px 12px; border-radius: 6px; }
+    .rmono{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
 
-    .rh1{ margin: 12px 0 14px; text-align:center; font-size: 34px; }
+    .badge{
+      display:inline-flex; align-items:center; gap:10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,153,0,.35);
+      background: rgba(0,0,0,.30);
+      color: rgba(255,255,255,.82);
+      letter-spacing:.12em;
+      font-size: 12px;
+    }
+    .badge .dot{
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--rac);
+      box-shadow: 0 0 18px rgba(255,153,0,.55);
+    }
+
+    .h1{
+      margin: 14px 0 8px;
+      font-size: clamp(26px, 3.2vw, 38px);
+      letter-spacing: .02em;
+      line-height: 1.15;
+    }
 
     .noticeBtn{
-      display:block;
-      margin: 0 auto 16px;
-      padding: 10px 18px;
-      border-radius: 10px;
-      border: 2px solid rgba(255,153,0,.70);
-      background: rgba(255,153,0,.08);
-      color: var(--rtx);
-      font-weight: 800;
-      cursor: default;
-      width: fit-content;
+      display:inline-flex;
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      letter-spacing:.08em;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.20);
+      color: rgba(255,255,255,.80);
     }
 
-    .rp{ margin: 0 auto; max-width: 72ch; color: var(--rmut); line-height: 1.9; font-size: 15px; }
-    .ry{ margin-top: 12px; text-align:center; color: var(--rac2); font-weight: 900; letter-spacing:.05em; }
+    .rp{
+      margin: 14px 0 12px;
+      color: var(--rmut);
+      line-height: 1.9;
+      font-size: 14px;
+    }
 
-    .btns{ display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px; }
-    @media (max-width: 640px){ .btns{ grid-template-columns: 1fr; } .rh1{ font-size: 26px; } .gateBox{ padding: 26px 18px 20px; } }
+    .ry{
+      margin: 12px 0 0;
+      color: rgba(255,255,255,.66);
+      font-size: 13px;
+      letter-spacing:.05em;
+    }
 
+    .btns{
+      margin-top: 14px;
+      display:flex; gap: 10px; flex-wrap:wrap;
+    }
     .btnGate{
-      padding: 14px 16px;
-      border-radius: 10px;
-      border: 2px solid rgba(255,153,0,.85);
-      background: rgba(0,0,0,.35);
-      color: var(--rtx);
-      font-weight: 900;
-      font-size: 16px;
+      border: 1px solid rgba(255,153,0,.42);
+      background: linear-gradient(180deg, rgba(255,153,0,.22), rgba(255,153,0,.10));
+      color: #fff;
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-weight: 700;
       cursor:pointer;
-      transition: transform .12s ease, background .12s ease;
+      transition: transform .08s ease, filter .12s ease;
     }
-    .btnGate:hover{ transform: translateY(-1px); background: rgba(255,153,0,.08); }
-    .btnGate.ghost{ border-color: rgba(255,153,0,.55); background: rgba(0,0,0,.18); color: rgba(242,242,242,.88); }
+    .btnGate:hover{ filter: brightness(1.05); transform: translateY(-1px); }
+    .btnGate:active{ transform: translateY(0); }
 
-    .foot{ margin-top: 18px; text-align:center; color: var(--rdim); font-size: 13px; }
-    .foot a{ color: var(--rac2); text-decoration: underline; text-underline-offset: 3px; }
+    .btnGate.ghost{
+      border-color: rgba(255,255,255,.16);
+      background: rgba(0,0,0,.22);
+      color: rgba(255,255,255,.88);
+    }
 
-    /* 入室後（TRUTH）も同じ黒×オレンジ路線 */
+    .foot{
+      margin-top: 14px;
+      font-size: 12px;
+      color: rgba(255,255,255,.56);
+    }
+
+    .fadeOut{ animation: fadeOut .32s ease forwards; }
+    @keyframes fadeOut{
+      to{ opacity:0; transform: translateY(10px) scale(.99); }
+    }
+
+    /* TRUTH */
     .truthStage{ display:none; }
     .truthStage.show{ display:block; }
 
     .truthBox{
-      width: min(980px, 100%);
+      max-width: 980px;
       margin: 0 auto;
-      border: 2px solid rgba(255,153,0,.55);
-      border-radius: var(--rr);
-      background: linear-gradient(180deg, rgba(14,14,14,.96), rgba(6,6,6,.96));
+      background: linear-gradient(180deg, rgba(20,20,22,.86), rgba(10,10,10,.90));
+      border: 1px solid rgba(255,153,0,.20);
+      border-radius: calc(var(--rr) + 10px);
       box-shadow: var(--rshadow);
-      padding: 22px 18px;
-      position:relative;
       overflow:hidden;
     }
-    .truthBox::before{
-      content:"";
-      position:absolute; inset:0;
-      background: url("img/noise_128.png") repeat;
-      opacity:.08;
-      mix-blend-mode: overlay;
-      pointer-events:none;
+    .truthInner{ padding: 22px 20px 18px; }
+
+    .truthTop{
+      display:flex; gap: 12px; align-items:flex-start; justify-content:space-between;
+      flex-wrap:wrap;
     }
-    .truthInner{ position:relative; }
-
-    .truthTop{ display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; }
-    .truthTitle{ margin:0; font-size: 22px; letter-spacing:.02em; }
-    .truthTitle b{ color: var(--rac2); }
-    .truthSub{ margin: 6px 0 0; color: rgba(242,242,242,.72); font-size: 13px; }
-
-    .truthBtns{ display:flex; gap:10px; flex-wrap:wrap; }
+    .truthTitle{
+      margin: 0;
+      font-size: clamp(20px, 2.4vw, 28px);
+      letter-spacing:.02em;
+    }
+    .truthSub{
+      margin-top: 6px;
+      font-size: 13px;
+      color: rgba(255,255,255,.70);
+      letter-spacing:.04em;
+    }
+    .truthBtns{ display:flex; gap: 10px; }
     .truthBtns a{
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.04);
-      color: var(--rtx);
+      display:inline-flex;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.20);
+      color: rgba(255,255,255,.90);
       text-decoration:none;
+      font-size: 13px;
     }
-    .truthBtns a:hover{ background: rgba(255,153,0,.10); }
+    .truthBtns a:hover{ filter: brightness(1.05); }
 
-    /* DNAビジュアル（画像不要の軽量SVG） */
     .dnaStage{
-      margin-top: 14px;
-      height: 260px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.12);
-      background:
-        radial-gradient(520px 260px at 20% 20%, rgba(255,153,0,.12), transparent 60%),
-        radial-gradient(520px 260px at 80% 30%, rgba(124,203,255,.12), transparent 60%),
-        rgba(0,0,0,.35);
+      margin-top: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 18px;
       overflow:hidden;
-      position:relative;
+      background:
+        radial-gradient(420px 180px at 20% 0%, rgba(255,153,0,.16), transparent 70%),
+        radial-gradient(520px 220px at 90% 100%, rgba(124,203,255,.14), transparent 70%),
+        rgba(0,0,0,.22);
     }
-    .dnaStage svg{ width: 100%; height: 100%; }
-    .dnaGlow{ filter: drop-shadow(0 12px 22px rgba(0,0,0,.55)); }
+    .dnaGlow{
+      width: 100%;
+      height: 240px;
+      display:block;
+      filter: drop-shadow(0 0 18px rgba(255,153,0,.22));
+    }
 
-    .truthText{ margin-top: 14px; color: rgba(242,242,242,.88); line-height: 1.95; font-size: 15px; }
-    .truthText .key{ color: var(--rac2); font-weight: 900; }
+    .truthText{
+      margin-top: 14px;
+      color: rgba(255,255,255,.80);
+      line-height: 1.95;
+      font-size: 14px;
+    }
+    .truthText .key{
+      display:inline-flex;
+      padding: 2px 7px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,153,0,.22);
+      background: rgba(0,0,0,.22);
+      color: #fff;
+      font-weight: 700;
+      margin: 0 2px;
+    }
 
-    /* フェード */
-    .fadeOut{ animation: rFade .35s ease forwards; }
-    @keyframes rFade{ to{ opacity:0; transform: translateY(-8px) scale(.99); } }
+    /* === R-122：追加記事（生命の神秘 追いネタ） === */
+    .rArticles{ margin-top: 18px; display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 860px){ .rArticles{ grid-template-columns: 1fr; } }
+
+    .rCard{
+      border:1px solid rgba(255,153,0,.18);
+      background: linear-gradient(180deg, rgba(255,153,0,.06), rgba(255,153,0,.02));
+      border-radius: calc(var(--rr) + 6px);
+      padding: 16px;
+      box-shadow: 0 18px 70px rgba(0,0,0,.45);
+      position:relative;
+      overflow:hidden;
+    }
+    .rCard::before{
+      content:"";
+      position:absolute; inset:-1px;
+      background: radial-gradient(420px 140px at 10% 0%, rgba(255,184,77,.20), transparent 70%),
+                  radial-gradient(520px 220px at 90% 110%, rgba(124,203,255,.14), transparent 70%);
+      pointer-events:none;
+      filter: blur(.2px);
+    }
+    .rCard > *{ position:relative; }
+
+    .rTag{
+      display:inline-flex; align-items:center; gap:8px;
+      font-size: 12px; letter-spacing:.10em;
+      color: rgba(255,255,255,.78);
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,153,0,.30);
+      background: rgba(0,0,0,.28);
+    }
+    .rTag i{
+      width:8px; height:8px; border-radius:50%;
+      background: var(--rac);
+      box-shadow: 0 0 18px rgba(255,153,0,.55);
+      display:inline-block;
+    }
+
+    .rLead{ margin: 10px 0 0; font-size: 15px; color: var(--rmut); }
+    .rTitle{ margin: 8px 0 8px; font-size: 18px; }
+    .rTitle b{ color: #fff; }
+    .rPunch{
+      margin: 10px 0 0;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border:1px dashed rgba(255,153,0,.32);
+      background: rgba(0,0,0,.28);
+      color: rgba(255,255,255,.85);
+      line-height: 1.75;
+    }
+    .rPunch b{ color:#fff; }
+
+    .rFig{
+      margin: 12px 0 0;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      overflow:hidden;
+    }
+    .rFig svg{ width:100%; height:auto; display:block; }
+
+    /* neuron pulse */
+    .pulsePath{
+      stroke-dasharray: 10 24;
+      animation: dash 1.2s linear infinite;
+    }
+    @keyframes dash{
+      from{ stroke-dashoffset: 0; }
+      to{ stroke-dashoffset: -34; }
+    }
   </style>
 </head>
 
@@ -171,14 +298,10 @@
 
     <!-- GATE -->
     <section class="gateStage" id="gate">
-      <div class="gateBox" role="dialog" aria-modal="true" aria-labelledby="r122h1">
+      <div class="gateBox">
         <div class="gateInner">
-          <div class="rlogo" aria-hidden="true">
-            <span class="a">R122</span>
-            <span class="b">GATE</span>
-          </div>
-
-          <h1 class="rh1" id="r122h1">このページは <span style="color:var(--rac)">R-122禁</span> です。</h1>
+          <div class="badge rmono"><span class="dot"></span> R-122 / AGE VERIFICATION</div>
+          <h1 class="h1"><span style="color:var(--rac)">R-122禁</span> です。</h1>
 
           <div class="noticeBtn">Notice to Users</div>
 
@@ -255,6 +378,110 @@
             生命の設計図を保存します。<br>
             —— これほど美しい“結合”が他にあるでしょうか？
           </div>
+
+          <!-- 追いネタ：生命の神秘（記事） -->
+          <section class="rArticles" aria-label="生命の神秘 追いネタ">
+            <article class="rCard">
+              <div class="rTag"><i></i><span>【バイオ系】電子顕微鏡</span></div>
+              <h3 class="rTitle">ミトコンドリアの断面：<b>生命の熱源</b></h3>
+              <p class="rLead">「生命を突き動かす、剥き出しの熱源…」</p>
+
+              <div class="rFig" aria-hidden="true">
+                <!-- “それっぽい”ミトコンドリア断面（ダミー図） -->
+                <svg viewBox="0 0 980 320" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="mitoG" x1="0" x2="1">
+                      <stop offset="0" stop-color="rgba(255,153,0,.60)"/>
+                      <stop offset="1" stop-color="rgba(124,203,255,.45)"/>
+                    </linearGradient>
+                    <radialGradient id="mitoR" cx="35%" cy="35%">
+                      <stop offset="0" stop-color="rgba(255,184,77,.22)"/>
+                      <stop offset="1" stop-color="rgba(0,0,0,0)"/>
+                    </radialGradient>
+                  </defs>
+
+                  <rect width="980" height="320" fill="rgba(0,0,0,.20)"/>
+                  <rect width="980" height="320" fill="url(#mitoR)"/>
+
+                  <!-- membrane -->
+                  <path d="M90,160 C120,50 260,30 360,70 C430,10 560,20 630,70 C760,40 890,90 900,160
+                           C890,240 760,280 640,250 C560,300 430,300 360,250 C250,290 120,270 90,160 Z"
+                        fill="rgba(255,255,255,.03)" stroke="url(#mitoG)" stroke-width="3"/>
+
+                  <!-- cristae -->
+                  <g stroke="rgba(255,255,255,.20)" stroke-width="2">
+                    <path d="M220,120 C260,150 260,190 220,220"/>
+                    <path d="M290,105 C350,135 350,205 290,235"/>
+                    <path d="M370,95  C430,140 430,210 370,255"/>
+                    <path d="M450,95  C520,130 520,220 450,255"/>
+                    <path d="M540,105 C610,135 610,205 540,235"/>
+                    <path d="M640,120 C700,150 700,190 640,220"/>
+                  </g>
+
+                  <!-- sparkle -->
+                  <g fill="rgba(255,153,0,.55)">
+                    <circle cx="210" cy="85" r="3"/>
+                    <circle cx="720" cy="240" r="2.8"/>
+                    <circle cx="520" cy="70" r="2.4"/>
+                  </g>
+                </svg>
+              </div>
+
+              <div class="rPunch">
+                <b>オチ：</b>ミトコンドリアです。この圧倒的な ATP 産生能力。興奮せずにはいられませんね。
+              </div>
+            </article>
+
+            <article class="rCard">
+              <div class="rTag"><i></i><span>【脳科学系】発火アニメ</span></div>
+              <h3 class="rTitle">ニューロンのパルス：<b>禁断の電気信号</b></h3>
+              <p class="rLead">「脳内を駆け巡る、禁断のパルス…」</p>
+
+              <div class="rFig" aria-hidden="true">
+                <!-- “それっぽい”ニューロン発火（ダミー図 + パルス） -->
+                <svg viewBox="0 0 980 320" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="neuG" x1="0" x2="1">
+                      <stop offset="0" stop-color="rgba(124,203,255,.70)"/>
+                      <stop offset="1" stop-color="rgba(255,153,0,.55)"/>
+                    </linearGradient>
+                  </defs>
+
+                  <rect width="980" height="320" fill="rgba(0,0,0,.20)"/>
+
+                  <!-- soma -->
+                  <circle cx="220" cy="160" r="56" fill="rgba(255,255,255,.04)" stroke="url(#neuG)" stroke-width="3"/>
+                  <circle cx="220" cy="160" r="6" fill="rgba(255,184,77,.55)"/>
+
+                  <!-- dendrites -->
+                  <g stroke="rgba(255,255,255,.18)" stroke-width="2" fill="none">
+                    <path d="M190,140 C120,110 90,80 60,60"/>
+                    <path d="M180,170 C130,185 90,210 50,255"/>
+                    <path d="M230,118 C250,80 290,60 340,40"/>
+                    <path d="M255,195 C290,210 330,240 360,280"/>
+                  </g>
+
+                  <!-- axon -->
+                  <path d="M276,160 C380,150 430,170 520,160 C650,145 720,130 920,150"
+                        fill="none" stroke="rgba(255,255,255,.16)" stroke-width="3"/>
+                  <!-- pulse overlay -->
+                  <path d="M276,160 C380,150 430,170 520,160 C650,145 720,130 920,150"
+                        fill="none" stroke="url(#neuG)" stroke-width="3" class="pulsePath"/>
+
+                  <!-- synapse sparks -->
+                  <g fill="rgba(255,153,0,.55)">
+                    <circle cx="920" cy="150" r="4"/>
+                    <circle cx="945" cy="138" r="2.6"/>
+                    <circle cx="950" cy="168" r="2.6"/>
+                  </g>
+                </svg>
+              </div>
+
+              <div class="rPunch">
+                <b>オチ：</b>シナプス間隙を飛び交う神経伝達物質。これこそが我々の「快感」の正体です。
+              </div>
+            </article>
+          </section>
         </div>
       </div>
     </section>
