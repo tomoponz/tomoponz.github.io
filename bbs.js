@@ -141,6 +141,8 @@ async function submitBBS(){
     return;
   }
 
+  try{ window.playSfx && window.playSfx("bbsPost", 0.85); }catch(_){ }
+
   btn.disabled = true;
   btn.textContent = "送信中…";
   if(st) st.textContent = "";
