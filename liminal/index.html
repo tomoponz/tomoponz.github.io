@@ -197,8 +197,36 @@ AFRAME.registerComponent('proximity-loop-sound', {
   }
 });
 </script>
+
+  <style>
+    /* Controls hint toast */
+    #controlsHint{
+      position: fixed;
+      left: 50%;
+      top: 14px;
+      transform: translateX(-50%);
+      z-index: 99999;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.62);
+      color: rgba(255,255,255,.92);
+      font-size: 13px;
+      letter-spacing: .04em;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 18px 80px rgba(0,0,0,.55);
+      max-width: min(520px, calc(100vw - 24px));
+    }
+    #controlsHint small{ display:block; opacity:.75; margin-top:4px; }
+    #controlsHint.hide{ opacity:0; transform: translateX(-50%) translateY(-6px); transition: opacity .45s ease, transform .45s ease; pointer-events:none; }
+    @media (max-width: 820px){
+      #controlsHint{ top: calc(10px + env(safe-area-inset-top)); font-size: 12px; }
+    }
+  </style>
+
 </head>
 <body>
+  <div id=\"controlsHint\" role=\"status\" aria-live=\"polite\"></div>
 
   <div id="ui-overlay">
     <div class="scanlines"></div>
@@ -374,5 +402,21 @@ AFRAME.registerComponent('proximity-loop-sound', {
       }
     });
   </script>
+
+  <script>
+    (function(){
+      const el = document.getElementById('controlsHint');
+      if(!el) return;
+      const isTouch = matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window);
+      if(isTouch){
+        el.innerHTML = '操作：左スティックで移動／右スティックで視点 <small>（スマホ：画面の操作パッドを使う）</small>';
+      }else{
+        el.innerHTML = '操作：WASDで移動／矢印キーで視点 <small>（Escで一旦止められる場合あり）</small>';
+      }
+      // auto hide
+      setTimeout(()=>{ el.classList.add('hide'); }, 4200);
+    })();
+  </script>
+
 </body>
 </html>
