@@ -229,6 +229,44 @@
   </div>
 
   <script>
+
+    (function(){
+      // Gate: sweetdeath.html can be opened ONLY via Aero's "ごみ箱を空にする"
+      const KEY = "tpz_gate_sweetdeath_v1";
+      let ts = 0;
+      try{ ts = Number(localStorage.getItem(KEY) || 0); }catch(_){ ts = 0; }
+      const ok = ts && (Date.now() - ts) < 2 * 60 * 1000; // 2 minutes
+      if(!ok){
+        try{ location.replace("../aero/index.html"); }catch(_){ location.href = "../aero/index.html"; }
+        return;
+      }
+      try{ localStorage.removeItem(KEY); }catch(_){ }
+
+      // achievements-lite: mark page view (this page doesn't load app.js)
+      const ACH_KEY = "tomoponz_ach_v1";
+      function achLoad(){
+        try{
+          const raw = localStorage.getItem(ACH_KEY);
+          if(!raw) return {v:1, pages:{}, counters:{}, unlocked:{}};
+          const o = JSON.parse(raw);
+          if(!o || typeof o !== "object") return {v:1, pages:{}, counters:{}, unlocked:{}};
+          o.v = 1;
+          o.pages = (o.pages && typeof o.pages === "object") ? o.pages : {};
+          o.counters = (o.counters && typeof o.counters === "object") ? o.counters : {};
+          o.unlocked = (o.unlocked && typeof o.unlocked === "object") ? o.unlocked : {};
+          return o;
+        }catch(_){ return {v:1, pages:{}, counters:{}, unlocked:{}}; }
+      }
+      function achSave(s){ try{ localStorage.setItem(ACH_KEY, JSON.stringify(s)); }catch(_){ } }
+      try{
+        const path = String(location.pathname||"").replace(/^\/+/, "");
+        const s = achLoad();
+        s.counters.visits = (Number(s.counters.visits)||0) + 1;
+        s.pages[path] = Date.now();
+        achSave(s);
+      }catch(_){ }
+    })();
+
     const VIDEO_ID = "qXtQPRdHNdA";
     let player = null;
     let started = false;

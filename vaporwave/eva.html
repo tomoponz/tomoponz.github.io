@@ -175,6 +175,86 @@
 </head>
 <body>
 
+  <script>
+  (function(){
+    // ===== achievements-lite: mark page view (this page doesn't load app.js) =====
+    const ACH_KEY = "tomoponz_ach_v1";
+    function achLoad(){
+      try{
+        const raw = localStorage.getItem(ACH_KEY);
+        if(!raw) return {v:1, pages:{}, counters:{}, unlocked:{}};
+        const o = JSON.parse(raw);
+        if(!o || typeof o !== "object") return {v:1, pages:{}, counters:{}, unlocked:{}};
+        o.v = 1;
+        o.pages = (o.pages && typeof o.pages === "object") ? o.pages : {};
+        o.counters = (o.counters && typeof o.counters === "object") ? o.counters : {};
+        o.unlocked = (o.unlocked && typeof o.unlocked === "object") ? o.unlocked : {};
+        return o;
+      }catch(_){ return {v:1, pages:{}, counters:{}, unlocked:{}}; }
+    }
+    function achSave(s){ try{ localStorage.setItem(ACH_KEY, JSON.stringify(s)); }catch(_){ } }
+    function markPage(){
+      try{
+        const path = String(location.pathname||"").replace(/^\/+/, "");
+        if(!path || path.endsWith("shell.html")) return;
+        const s = achLoad();
+        s.counters.visits = (Number(s.counters.visits)||0) + 1;
+        s.pages[path] = Date.now();
+        achSave(s);
+      }catch(_){ }
+    }
+
+    // ===== eva gate: only when all "VIRTUAL" tabs are closed =====
+    const KEY = "tpz_virtual_instances_v1";
+    const TTL = 15000;
+
+    function readMap(){
+      try{
+        const raw = localStorage.getItem(KEY);
+        const o = raw ? JSON.parse(raw) : {};
+        return (o && typeof o === "object") ? o : {};
+      }catch(_){ return {}; }
+    }
+    function countActive(){
+      const now = Date.now();
+      const map = readMap();
+      let n = 0;
+      try{
+        for(const k in map){
+          const ts = Number(map[k]) || 0;
+          if(ts && (now - ts) <= TTL) n++;
+        }
+      }catch(_){ }
+      return n;
+    }
+
+    const active = countActive();
+    if(active > 0){
+      // block: show message and do not proceed
+      document.addEventListener('DOMContentLoaded', ()=>{
+        document.body.innerHTML = `
+          <div style="min-height:100vh;display:grid;place-items:center;padding:28px;background:#030508;color:#fff;font-family:serif;">
+            <div style="max-width:720px;width:100%;border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px 18px 14px;background:rgba(255,255,255,.04);">
+              <div style="opacity:.8;font-size:12px;letter-spacing:.12em;">ACCESS DENIED</div>
+              <h1 style="margin:10px 0 8px;font-size:28px;line-height:1.25;">VIRTUAL のタブを全部消してから来い。</h1>
+              <p style="margin:0 0 12px;opacity:.78;line-height:1.8;font-size:14px;">（まだ <b>${active}</b> 個の “VIRTUAL” が生きている）</p>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+                <a href="../index.html" style="display:inline-block;padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.25);color:#fff;text-decoration:none;">ホームへ戻る</a>
+                <a href="../gallery.html" style="display:inline-block;padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.25);color:#fff;text-decoration:none;">ネタ置き場</a>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      return;
+    }
+
+    // allowed
+    markPage();
+  })();
+  </script>
+
+
   <div id="start-screen" onclick="startEnding()">
     <div class="title-card">
       終 劇

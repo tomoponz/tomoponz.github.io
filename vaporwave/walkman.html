@@ -238,6 +238,44 @@
   </div>
 
   <script>
+
+    (function(){
+      // Gate: walkman.html can be opened ONLY via Dreamcore's clear screen × button
+      const KEY = "tpz_gate_walkman_v1";
+      let ts = 0;
+      try{ ts = Number(localStorage.getItem(KEY) || 0); }catch(_){ ts = 0; }
+      const ok = ts && (Date.now() - ts) < 2 * 60 * 1000; // 2 minutes
+      if(!ok){
+        try{ location.replace("../dreamcore/index.html"); }catch(_){ location.href = "../dreamcore/index.html"; }
+        return;
+      }
+      try{ localStorage.removeItem(KEY); }catch(_){ }
+
+      // achievements-lite: mark page view (this page doesn't load app.js)
+      const ACH_KEY = "tomoponz_ach_v1";
+      function achLoad(){
+        try{
+          const raw = localStorage.getItem(ACH_KEY);
+          if(!raw) return {v:1, pages:{}, counters:{}, unlocked:{}};
+          const o = JSON.parse(raw);
+          if(!o || typeof o !== "object") return {v:1, pages:{}, counters:{}, unlocked:{}};
+          o.v = 1;
+          o.pages = (o.pages && typeof o.pages === "object") ? o.pages : {};
+          o.counters = (o.counters && typeof o.counters === "object") ? o.counters : {};
+          o.unlocked = (o.unlocked && typeof o.unlocked === "object") ? o.unlocked : {};
+          return o;
+        }catch(_){ return {v:1, pages:{}, counters:{}, unlocked:{}}; }
+      }
+      function achSave(s){ try{ localStorage.setItem(ACH_KEY, JSON.stringify(s)); }catch(_){ } }
+      try{
+        const path = String(location.pathname||"").replace(/^\/+/, "");
+        const s = achLoad();
+        s.counters.visits = (Number(s.counters.visits)||0) + 1;
+        s.pages[path] = Date.now();
+        achSave(s);
+      }catch(_){ }
+    })();
+
     // ====== config (EVA related; exclude Fly Me / Come Sweet Death) ======
     const TRACKS = [
       { title: '残酷な天使のテーゼ', id: 'xyVatKhd4s4' },
