@@ -616,14 +616,12 @@ function resolveOmikujiItem(item){
     achievements: "/assets/sfx/nc93329_xfairu.wav",
     games: "/assets/sfx/nc108262_RSEonngennbann_hosinoka-bixi_gekitotugurumere-su.mp3",
 
-    // BBS
-    bbsPost: "/assets/sfx/nc26792_su-pa-marioburaza-zunokoinnonn#U3010famikonn#U3011.mp3",
-
     // おみくじ
     omikujiResult: "/assets/sfx/nc64483_detaxa.wav",
 
     // ミニゲーム
     msBoom: "/assets/sfx/nc288712_kannkyouhakaihakimotiizoi(BGM delete).mp3",
+    // NOTE: リポジトリ上の実ファイル名は【】ではなく #U3010/#U3011 形式
     g2048Stuck: "/assets/sfx/nc38022_warattehaikenai#U3010dede-nn#U3011koukaonn.mp3",
 
     // 隠し/演出
@@ -787,7 +785,7 @@ function resolveOmikujiItem(item){
     else if(k === "msBoom") __achInc("msBoom", 1);
     else if(k === "g2048Stuck") __achInc("g2048", 1);
     else if(k === "sealUnlock") __achInc("sealUnlock", 1);
-    else if(k === "aeroPlay" || k === "aeroTrack") __achInc("aeroPlay", 1);
+    else if(k === "aeroPlay") __achInc("aeroPlay", 1);
   }
 
   // 外部公開（achievements.html が読む）
@@ -811,7 +809,6 @@ function resolveOmikujiItem(item){
   // ========== "To Be Continued" overlay (all achievements complete) ==========
   const TBC_PLAYED_KEY = "tbc_played";
   const TBC_VIDEO_SRC = "/assets/sfx/nc204179_To_Be_Continued.mp4";
-  let __tbcLaunching = false;
 
   function __isAchComplete(s){
     try{
@@ -831,34 +828,18 @@ function resolveOmikujiItem(item){
 
   // Play overlay on the top window (shell). If in iframe, ask parent to play it.
   function __requestTbcPlay(){
-    if(__tbcAlreadyPlayed() || __tbcLaunching) return;
-    __tbcLaunching = true;
-
-    // If in iframe, ask parent(shell) to play it.
+    if(__tbcAlreadyPlayed()) return;
+    __markTbcPlayed();
     if(__IS_EMBED){
-      let sent = false;
-      try{ window.parent && window.parent.postMessage({type:"TBC_PLAY"}, location.origin); sent = true; }catch(_){ }
-      if(!sent){
-        try{ window.parent && window.parent.postMessage({type:"TBC_PLAY"}, "*"); sent = true; }catch(_){ }
-      }
-      if(sent){
-        // allow retry if something blocked it (origin mismatch, etc.)
-        setTimeout(()=>{ try{ __tbcLaunching = false; }catch(_){ } }, 1200);
-        return;
-      }
-      __tbcLaunching = false;
+      try{ window.parent && window.parent.postMessage({type:"TBC_PLAY"}, location.origin); return; }catch(_){ }
+      try{ window.parent && window.parent.postMessage({type:"TBC_PLAY"}, "*"); return; }catch(_){ }
     }
-
     try{ playToBeContinuedOverlay(); }catch(_){ }
   }
 
   function playToBeContinuedOverlay(){
     // guard
     if(__tbcAlreadyPlayed() && !document.getElementById("tbcCanvas")) return;
-
-    // mark as played once we actually start (avoid the "mark-before-play" bug)
-    if(!__tbcAlreadyPlayed()) __markTbcPlayed();
-    try{ __tbcLaunching = false; }catch(_){ }
 
     // respect audio toggle
     const audioOn = (typeof getAudioEnabled === "function") ? !!getAudioEnabled() : true;
@@ -1364,7 +1345,7 @@ function resolveOmikujiItem(item){
     function prev(vol, opts){ if(playlist.length) playIndex(idx-1, vol, opts); }
     function getIndex(){ return idx; }
 
-    return { setPlaylist, playKey, toggle, next, prev, stop, getIndex, currentKey, getAudio: ()=>audio, isPlaying: ()=> (audio && !audio.paused && !audio.ended) };
+    return { setPlaylist, playKey, toggle, next, prev, stop, getIndex, currentKey };
   })();
 
   window.musicCtrl = musicCtrl;
@@ -1375,149 +1356,50 @@ function resolveOmikujiItem(item){
     if(!playBtn) return;
 
     const win = document.getElementById("wmp-win") || playBtn.closest(".aero-window") || document;
+    const btns = Array.from(win.querySelectorAll(".player-btn"));
+    const prevBtn = btns.find(b=> (b.textContent||"").includes("⏮")) || null;
+    const nextBtn = btns.find(b=> (b.textContent||"").includes("⏭")) || null;
 
-    // Prefer explicit ids if present
-    const prevBtn = document.getElementById("wmpPrevBtn") || Array.from(win.querySelectorAll(".player-btn")).find(b=> (b.textContent||"").includes("⏮")) || null;
-    const nextBtn = document.getElementById("wmpNextBtn") || Array.from(win.querySelectorAll(".player-btn")).find(b=> (b.textContent||"").includes("⏭")) || null;
+    const titleEl = win.querySelector(".player-title") || win.querySelector("h4");
+    const artistEl = win.querySelector(".player-artist") || win.querySelector("span");
 
-    const titleEl  = document.getElementById("wmpTitle")  || win.querySelector(".player-title")  || win.querySelector("h4");
-    const artistEl = document.getElementById("wmpArtist") || win.querySelector(".player-artist") || win.querySelector("span");
-
-    // two-track playlist (avoid overlap via musicCtrl)
     const PL = ["aeroTrack","aeroPlay"];
     const META = {
       aeroTrack:{ title:"Uiiissudo-mosyamude-su.mp3", artist:"Frutiger Aero Soundtrack" },
       aeroPlay:{ title:"Yaranaika_se_koukaonn.mp3", artist:"Frutiger Aero Soundtrack" },
     };
 
-    let idx = 0;
-    let playing = false;
-
-    function audioOn(){
-      try{ return (typeof getAudioEnabled === "function") ? !!getAudioEnabled() : true; }catch(_){ return true; }
-    }
-
     function updateMeta(i){
       const key = PL[i] || "";
       const m = META[key] || {};
-      if(titleEl)  titleEl.textContent  = m.title  || "—";
+      if(titleEl) titleEl.textContent = m.title || "—";
       if(artistEl) artistEl.textContent = m.artist || "";
     }
 
-    function syncBtn(force){
-      // embedded: we can only track state locally
+    function send(cmd){
+      // iframe（shellの中）なら親(shell)で鳴らす（ページ切替でも被らない）
       if(__IS_EMBED){
-        playBtn.textContent = playing ? "⏸" : "▶";
-        return;
+        try{ window.parent && window.parent.postMessage({type:"MUSIC", cmd, playlist:PL}, location.origin); return; }catch(_){}
+        try{ window.parent && window.parent.postMessage({type:"MUSIC", cmd, playlist:PL}, "*"); return; }catch(__){}
       }
-      const mc = window.musicCtrl;
-      if(!mc){
-        playBtn.textContent = playing ? "⏸" : "▶";
-        return;
-      }
-      try{
-        const isP = (typeof mc.isPlaying === "function") ? !!mc.isPlaying() : playing;
-        if(force || isP !== playing){
-          playing = isP;
-          playBtn.textContent = playing ? "⏸" : "▶";
-        }
-      }catch(_){
-        playBtn.textContent = playing ? "⏸" : "▶";
-      }
+      // 単独表示
+      if(cmd === "init"){ musicCtrl.setPlaylist(PL, 0); updateMeta(0); return; }
+      if(cmd === "toggle"){ musicCtrl.toggle(1.0, {boost:2.2}); return; }
+      if(cmd === "next"){ musicCtrl.next(1.0, {boost:2.2, restart:true}); updateMeta(musicCtrl.getIndex()); return; }
+      if(cmd === "prev"){ musicCtrl.prev(1.0, {boost:2.2, restart:true}); updateMeta(musicCtrl.getIndex()); return; }
+      if(cmd === "stop"){ musicCtrl.stop(); return; }
     }
 
-    function postToParent(cmd){
-      try{ window.parent && window.parent.postMessage({type:"MUSIC", cmd, playlist:PL}, location.origin); return true; }catch(_){
-        try{ window.parent && window.parent.postMessage({type:"MUSIC", cmd, playlist:PL}, "*"); return true; }catch(__){}
-      }
-      return false;
-    }
-
-    function ensureStandaloneInit(){
-      const mc = window.musicCtrl;
-      if(!mc) return;
-      try{ mc.setPlaylist(PL, 0); }catch(_){}
-    }
-
-    function doToggle(){
-      if(!audioOn()){
-        playing = false;
-        syncBtn(true);
-        return;
-      }
-
-      if(__IS_EMBED){
-        // parent will actually play; we just update UI optimistically
-        const ok = postToParent("toggle");
-        playing = ok ? !playing : playing;
-        syncBtn(true);
-        return;
-      }
-
-      ensureStandaloneInit();
-      try{ window.musicCtrl && window.musicCtrl.toggle(1.0, {boost:2.2}); }catch(_){}
-      // sync after play promise resolves
-      setTimeout(()=> syncBtn(true), 60);
-    }
-
-    function doNext(dir){
-      // update selection locally
-      idx = ((idx + dir) % PL.length + PL.length) % PL.length;
-      updateMeta(idx);
-
-      if(!audioOn()){
-        playing = false;
-        syncBtn(true);
-        return;
-      }
-
-      if(__IS_EMBED){
-        postToParent(dir > 0 ? "next" : "prev");
-        playing = true;
-        syncBtn(true);
-        return;
-      }
-
-      ensureStandaloneInit();
-      try{
-        if(dir > 0) window.musicCtrl && window.musicCtrl.next(1.0, {boost:2.2, restart:true});
-        else window.musicCtrl && window.musicCtrl.prev(1.0, {boost:2.2, restart:true});
-      }catch(_){}
-
-      try{
-        const mc = window.musicCtrl;
-        if(mc && typeof mc.getIndex === "function"){
-          idx = mc.getIndex();
-          updateMeta(idx);
-        }
-      }catch(_){}
-
-      playing = true;
-      syncBtn(true);
-    }
-
-    // avoid old data-sfx handlers from interfering
+    // 既存 data-sfx が残っていても被らないように消す（念のため）
     try{ playBtn.removeAttribute("data-sfx"); }catch(_){}
     try{ playBtn.removeAttribute("data-sfx-volume"); }catch(_){}
 
-    // init
+    send("init");
     updateMeta(0);
-    syncBtn(true);
-    if(__IS_EMBED){
-      postToParent("init"); // sets playlist on parent (shell)
-    }else{
-      ensureStandaloneInit();
-    }
 
-    playBtn.addEventListener("click", (e)=>{ e.preventDefault(); doToggle(); });
-    if(prevBtn) prevBtn.addEventListener("click", (e)=>{ e.preventDefault(); doNext(-1); });
-    if(nextBtn) nextBtn.addEventListener("click", (e)=>{ e.preventDefault(); doNext(+1); });
-
-    // If audio toggled elsewhere, reflect it
-    try{
-      window.addEventListener("storage", (ev)=>{ if(ev && ev.key === AUDIO_ENABLED_KEY){ if(!audioOn()) { playing=false; syncBtn(true);} } });
-      window.addEventListener("message", (ev)=>{ const d=ev.data||{}; if(d && d.type==="AUDIO"){ if(!audioOn()){ playing=false; syncBtn(true);} } });
-    }catch(_){}
+    playBtn.addEventListener("click", (e)=>{ e.preventDefault(); send("toggle"); });
+    if(prevBtn) prevBtn.addEventListener("click", (e)=>{ e.preventDefault(); send("prev"); });
+    if(nextBtn) nextBtn.addEventListener("click", (e)=>{ e.preventDefault(); send("next"); });
   }
 
 
