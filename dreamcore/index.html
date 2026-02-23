@@ -7,12 +7,39 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>WAKE UP.</title>
-  <link rel="stylesheet" href="style.css?v=20260223-2">
+  <link rel="stylesheet" href="style.css">
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="../assets/js/fps-player.js"></script>
   <script defer src="../assets/js/security-lite.js?v=20260222"></script>
   
   <script>
+
+    (function(){
+      // achievements-lite: mark page view (this page doesn't load app.js)
+      const ACH_KEY = "tomoponz_ach_v1";
+      function achLoad(){
+        try{
+          const raw = localStorage.getItem(ACH_KEY);
+          if(!raw) return {v:1, pages:{}, counters:{}, unlocked:{}};
+          const o = JSON.parse(raw);
+          if(!o || typeof o !== "object") return {v:1, pages:{}, counters:{}, unlocked:{}};
+          o.v = 1;
+          o.pages = (o.pages && typeof o.pages === "object") ? o.pages : {};
+          o.counters = (o.counters && typeof o.counters === "object") ? o.counters : {};
+          o.unlocked = (o.unlocked && typeof o.unlocked === "object") ? o.unlocked : {};
+          return o;
+        }catch(_){ return {v:1, pages:{}, counters:{}, unlocked:{}}; }
+      }
+      function achSave(s){ try{ localStorage.setItem(ACH_KEY, JSON.stringify(s)); }catch(_){ } }
+      try{
+        const path = String(location.pathname||"").replace(/^\/+/, "");
+        const s = achLoad();
+        s.counters.visits = (Number(s.counters.visits)||0) + 1;
+        s.pages[path] = Date.now();
+        achSave(s);
+      }catch(_){ }
+    })();
+
     // ==========================================
     // ★ 壁の当たり判定
     // ==========================================
