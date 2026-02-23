@@ -273,6 +273,145 @@
     }
   })();
 
+  // ===== Search bar (restore) + shell-aware navigation =====
+  (function initShellSearch(){
+    const header = document.querySelector("header.nav");
+    if(!header) return;
+
+    // Ensure navtools exists
+    let tools = header.querySelector(".navtools");
+    if(!tools){
+      tools = document.createElement("div");
+      tools.className = "navtools";
+      header.appendChild(tools);
+    }
+
+    // Inject minimal CSS once
+    if(!document.getElementById("shellSearchCss")){
+      const st = document.createElement("style");
+      st.id = "shellSearchCss";
+      st.textContent = `
+        .navtools{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+        .nav-search{ display:flex; gap:8px; align-items:center; }
+        .nav-search input{
+          width: 260px; max-width: 42vw;
+          border-radius: 12px;
+          padding: 10px 12px;
+          background: rgba(0,0,0,.18);
+          color: #fff;
+          border: 1px solid rgba(255,255,255,.14);
+          outline: none;
+        }
+        .nav-search button{
+          border-radius: 12px;
+          padding: 10px 14px;
+          background: rgba(255,255,255,.08);
+          color: #fff;
+          border: 1px solid rgba(255,255,255,.14);
+          cursor: pointer;
+        }
+        @media (max-width:780px){
+          .nav-search input{ width: 44vw; }
+        }
+      `;
+      document.head.appendChild(st);
+    }
+
+    // If already exists, do nothing
+    if(document.getElementById("searchInput") && document.getElementById("searchBtn")) return;
+
+    const wrap = document.createElement("div");
+    wrap.className = "nav-search";
+
+    const input = document.createElement("input");
+    input.type = "search";
+    input.id = "searchInput";
+    input.placeholder = "検索キーワードを入力してください";
+    input.autocomplete = "off";
+    // Prevent app.js default site-search handler from hijacking (shell has its own)
+    input.dataset.searchMode = "page";
+
+    const btn = document.createElement("button");
+    btn.id = "searchBtn";
+    btn.type = "button";
+    btn.textContent = "検索";
+    btn.dataset.searchMode = "page";
+
+    wrap.appendChild(input);
+    wrap.appendChild(btn);
+
+    // Place near right side (tools)
+    tools.insertBefore(wrap, tools.firstChild);
+
+    const siteIndex = [
+      { keywords: ["プロフィール", "profile", "tomoponz", "自己紹介"], url: "index.html" },
+      { keywords: ["おみくじ", "占い", "運勢", "omikuji", "大吉", "凶"], url: "omikuji.html" },
+      { keywords: ["診断", "shindan", "性格", "タイプ"], url: "shindan.html" },
+      { keywords: ["ネタ", "ギャラリー", "gallery", "ネタ置き場", "画像"], url: "gallery.html" },
+      { keywords: ["リンク", "links", "x", "おすすめ動画"], url: "links.html" },
+      { keywords: ["ゲーム", "games"], url: "games.html" },
+      { keywords: ["ミニゲーム", "minigames", "2048", "マイン", "マインスイーパ", "mine"], url: "minigames.html" },
+      { keywords: ["ドア", "door", "ワープ", "warp"], url: "door.html" },
+      { keywords: ["八百科事典", "hachi", "百科事典", "事典"], url: "hachi.html" },
+      { keywords: ["名言", "meigen", "迷言", "セリフ"], url: "meigen.html" },
+      { keywords: ["足跡帳", "掲示板", "bbs"], url: "bbs.html" },
+      { keywords: ["実績", "achievements"], url: "achievements.html" },
+      { keywords: ["eva", "終劇", "fly me to the moon", "エヴァ"], url: "vaporwave/eva.html" },
+    ];
+
+    function executeSearch(){
+      const query = (input.value || "").trim();
+      if(!query) return;
+
+      // hidden command (no hint in UI)
+      if(query === "kuro-n-tomo"){
+        alert("認証完了。裏付けされた記録を開示します。");
+        setFrame("deep.html", true);
+        return;
+      }
+
+      // block "kuro" from normal search (no discovery)
+      const blocked = /黒歴史|kuro/i;
+      if(blocked.test(query)){
+        alert("そのキーワードは検索対象外。");
+        return;
+      }
+
+      const lower = query.toLowerCase();
+      let found = null;
+      for(const page of siteIndex){
+        const hit = page.keywords.some(kw=>{
+          const k = String(kw).toLowerCase();
+          return k.includes(lower) || lower.includes(k);
+        });
+        if(hit){ found = page.url; break; }
+      }
+
+      if(found){
+        if(confirm(`「${query}」に関連するページが見つかった。\n移動する？`)){
+          setFrame(found, true);
+        }
+        return;
+      }
+
+      if(confirm(`「${query}」は主要ページ辞書に無かった。\nGoogleでサイト内検索する？`)){
+        let domain = window.location.hostname;
+        if(domain === "localhost" || domain === "127.0.0.1" || domain === ""){
+          domain = "tomoponz.github.io";
+        }
+        const exclude = " -inurl:kuro -inurl:deep";
+        const q = query + exclude;
+        const url = `https://www.google.com/search?q=site:${domain}+${encodeURIComponent(q)}`;
+        window.open(url, "_blank");
+      }
+    }
+
+    btn.addEventListener("click", executeSearch);
+    input.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter") executeSearch();
+    });
+  })();
+
 
   // 初期表示
   setFrame(getPFromLocation(), false);
