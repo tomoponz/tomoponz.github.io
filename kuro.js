@@ -65,10 +65,10 @@
           いわゆる“機密データ”。（※現実の個人情報・住所などは入れない）
         </p>
         <ul>
-          <li><a class="btn" href="kuro_data/plot16_7000.pdf" target="_blank" rel="noopener">16章×各50話：細目プロット（PDF）</a></li>
-          <li><a class="btn" href="kuro_data/scenario.pdf" target="_blank" rel="noopener">シナリオ（PDF）</a></li>
-          <li><a class="btn" href="kuro_data/status_sample.pdf" target="_blank" rel="noopener">ステータス表示（完全統合サンプル）（PDF）</a></li>
-          <li><a class="btn" href="kuro_data/lumen_log_excerpt.pdf" target="_blank" rel="noopener">ルーメン結論記録（抄）（PDF）</a></li>
+          <li><a class="btn" href="kuro_data/16%23U7ae0_%23U540450%23U8a71_%23U7d30%23U76ee%23U30d7%23U30ed%23U30c3%23U30c8_7000%23U5b57%23U60f3%23U5b9a.pdf" target="_blank" rel="noopener">16章×各50話：細目プロット（PDF）</a></li>
+          <li><a class="btn" href="kuro_data/%23U30b7%23U30ca%23U30ea%23U30aa.pdf" target="_blank" rel="noopener">シナリオ（PDF）</a></li>
+          <li><a class="btn" href="kuro_data/%23U30b9%23U30c6%23U30fc%23U30bf%23U30b9%23U8868%23U793a%23Uff08%23U5b8c%23U5168%23U7d71%23U5408%23U30b5%23U30f3%23U30d7%23U30eb%23Uff09.pdf" target="_blank" rel="noopener">ステータス表示（完全統合サンプル）（PDF）</a></li>
+          <li><a class="btn" href="kuro_data/%23U30eb%23U30fc%23U30e1%23U30f3%23U7d50%23U8ad6%23U8a18%23U9332%23Uff08%23U6284%23Uff09.pdf" target="_blank" rel="noopener">ルーメン結論記録（抄）（PDF）</a></li>
         </ul>
         <p class="note">
           追加したいPDFが増えたら <code>kuro_data/</code> に置いて、このエントリにリンクを足せばOK。

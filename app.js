@@ -8,20 +8,27 @@
   "use strict";
 
   // ========= Shell / Embedded =========
-  const __QS = new URLSearchParams(location.search);
-  const __IS_EMBED = (__QS.get("embed") === "1") || (window.self !== window.top);
-  const __NO_SHELL = (__QS.get("noshell") === "1");
-  const __FILE_LC = (location.pathname.split("/").pop() || "index.html").toLowerCase();
-  const __IS_SHELL = (__FILE_LC === "shell.html");
-  const __IS_404 = (__FILE_LC === "404.html");
+const __QS = new URLSearchParams(location.search);
+const __IS_EMBED = (__QS.get("embed") === "1") || (window.self !== window.top);
+const __NO_SHELL = (__QS.get("noshell") === "1");
 
-  // ページ遷移でSEが途切れる問題の回避：通常アクセスは shell.html に集約
-  // （noshell=1 を付ければ従来挙動）
-  if(!__IS_EMBED && !__IS_SHELL && !__IS_404 && !__NO_SHELL){
-    const p = encodeURIComponent((location.pathname.split("/").pop() || "index.html") + location.search + location.hash);
-    location.replace("shell.html?p=" + p);
-    return;
-  }
+// pathname を "aero/index.html" のようにルート相対へ正規化（先頭 / を除去）
+const __PATH_REL = (location.pathname || "/index.html").replace(/^\/+/, "") || "index.html";
+const __FILE_LC = (__PATH_REL.split("/").pop() || "index.html").toLowerCase();
+// サブフォルダ配下は「別世界ページ」扱い：勝手に shell へ飛ばさない
+const __IS_TOPLEVEL = !__PATH_REL.includes("/");
+
+const __IS_SHELL = (__FILE_LC === "shell.html");
+const __IS_404 = (__FILE_LC === "404.html");
+
+// ページ遷移でSEが途切れる問題の回避：通常アクセスは shell.html に集約
+// （noshell=1 を付ければ従来挙動）
+// ※サブフォルダ配下（aero/ 等）はこのリダイレクトをしない（直開き時の誤爆防止）
+if(!__IS_EMBED && __IS_TOPLEVEL && !__IS_SHELL && !__IS_404 && !__NO_SHELL){
+  const p = encodeURIComponent(__PATH_REL + location.search + location.hash);
+  location.replace("shell.html?p=" + p);
+  return;
+}
 
 
   // embed(iframe) のときは iframe 側のヘッダ/ナビを隠す（shell側だけ残す）
@@ -72,18 +79,25 @@
   }
 
   // ========== NAV (統一) ==========
-  function setActiveNav() {
-    let file = (location.pathname.split("/").pop() || "index.html").toLowerCase();
-    // shell.html は ?p= で中身が変わるので、そのファイル名でアクティブ判定
-    if(file === "shell.html"){
-      const p = new URLSearchParams(location.search).get("p");
-      if(p){
-        try{
-          const decoded = decodeURIComponent(p);
-          file = (decoded.split(/[?#]/)[0].split("/").pop() || "index.html").toLowerCase();
-        }catch(_){}
-      }
+function setActiveNav() {
+  // path は "aero/index.html" のようにディレクトリ込みで保持
+  let path = (location.pathname.replace(/^\/+/, "") || "index.html").toLowerCase();
+  let file = (path.split("/").pop() || "index.html").toLowerCase();
+
+  // shell.html は ?p= で中身が変わるので、そのパスで表示判定
+  if(file === "shell.html"){
+    const p = new URLSearchParams(location.search).get("p");
+    if(p){
+      try{
+        const decoded = decodeURIComponent(p);
+        const pPath = (decoded.split(/[?#]/)[0] || "").replace(/^\/+/, "");
+        if(pPath){
+          path = pPath.toLowerCase();
+          file = (pPath.split("/").pop() || "index.html").toLowerCase();
+        }
+      }catch(_){}
     }
+  }
     const labelMap = {
       "index.html": "プロフィール",
       "omikuji.html": "おみくじ",
@@ -101,17 +115,24 @@
       "meigen.html": "名言",
       "kuro.html": "黒歴史",
       "404.html": "迷ひ道",
+
+      // サブフォルダ：Shell表示が「プロフィール」になる事故を防ぐ（必要なら増やす）
+      "aero/index.html": "Aero",
+      "vaporwave/index.html": "Vaporwave",
+      "dreamcore/index.html": "Dreamcore",
+      "liminal/index.html": "Liminal",
     };
 
     // brandSub があるページも、<small>だけのページも両対応
     const sub = document.getElementById("brandSub") || document.querySelector(".brand small");
-    if (sub) sub.textContent = labelMap[file] || "";
+    if (sub) sub.textContent = labelMap[path] || labelMap[file] || "";
 
     document.querySelectorAll(".navlinks a.chip").forEach((a) => {
       a.classList.remove("active");
-      const href = (a.getAttribute("href") || "").toLowerCase();
+      const href = ((a.getAttribute("href") || "").toLowerCase()).replace(/^\/+/, "");
 
       const isActive =
+        href === path ||
         href === file ||
         // warp.html は「ドア」扱いでアクティブにしたい
         (file === "warp.html" && href === "door.html") ||
@@ -571,7 +592,7 @@ function resolveOmikujiItem(item){
 
     // ミニゲーム
     msBoom: "/assets/sfx/nc288712_kannkyouhakaihakimotiizoi(BGM delete).mp3",
-    g2048Stuck: "/assets/sfx/nc38022_warattehaikenai【dede-nn】koukaonn.mp3",
+    g2048Stuck: "/assets/sfx/nc38022_warattehaikenai#U3010dede-nn#U3011koukaonn.mp3",
 
     // 隠し/演出
     doorWarp: "/assets/sfx/nc126285_doragonnbo-ru_syunnkannidounokoukaonn.wav",
@@ -581,7 +602,7 @@ function resolveOmikujiItem(item){
     yarimasunee: "/assets/sfx/nc116455_yarimasunee.wav",
 
     // Aero
-    aeroPlay: "/assets/sfx/nc28445_yaranaika_【SE】koukaonn.wma",
+    aeroPlay: "/assets/sfx/nc28445_yaranaika_se_koukaonn.mp3",
     aeroTrack: "/assets/sfx/nc123011_uiiissudo-mosyamude-su.mp3",
 
     // 既存
@@ -884,7 +905,7 @@ function resolveOmikujiItem(item){
   function getAudio(src){
     if(!src) return null;
     // スペース等を含むパスでも確実に読めるように URL エンコード（%20 などは二重化しない）
-    const safeSrc = encodeURI(src);
+    const safeSrc = encodeURI(src).replaceAll("#", "%23");
     if(sfxCache.has(safeSrc)) return sfxCache.get(safeSrc);
     try{
       const a = new Audio(safeSrc);
