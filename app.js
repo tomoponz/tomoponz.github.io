@@ -1397,7 +1397,6 @@ function resolveOmikujiItem(item){
     let __aeroAchNoted = false;
     function __noteAeroAch(){
       if(__aeroAchNoted) return;
-      if(!audioOn()) return;
       __aeroAchNoted = true;
       try{ window.ACH && typeof window.ACH.noteSfx === "function" && window.ACH.noteSfx("aeroPlay"); }catch(_){ }
     }
@@ -1449,13 +1448,13 @@ function resolveOmikujiItem(item){
     }
 
     function doToggle(){
+      __noteAeroAch();
       if(!audioOn()){
         playing = false;
         syncBtn(true);
         return;
       }
 
-      __noteAeroAch();
 
       if(__IS_EMBED){
         // parent will actually play; we just update UI optimistically
@@ -1475,13 +1474,13 @@ function resolveOmikujiItem(item){
       // update selection locally
       idx = ((idx + dir) % PL.length + PL.length) % PL.length;
       updateMeta(idx);
+      __noteAeroAch();
 
       if(!audioOn()){
         playing = false;
         syncBtn(true);
         return;
       }
-      __noteAeroAch();
 
       if(__IS_EMBED){
         postToParent(dir > 0 ? "next" : "prev");

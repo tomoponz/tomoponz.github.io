@@ -7,7 +7,7 @@
   <meta name="description" content="マインスイーパー＆2048">
 
   <link rel="stylesheet" href="style.css">
-  <script defer src="app.js?v=20260224-1"></script>
+  <script defer src="app.js?v=20260224-3"></script>
 
   <style>
     /* === Games UI (site theme compatible) === */
@@ -745,7 +745,18 @@
       }
 
       const after = JSON.stringify(G.board);
-      if(before === after) return; // no move
+      if(before === after){
+        // no move: if no moves exist at all, mark as stuck (fixes "詰み" not detected)
+        const prevState = G.state;
+        if(!gCanMove()){
+          G.state = "詰み";
+          if(prevState !== "詰み"){
+            try{ if(window.playSfx) window.playSfx("g2048Stuck", 1.0, {boost: 2.8}); }catch(e){}
+          }
+          gRender();
+        }
+        return;
+      } // no move
 
       G.score += gained;
       if(G.score > G.best){
@@ -768,6 +779,10 @@
 
     // keyboard
     window.addEventListener("keydown", (e)=>{
+      const t = e.target;
+      const tag = (t && t.tagName) ? t.tagName.toLowerCase() : "";
+      if(tag === "input" || tag === "textarea" || (t && t.isContentEditable)) return;
+
       const key = e.key;
       if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(key)){
         e.preventDefault();
