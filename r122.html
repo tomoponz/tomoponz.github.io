@@ -84,7 +84,13 @@
       user-select:none;
     }
     .phLogo .porn{ color:#fff; }
-    .phLogo .hub{ margin-left:2px; padding: 2px 8px 3px; background: var(--acc); color:#000; border-radius:4px; line-height:1; display:inline-flex; align-items:center; justify-content:center; font-size:.88em; }
+    .phLogo .hub{
+      margin-left:2px; padding: 2px 8px 3px;
+      background: var(--acc); color:#000;
+      border-radius:4px; line-height:1;
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:.88em;
+    }
 
     .gateH1{
       text-align:center;
@@ -180,7 +186,13 @@
     .hamb span{ background:#fff; height:2px; opacity:.9; border-radius: 2px; }
 
     .topLogo{ display:flex; align-items:center; font-weight: 900; font-size: 34px; user-select:none; }
-    .topLogo .hub{ margin-left:2px; padding: 2px 8px 3px; background: var(--acc); color:#000; border-radius:4px; line-height:1; display:inline-flex; align-items:center; justify-content:center; font-size:.88em; }
+    .topLogo .hub{
+      margin-left:2px; padding: 2px 8px 3px;
+      background: var(--acc); color:#000;
+      border-radius:4px; line-height:1;
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:.88em;
+    }
 
     .search{
       flex: 1;
@@ -325,25 +337,43 @@
       line-height: 1.35;
     }
 
-    /* Modal */
+    /* ==========================
+       Modal（見切れ修正版）
+       ========================== */
     .modal{
       position:fixed; inset:0;
       background: rgba(0,0,0,.78);
       z-index: 9999;
+
       display:none;
-      align-items:center;
       justify-content:center;
+
+      /* ★中央固定だと下が見切れるので、上寄せ＋縦スクロール可能に */
+      align-items:flex-start;
       padding: 22px 14px;
+      overflow-y:auto;
+      -webkit-overflow-scrolling: touch;
     }
     .modal.show{ display:flex; }
+
     .modalBox{
       width: min(900px, 100%);
       background: #0f0f0f;
       border: 1px solid #262626;
       border-radius: 8px;
       box-shadow: var(--shadow);
+
       overflow:hidden;
+      display:flex;
+      flex-direction:column;
+
+      /* ★画面内に収める（vh fallback + dvh 対応） */
+      max-height: calc(100vh - 44px);
     }
+    @supports (height: 100dvh){
+      .modalBox{ max-height: calc(100dvh - 44px); }
+    }
+
     .modalTop{
       display:flex; align-items:center; justify-content:space-between;
       padding: 10px 12px;
@@ -361,13 +391,24 @@
       cursor:pointer;
       font-weight: 900;
     }
-    .modalBody{ padding: 14px 14px 16px; }
+
+    /* ★本文だけスクロールする */
+    .modalBody{
+      padding: 14px 14px 16px;
+      overflow:auto;
+      flex: 1;
+      min-height: 0;
+    }
     .modalBody img{
       width:100%;
       height:auto;
       border-radius: 8px;
       border: 1px solid #222;
       background:#000;
+
+      /* ★画像が長すぎると下が押し出されるので保険 */
+      max-height: 60vh;
+      object-fit: contain;
     }
     .modalText{
       margin-top: 12px;
@@ -537,6 +578,7 @@
           punch:"シナプス間隙を飛び交う神経伝達物質。これこそが我々の『快感』の正体です。"
         }
       ];
+
       function showSite(){
         try{ localStorage.setItem(LS_KEY, "1"); }catch(_){}
         gate.classList.add("fadeOut");
@@ -552,11 +594,9 @@
       }
 
       enter.addEventListener("click", ()=>{
-
         showSite();
       });
       exitBtn.addEventListener("click", ()=>{
-
         goOut();
       });
 
@@ -590,6 +630,9 @@
         mText.textContent = v.text;
         mPunch.innerHTML = v.punch;
         modal.classList.add("show");
+
+        /* ★開いた瞬間、モーダル内スクロールを先頭へ */
+        modal.scrollTop = 0;
       }
       function closeModal(){
         modal.classList.remove("show");
@@ -637,7 +680,6 @@
 
       // AIボタン：雑に“解析”してオチへ誘導
       document.getElementById("aiBtn").addEventListener("click", ()=>{
-
         openModal(VIDS[0]);
       });
     })();
