@@ -109,11 +109,12 @@
       <a class="chip" href="games.html">ゲーム</a>
       <a class="chip" href="door.html">ドア</a>
       <a class="chip" href="hachi.html">八百科事典</a>
+
       <div class="nav-search">
         <input type="search" id="searchInput" placeholder="検索キーワードを入力してください" autocomplete="off">
         <button id="searchBtn">検索</button>
       </div>
-    
+
       <a class="chip" href="staff.html">スタッフロール</a>
     </nav>
   </header>
@@ -148,7 +149,8 @@
             <p class="t">Now Playing</p>
             <p class="s" id="nowPlayingSub">YouTubeリンクからサムネ生成</p>
           </div>
-        
+        </a>
+
         <!-- ▶ ページ内再生（外部に飛ばない） -->
         <div class="ytPlayerWrap" id="ytPlayerWrap" hidden>
           <div class="ytPlayerTop">
@@ -164,7 +166,6 @@
             ※外部に飛ばずにこのページ内で再生します（YouTubeへ行きたい場合はボタンを使ってください）。
           </div>
         </div>
-</a>
 
         <div class="btnrow" style="margin-top:12px">
           <a class="btn primary" id="nowPlayingLink" href="https://youtu.be/WUlMjK_VKhA" target="_blank" rel="noopener">Now Playing（YouTube）</a>
@@ -172,7 +173,22 @@
           <a class="btn" href="gallery.html">埋め込みページへ</a>
         </div>
         <hr class="sep">
-</div>
+      </div>
+
+      <!-- ✅ 追加：paprika-dream（Tokyo）への誘導 -->
+      <div class="card">
+        <h2>Paprika Dream</h2>
+        <p class="muted">「東京」セクションへ直行。</p>
+        <div class="btnrow">
+          <a class="btn primary" href="https://tomoponz.github.io/paprika-dream/index.html#tokyo" target="_blank" rel="noopener">Paprika Dream｜Tokyoへ</a>
+          <a class="btn" href="https://tomoponz.github.io/paprika-dream/index.html" target="_blank" rel="noopener">トップから開く</a>
+        </div>
+        <hr class="sep">
+        <div class="note devOnly">
+          導線目的：リンク集から「作品ページ」に一発で飛ばす。
+        </div>
+      </div>
+
     </section>
   </main>
 
