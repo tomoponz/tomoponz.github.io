@@ -409,6 +409,31 @@ code{
   overflow:hidden;
   background: transparent;
 }
+
+/* ===== Shell page layout (fix double scrollbars + correct immersive sizing) ===== */
+body.shellPage{
+  height:100vh;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+body.shellPage .nav{ flex:0 0 auto; }
+body.shellPage .shellWrap{
+  flex:1 1 auto;
+  width:100%;
+  max-width:1220px;
+  margin:0 auto;
+  padding:12px;
+  overflow:hidden;
+}
+body.shellPage .viewFrame{ height:100%; }
+
+/* Reduced motion: lighten animations/transitions on demand */
+@media (prefers-reduced-motion: reduce){
+  *{ animation:none !important; transition:none !important; }
+  html{ scroll-behavior:auto !important; }
+}
+
 @media (max-width: 720px){
   .viewFrame{ height: calc(100vh - 110px); border-radius: 18px; }
 }

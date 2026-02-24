@@ -21,6 +21,21 @@
   const __IS_SHELL = (__FILE_LC === "shell.html");
   const __IS_404 = (__FILE_LC === "404.html");
 
+  // ========= Secrets (unlock) =========
+  const __SECRET_UNLOCK_KEY = "tpz_secret_unlocked_osuna_v1";
+  function __isSecretUnlocked(){
+    try{ return localStorage.getItem(__SECRET_UNLOCK_KEY) === "1"; }catch(_){ return false; }
+  }
+  function __setSecretUnlocked(){
+    try{ localStorage.setItem(__SECRET_UNLOCK_KEY, "1"); }catch(_){ }
+    // notify shell immediately (storage event usually also works)
+    try{
+      if(window.top !== window.self){
+        window.parent.postMessage({type:"SECRET_UNLOCKED", key: __SECRET_UNLOCK_KEY}, location.origin);
+      }
+    }catch(_){ }
+  }
+
   // ページ遷移でSEが途切れる問題の回避：通常アクセスは shell.html に集約
   // （noshell=1 を付ければ従来挙動）
   // ※サブフォルダ配下（aero/ 等）はこのリダイレクトをしない（直開き時の誤爆防止）
@@ -1808,6 +1823,9 @@ function initDangerEscalation(){
       if(!confirm("後悔しますよ。本当にいいんですね？")) { postImmersion(false); return; }
       if(!confirm("最終警告です。この先、何が起きても一切の責任を負いません。")) { postImmersion(false); return; }
 
+      // Unlock secret links in the shell menu (one-time)
+      __setSecretUnlocked();
+
       const st = document.createElement("style");
       st.textContent = `
         @keyframes violent-shake {
@@ -2138,5 +2156,60 @@ function initDangerEscalation(){
       try{ applyAudioEnabled(getAudioEnabled()); }catch(_){ }
     }
   });
+
+
+  // ========= Shell: add secret links to the top menu after unlock =========
+  function __refreshShellSecretNav(){
+    if(!__IS_SHELL) return;
+    const nav = document.querySelector(".navlinks");
+    if(!nav) return;
+
+    // If not unlocked, remove any previously injected chips.
+    if(!__isSecretUnlocked()){
+      ["secretBackrooms","secretHorror"].forEach(id=>{
+        const el = document.getElementById(id);
+        if(el) el.remove();
+      });
+      return;
+    }
+
+    function addChip(id, label, href){
+      if(document.getElementById(id)) return;
+      const a = document.createElement("a");
+      a.className = "chip";
+      a.id = id;
+      a.href = href;
+      a.textContent = label;
+      // optional SFX (if exists)
+      a.setAttribute("data-sfx","osuna");
+      a.setAttribute("data-sfx-delay","0");
+      nav.appendChild(a);
+    }
+
+    addChip("secretBackrooms", "Backrooms", "liminal/index.html");
+    addChip("secretHorror", "......", "horror.html");
+  }
+
+  if(__IS_SHELL){
+    try{ __refreshShellSecretNav(); }catch(_){}
+
+    // Unlock from iframe updates localStorage → parent receives storage event
+    window.addEventListener("storage", (e)=>{
+      try{
+        if(e && e.key === __SECRET_UNLOCK_KEY) __refreshShellSecretNav();
+      }catch(_){}
+    });
+
+    // Fallback: explicit postMessage from iframe
+    window.addEventListener("message", (e)=>{
+      try{
+        if(e.origin && e.origin !== location.origin) return;
+        const d = e.data || {};
+        if(d && typeof d === "object" && d.type === "SECRET_UNLOCKED"){
+          __refreshShellSecretNav();
+        }
+      }catch(_){}
+    });
+  }
 
 })();
