@@ -620,18 +620,21 @@ window.__boostAudio = __boostAudio;
       // keyboard
       if (this.keys['ArrowLeft'])  this.yaw += lookSpeed * delta;
       if (this.keys['ArrowRight']) this.yaw -= lookSpeed * delta;
-      if (this.keys['ArrowUp'])    this.pitch -= lookSpeed * delta;
-      if (this.keys['ArrowDown'])  this.pitch += lookSpeed * delta;
+      // Up should look up (non-inverted)
+      if (this.keys['ArrowUp'])    this.pitch += lookSpeed * delta;
+      if (this.keys['ArrowDown'])  this.pitch -= lookSpeed * delta;
 
       // touch look
       if (lookMode === 'stick'){
         this.yaw   -= (this.jLookX * lookSpeed * 1.6) * delta;
-        this.pitch -= (this.jLookY * lookSpeed * 1.6) * delta;
+        // Up should look up (non-inverted)
+        this.pitch += (this.jLookY * lookSpeed * 1.6) * delta;
       } else {
         if (this.padL) this.yaw += lookSpeed * delta;
         if (this.padR) this.yaw -= lookSpeed * delta;
-        if (this.padU) this.pitch -= lookSpeed * delta;
-        if (this.padD) this.pitch += lookSpeed * delta;
+        // Up should look up (non-inverted)
+        if (this.padU) this.pitch += lookSpeed * delta;
+        if (this.padD) this.pitch -= lookSpeed * delta;
       }
 
       const limit = Math.PI / 2.2;
