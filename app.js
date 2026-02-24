@@ -21,21 +21,6 @@
   const __IS_SHELL = (__FILE_LC === "shell.html");
   const __IS_404 = (__FILE_LC === "404.html");
 
-  // ========= Secrets (unlock) =========
-  const __SECRET_UNLOCK_KEY = "tpz_secret_unlocked_osuna_v1";
-  function __isSecretUnlocked(){
-    try{ return localStorage.getItem(__SECRET_UNLOCK_KEY) === "1"; }catch(_){ return false; }
-  }
-  function __setSecretUnlocked(){
-    try{ localStorage.setItem(__SECRET_UNLOCK_KEY, "1"); }catch(_){ }
-    // notify shell immediately (storage event usually also works)
-    try{
-      if(window.top !== window.self){
-        window.parent.postMessage({type:"SECRET_UNLOCKED", key: __SECRET_UNLOCK_KEY}, location.origin);
-      }
-    }catch(_){ }
-  }
-
   // ページ遷移でSEが途切れる問題の回避：通常アクセスは shell.html に集約
   // （noshell=1 を付ければ従来挙動）
   // ※サブフォルダ配下（aero/ 等）はこのリダイレクトをしない（直開き時の誤爆防止）
@@ -828,6 +813,25 @@ function resolveOmikujiItem(item){
   const TBC_VIDEO_SRC = "/assets/sfx/nc204179_To_Be_Continued.mp4";
   let __tbcLaunching = false;
 
+  // During the TBC overlay, all other sounds must be silent (click SFX, BGM, etc.).
+  // This flag is propagated to the iframe when running under shell.html.
+  let __audioExclusiveActive = false;
+  function __setAudioExclusive(active){
+    __audioExclusiveActive = !!active;
+    try{ window.__audioExclusiveActive = __audioExclusiveActive; }catch(_){ }
+    // propagate to iframe (shell only)
+    try{
+      const f = document.getElementById("viewFrame");
+      if(f && f.contentWindow){
+        f.contentWindow.postMessage({type:"AUDIO_EXCLUSIVE", active: __audioExclusiveActive}, location.origin);
+      }
+    }catch(_){ }
+  }
+  function __isAudioExclusive(){
+    return !!__audioExclusiveActive;
+  }
+
+
   function __isAchComplete(s){
     try{
       const total = __ACH_DEFS.length || 0;
@@ -871,6 +875,35 @@ function resolveOmikujiItem(item){
     // guard
     if(__tbcAlreadyPlayed() && !document.getElementById("tbcCanvas")) return;
 
+    // Hard-mute everything else while the overlay is active.
+    try{ __setAudioExclusive(true); }catch(_){ }
+    // Stop any currently playing sounds (SFX/BGM/video) before starting TBC.
+    try{
+      document.querySelectorAll("audio,video").forEach(m=>{
+        try{ m.pause(); m.currentTime = 0; }catch(_){ }
+      });
+    }catch(_){ }
+    try{
+      // cached SFX (Audio objects) are not in DOM; stop all of them
+      if(typeof sfxCache !== "undefined"){
+        for(const a of sfxCache.values()){
+          try{ a.pause(); a.currentTime = 0; }catch(_){ }
+        }
+      }
+    }catch(_){ }
+    try{
+      const prev = window.__longNavSfxAudio;
+      if(prev){ prev.pause(); prev.currentTime = 0; }
+    }catch(_){ }
+    // Also stop media inside iframe (shell mode)
+    try{
+      const f = document.getElementById("viewFrame");
+      if(f && f.contentWindow){
+        f.contentWindow.postMessage({type:"STOP_MEDIA"}, location.origin);
+      }
+    }catch(_){ }
+
+
     // mark as played once we actually start (avoid the "mark-before-play" bug)
     if(!__tbcAlreadyPlayed()) __markTbcPlayed();
     try{ __tbcLaunching = false; }catch(_){ }
@@ -894,10 +927,12 @@ function resolveOmikujiItem(item){
           height: 100%;
           z-index: 2147483647;
           pointer-events: none;
+          touch-action: none;
+          cursor: default;
           opacity: 0;
           transition: opacity .35s ease;
         }
-        #tbcCanvas.active{ opacity: 1; }
+        #tbcCanvas.active{ opacity: 1; pointer-events: auto; }
         #tbcTap{
           position: fixed;
           left: 50%;
@@ -998,6 +1033,7 @@ function resolveOmikujiItem(item){
       try{ window.removeEventListener("resize", resize); }catch(_){ }
       try{ canvas.classList.remove("active"); }catch(_){ }
       try{ document.body.classList.remove("tbcSepia"); }catch(_){ }
+      try{ __setAudioExclusive(false); }catch(_){ }
       setTimeout(()=>{
         try{ video.pause(); }catch(_){ }
         try{ video.remove(); }catch(_){ }
@@ -1232,10 +1268,13 @@ function resolveOmikujiItem(item){
 
   function playSfx(keyOrPath, volume, opts){
     try{ if(typeof getAudioEnabled === "function" && !getAudioEnabled()) return; }catch(_){ }
+    try{ if(__isAudioExclusive && __isAudioExclusive()) return; }catch(_){ }
+    const __opts0 = (opts && typeof opts === "object") ? opts : null;
+    const __forceLocal = !!(__opts0 && __opts0.local);
     const __k = String(keyOrPath||"" ).trim();
     // embed(iframe) 内なら親(shell)で鳴らす（ページ切替でもSEが途切れない）
     // ※親側（shell.html）は __IS_EMBED=false なのでループしない
-    if(__IS_EMBED){
+    if(__IS_EMBED && !__forceLocal){
       const k = __k;
       if(k){
         const payload = { type:"SFX", key:k };
@@ -1324,6 +1363,7 @@ function resolveOmikujiItem(item){
 
       // audio toggle 尊重
       try{ if(typeof getAudioEnabled === "function" && !getAudioEnabled()) return; }catch(_){}
+      try{ if(__isAudioExclusive && __isAudioExclusive()) return; }catch(_){ }
 
       // 既存の音を止めて差し替え
       if(audio && audio.__musicKey !== k){
@@ -1412,6 +1452,7 @@ function resolveOmikujiItem(item){
     let __aeroAchNoted = false;
     function __noteAeroAch(){
       if(__aeroAchNoted) return;
+      if(!audioOn()) return;
       __aeroAchNoted = true;
       try{ window.ACH && typeof window.ACH.noteSfx === "function" && window.ACH.noteSfx("aeroPlay"); }catch(_){ }
     }
@@ -1463,13 +1504,13 @@ function resolveOmikujiItem(item){
     }
 
     function doToggle(){
-      __noteAeroAch();
       if(!audioOn()){
         playing = false;
         syncBtn(true);
         return;
       }
 
+      __noteAeroAch();
 
       if(__IS_EMBED){
         // parent will actually play; we just update UI optimistically
@@ -1489,13 +1530,13 @@ function resolveOmikujiItem(item){
       // update selection locally
       idx = ((idx + dir) % PL.length + PL.length) % PL.length;
       updateMeta(idx);
-      __noteAeroAch();
 
       if(!audioOn()){
         playing = false;
         syncBtn(true);
         return;
       }
+      __noteAeroAch();
 
       if(__IS_EMBED){
         postToParent(dir > 0 ? "next" : "prev");
@@ -1823,9 +1864,6 @@ function initDangerEscalation(){
       if(!confirm("後悔しますよ。本当にいいんですね？")) { postImmersion(false); return; }
       if(!confirm("最終警告です。この先、何が起きても一切の責任を負いません。")) { postImmersion(false); return; }
 
-      // Unlock secret links in the shell menu (one-time)
-      __setSecretUnlocked();
-
       const st = document.createElement("style");
       st.textContent = `
         @keyframes violent-shake {
@@ -2148,6 +2186,9 @@ function initDangerEscalation(){
     if(d.type === "TBC_PLAY"){
       try{ playToBeContinuedOverlay(); }catch(_){ }
     }
+    if(d.type === "AUDIO_EXCLUSIVE"){
+      try{ __setAudioExclusive(!!d.active); }catch(_){ }
+    }
   });
 
   // 別コンテキストで切り替えた時も反映（shell ⇄ iframe）
@@ -2156,60 +2197,5 @@ function initDangerEscalation(){
       try{ applyAudioEnabled(getAudioEnabled()); }catch(_){ }
     }
   });
-
-
-  // ========= Shell: add secret links to the top menu after unlock =========
-  function __refreshShellSecretNav(){
-    if(!__IS_SHELL) return;
-    const nav = document.querySelector(".navlinks");
-    if(!nav) return;
-
-    // If not unlocked, remove any previously injected chips.
-    if(!__isSecretUnlocked()){
-      ["secretBackrooms","secretHorror"].forEach(id=>{
-        const el = document.getElementById(id);
-        if(el) el.remove();
-      });
-      return;
-    }
-
-    function addChip(id, label, href){
-      if(document.getElementById(id)) return;
-      const a = document.createElement("a");
-      a.className = "chip";
-      a.id = id;
-      a.href = href;
-      a.textContent = label;
-      // optional SFX (if exists)
-      a.setAttribute("data-sfx","osuna");
-      a.setAttribute("data-sfx-delay","0");
-      nav.appendChild(a);
-    }
-
-    addChip("secretBackrooms", "Backrooms", "liminal/index.html");
-    addChip("secretHorror", "......", "horror.html");
-  }
-
-  if(__IS_SHELL){
-    try{ __refreshShellSecretNav(); }catch(_){}
-
-    // Unlock from iframe updates localStorage → parent receives storage event
-    window.addEventListener("storage", (e)=>{
-      try{
-        if(e && e.key === __SECRET_UNLOCK_KEY) __refreshShellSecretNav();
-      }catch(_){}
-    });
-
-    // Fallback: explicit postMessage from iframe
-    window.addEventListener("message", (e)=>{
-      try{
-        if(e.origin && e.origin !== location.origin) return;
-        const d = e.data || {};
-        if(d && typeof d === "object" && d.type === "SECRET_UNLOCKED"){
-          __refreshShellSecretNav();
-        }
-      }catch(_){}
-    });
-  }
 
 })();
