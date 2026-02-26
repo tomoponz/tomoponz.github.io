@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://tomoponz.github.io/sitemap.xml
-Sitemap: https://tomoponz.github.io/sitemap.txt
+Sitemap: https://tomoponz.github.io/sitemap2.xml
