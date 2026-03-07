@@ -7,21 +7,40 @@
   <title>tomoponz｜プロフィール</title>
   <meta name="description" content="tomoponzのプロフィールページ" />
 
-  <link rel="stylesheet" href="style.css?v=20260223">
+  <link rel="stylesheet" href="style.css?v=20260307-eva">
 
   <style>
     .quoteBox{
+      position:relative;
+      overflow:hidden;
       border:1px solid rgba(255,255,255,.12);
-      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03)),
+        linear-gradient(120deg, rgba(255,172,54,.06), transparent 45%),
+        linear-gradient(240deg, rgba(88,221,255,.05), transparent 55%);
       border-radius: 22px;
       padding: 20px;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
     }
-    .quoteText{ font-size: 22px; line-height: 1.8; margin: 0 0 12px; }
+    .quoteBox::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+      transform:translateX(-120%);
+      animation: quoteSweep 5.2s linear infinite;
+      pointer-events:none;
+      opacity:.45;
+    }
+    @keyframes quoteSweep{
+      to{ transform:translateX(120%); }
+    }
+    .quoteText{ font-size: clamp(20px, 2.2vw, 28px); line-height: 1.65; margin: 0 0 12px; }
     .quoteBy{ opacity:.75; margin:0; font-size:13px; letter-spacing:.04em; }
     .btnrow{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
     .btnlike{
       display:inline-flex; align-items:center; justify-content:center;
+      min-height:48px;
       padding:12px 18px; border-radius: 16px;
       border:1px solid rgba(255,255,255,.14);
       background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
@@ -37,60 +56,108 @@
     }
     .grid3{ display:grid; gap:14px; grid-template-columns: repeat(3, minmax(0,1fr)); }
     .hero-home{
-      padding: 28px 28px 24px;
-      min-height: 300px;
+      position:relative;
+      overflow:hidden;
+      padding: 28px 28px 22px;
+      min-height: 360px;
       border-radius: 28px;
+      border:1px solid rgba(255,255,255,.12);
       background:
-        linear-gradient(135deg, rgba(88,221,255,.08), transparent 38%),
-        linear-gradient(215deg, rgba(255,173,67,.07), transparent 40%),
-        linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+        linear-gradient(135deg, rgba(207,46,46,.10), transparent 26%),
+        linear-gradient(215deg, rgba(255,173,67,.10), transparent 42%),
+        radial-gradient(560px 260px at 80% 18%, rgba(88,221,255,.10), transparent 72%),
+        linear-gradient(180deg, rgba(10,14,28,.90), rgba(8,10,22,.82));
       box-shadow:
         0 24px 70px rgba(0,0,0,.32),
         inset 0 1px 0 rgba(255,255,255,.05);
     }
+    .hero-home::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        repeating-linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.03) 1px, transparent 1px, transparent 4px),
+        linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
+      transform: translateX(-60%);
+      animation: heroSweep 7.8s linear infinite;
+      opacity:.38;
+      pointer-events:none;
+    }
     .hero-home::after{
       content: attr(data-watermark);
       position: absolute;
-      right: 26px;
+      right: 22px;
       top: 18px;
-      font-size: clamp(54px, 10vw, 128px);
+      font-size: clamp(64px, 11vw, 148px);
       font-weight: 900;
       letter-spacing: .08em;
       color: rgba(255,255,255,.045);
       pointer-events: none;
       line-height: .9;
     }
+    @keyframes heroSweep{
+      0%{ transform: translateX(-60%); }
+      100%{ transform: translateX(60%); }
+    }
+    .hero-alertline{
+      display:grid;
+      grid-template-columns: auto 1fr auto;
+      gap:12px;
+      align-items:center;
+      margin-bottom:14px;
+      font-size:11px;
+      letter-spacing:.18em;
+      color:rgba(234,241,255,.60);
+      text-transform:uppercase;
+    }
+    .hero-alertline span{
+      display:inline-flex;
+      align-items:center;
+      min-height:32px;
+      padding:0 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.04);
+    }
+    .hero-alertline .hero-alert{
+      justify-content:center;
+      color:rgba(255,207,102,.95);
+      border-color:rgba(255,173,67,.32);
+      box-shadow:0 0 24px rgba(255,173,67,.10) inset;
+    }
     .hero-kicker{
       display:inline-flex;
       align-items:center;
       gap:10px;
       margin-bottom:18px;
-      padding:6px 12px;
+      padding:7px 14px;
       border-radius:999px;
       border:1px solid rgba(255,255,255,.12);
       background:rgba(255,255,255,.05);
       font-size:12px;
       letter-spacing:.18em;
       color:rgba(234,241,255,.78);
+      text-transform:uppercase;
     }
     .hero-main{
       display:grid;
       gap:18px;
-      grid-template-columns: minmax(0, 1.25fr) minmax(280px, .75fr);
-      align-items:end;
+      grid-template-columns: minmax(0, 1.18fr) minmax(280px, .82fr);
+      align-items:start;
     }
     .hero-title{
-      font-size: clamp(42px, 6vw, 72px);
-      line-height: .96;
-      letter-spacing: -.02em;
-      margin: 0 0 8px;
+      font-size: clamp(42px, 6vw, 78px);
+      line-height: .92;
+      letter-spacing: -.03em;
+      margin: 0 0 10px;
+      text-shadow: 0 0 30px rgba(255,255,255,.08);
     }
     .hero-sub{
-      max-width: 34ch;
+      max-width: 38ch;
       font-size: 16px;
-      color: rgba(234,241,255,.8);
+      color: rgba(234,241,255,.80);
     }
-    .hero-badges{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+    .hero-badges{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
     .hero-badges .badge{
       color: rgba(255,255,255,.94);
       background: rgba(255,255,255,.07);
@@ -121,8 +188,9 @@
       font-size:12px;
       letter-spacing:.22em;
       color: rgba(234,241,255,.62);
+      text-transform:uppercase;
     }
-    .hero-statlist{ display:grid; gap:10px; }
+    .hero-statlist{ display:grid; gap:12px; }
     .hero-stat{
       padding:12px 14px;
       border-radius:16px;
@@ -132,15 +200,105 @@
     }
     .hero-stat span{
       display:block;
-      margin-bottom:4px;
+      margin-bottom:6px;
       font-size:11px;
       letter-spacing:.16em;
       color: rgba(234,241,255,.54);
+      text-transform:uppercase;
     }
     .hero-stat strong{
+      display:block;
+      margin-bottom:8px;
       font-size:14px;
       letter-spacing:.04em;
       color: rgba(255,255,255,.96);
+    }
+    .hero-meter,
+    .signal-bar{
+      position:relative;
+      overflow:hidden;
+      height:8px;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .hero-meter-fill,
+    .signal-fill{
+      display:block;
+      height:100%;
+      width:0;
+      border-radius:inherit;
+      background:linear-gradient(90deg, #cf2e2e, #ff9b2f, #5de1ff);
+      box-shadow:0 0 18px rgba(255,173,67,.24);
+      transition:width 1.05s cubic-bezier(.22,.61,.36,1);
+    }
+    .hero-ribbon{
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap:12px;
+      margin-top:18px;
+    }
+    .hero-ribbon-item{
+      min-width:0;
+      padding:12px 14px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.04);
+    }
+    .hero-ribbon-item span{
+      display:block;
+      margin-bottom:6px;
+      font-size:11px;
+      letter-spacing:.18em;
+      color:rgba(234,241,255,.54);
+      text-transform:uppercase;
+    }
+    .hero-ribbon-item strong{
+      display:block;
+      font-size:13px;
+      letter-spacing:.04em;
+    }
+    .home-panels{ margin-top:16px; }
+    .panel-mini{
+      min-height: 214px;
+      padding:18px;
+    }
+    .panel-mini h2{
+      margin:0 0 8px;
+      font-size:17px;
+    }
+    .panel-lead{
+      margin:0 0 16px;
+      color:rgba(234,241,255,.72);
+      font-size:13px;
+      letter-spacing:.06em;
+    }
+    .route-buttons{ display:grid; gap:10px; }
+    .signal-stack{ display:grid; gap:12px; }
+    .signal-row{
+      display:grid;
+      gap:8px;
+      grid-template-columns: 74px minmax(0,1fr);
+      align-items:center;
+      font-size:12px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:rgba(234,241,255,.68);
+    }
+    .signal-row strong{
+      font-size:11px;
+      color:rgba(255,255,255,.86);
+      letter-spacing:.12em;
+    }
+    .archive-list,
+    .protocol-list{
+      margin:0;
+      padding-left:18px;
+      color:rgba(234,241,255,.78);
+      display:grid;
+      gap:10px;
+      font-size:14px;
+      line-height:1.6;
     }
     .home .grid2{ margin-top:16px; }
     .home .card > h2::before{
@@ -149,18 +307,50 @@
       font-size:11px;
       letter-spacing:.18em;
       color: rgba(234,241,255,.52);
+      text-transform:uppercase;
     }
     .home .card-profile > h2::before{ content:"PROFILE"; }
     .home .card-quote > h2::before{ content:"QUOTE"; }
+    .card-profile .note,
+    .card-quote .note{ margin-top:14px; }
+    #dangerBtn{
+      min-height: 48px;
+      bottom: max(18px, calc(env(safe-area-inset-bottom) + 12px)) !important;
+      right: max(18px, calc(env(safe-area-inset-right) + 12px)) !important;
+    }
+    @media (max-width: 1080px){
+      .hero-ribbon{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
     @media (max-width: 980px){
       .hero-main{ grid-template-columns: 1fr; }
       .hero-home::after{ top:auto; bottom:14px; font-size:72px; }
+      .hero-alertline{ grid-template-columns: 1fr; }
     }
-    @media (max-width: 900px){ .grid3{ grid-template-columns: 1fr; } }
+    @media (max-width: 900px){
+      .grid3{ grid-template-columns: 1fr; }
+      .panel-mini{ min-height:auto; }
+    }
     @media (max-width: 640px){
-      .hero-home{ padding:22px 18px 18px; }
+      .hero-home{ padding:20px 16px 16px; min-height:auto; }
       .quoteText{ font-size: 18px; }
       .hero-title{ font-size: 44px; }
+      .hero-ribbon{ grid-template-columns: 1fr; }
+      .signal-row{ grid-template-columns: 1fr; gap:6px; }
+      .hero-alertline span{ justify-content:center; }
+      .btnlike{ width:100%; }
+      .btnrow{ flex-direction:column; }
+      #dangerBtn{
+        left: 16px;
+        right: 16px !important;
+        width: auto;
+        text-align:center;
+      }
+    }
+    @media (prefers-reduced-motion: reduce){
+      .quoteBox::before,
+      .hero-home::before{ animation:none; }
+      .hero-meter-fill,
+      .signal-fill{ transition:none; }
     }
   </style>
 </head>
@@ -195,21 +385,30 @@
 
   <main class="wrap">
     
-    <button id="dangerBtn" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: rgba(255,0,0,0.1); border: 2px solid #ff4444; color: #ff8888; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 0 15px rgba(255,0,0,0.3); letter-spacing: 0.1em; transition: 0.2s; opacity: 0.6;">
+    <button id="dangerBtn" style="position: fixed; z-index: 9999; background: rgba(255,0,0,0.1); border: 2px solid #ff4444; color: #ff8888; padding: 10px 16px; border-radius: 12px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 0 15px rgba(255,0,0,0.3); letter-spacing: 0.1em; transition: 0.2s; opacity: 0.72;">
       ⚠️ 押すな
     </button>
     <div id="voidClick" style="position: absolute; bottom: 0; left: 0; width: 20px; height: 20px; cursor: default; z-index: 9999;"></div>
-    <section class="hero hero-home" data-watermark="PROFILE">
-      <div class="hero-kicker">PERSONAL // EXPERIMENTAL WEB SHELL</div>
+
+    <section class="hero hero-home eva-reveal" data-watermark="NERV">
+      <div class="hero-alertline">
+        <span>DOC-ID // TPNZ-PROFILE-01</span>
+        <span class="hero-alert">PERSONAL INTERFACE / CLEARANCE A</span>
+        <span>MODE // PROFILE SHELL</span>
+      </div>
+
+      <div class="hero-kicker">NERV-STYLE PERSONAL TERMINAL / EXPERIMENTAL WEB</div>
+
       <div class="hero-main">
         <div class="hero-copy">
-          <h1 class="h1 hero-title">tomoponz</h1>
-          <p class="sub hero-sub">秘密基地 / ネタ置き場 / ミニゲーム / いろいろ</p>
+          <h1 class="h1 hero-title">tomoponz<br>personal archive</h1>
+          <p class="sub hero-sub">秘密基地 / ネタ置き場 / ミニゲーム / 仕掛け。いろいろなページを、ひとつの制御画面みたいにまとめる個人ウェブサイト。</p>
 
           <div class="hero-badges">
-            <span class="badge"><span class="dot"></span>Vaporwave</span>
+            <span class="badge"><span class="dot"></span>Experimental</span>
             <span class="badge"><span class="dot" style="background:var(--warn)"></span>Games</span>
             <span class="badge"><span class="dot" style="background:var(--sky)"></span>Ideas</span>
+            <span class="badge"><span class="dot" style="background:var(--good)"></span>Archive</span>
           </div>
 
           <div class="btnrow hero-actions">
@@ -218,19 +417,71 @@
           </div>
         </div>
 
-        <aside class="hero-side" aria-label="site status panel">
-          <p class="hero-side-title">SITE STATUS</p>
+        <aside class="hero-side eva-reveal" aria-label="site status panel">
+          <p class="hero-side-title">SYSTEM STATUS</p>
           <div class="hero-statlist">
-            <div class="hero-stat"><span>MODE</span><strong>PROFILE</strong></div>
-            <div class="hero-stat"><span>FOCUS</span><strong>WEB / GAME / IDEA</strong></div>
-            <div class="hero-stat"><span>STATE</span><strong>BUILDING</strong></div>
+            <div class="hero-stat">
+              <span>MODE</span>
+              <strong>PROFILE / ACTIVE</strong>
+              <div class="hero-meter"><i class="hero-meter-fill" data-signal="91"></i></div>
+            </div>
+            <div class="hero-stat">
+              <span>FOCUS</span>
+              <strong>WEB / GAME / IDEA</strong>
+              <div class="hero-meter"><i class="hero-meter-fill" data-signal="82"></i></div>
+            </div>
+            <div class="hero-stat">
+              <span>SYNC</span>
+              <strong>DESIGN UPGRADE / IN PROGRESS</strong>
+              <div class="hero-meter"><i class="hero-meter-fill" data-signal="76"></i></div>
+            </div>
           </div>
         </aside>
       </div>
+
+      <div class="hero-ribbon">
+        <div class="hero-ribbon-item"><span>CLEARANCE</span><strong>PERSONAL</strong></div>
+        <div class="hero-ribbon-item"><span>STATUS</span><strong>BUILDING</strong></div>
+        <div class="hero-ribbon-item"><span>THEME</span><strong>VAPORWAVE × NERV</strong></div>
+        <div class="hero-ribbon-item"><span>ACCESS</span><strong>OPEN TO FRIENDS</strong></div>
+      </div>
+    </section>
+
+    <section class="grid3 home-panels">
+      <article class="card panel-mini eva-reveal">
+        <h2>Quick Route</h2>
+        <p class="panel-lead">主要導線を制御卓風に集約。</p>
+        <div class="route-buttons">
+          <a class="btnlike" href="gallery.html">ネタ置き場へ</a>
+          <a class="btnlike" href="achievements.html">実績を見る</a>
+          <a class="btnlike" href="door.html">ドアを開く</a>
+        </div>
+      </article>
+
+      <article class="card panel-mini eva-reveal">
+        <h2>Signal Monitor</h2>
+        <p class="panel-lead">いまのサイトの雰囲気を、ざっくり可視化。</p>
+        <div class="signal-stack">
+          <div class="signal-row"><strong>DESIGN</strong><div class="signal-bar"><i class="signal-fill" data-signal="88"></i></div></div>
+          <div class="signal-row"><strong>GAME</strong><div class="signal-bar"><i class="signal-fill" data-signal="72"></i></div></div>
+          <div class="signal-row"><strong>IDEA</strong><div class="signal-bar"><i class="signal-fill" data-signal="93"></i></div></div>
+          <div class="signal-row"><strong>CHAOS</strong><div class="signal-bar"><i class="signal-fill" data-signal="67"></i></div></div>
+        </div>
+      </article>
+
+      <article class="card panel-mini eva-reveal">
+        <h2>Archive Memo</h2>
+        <p class="panel-lead">このサイトの運用メモ。</p>
+        <ul class="archive-list">
+          <li>公開するのは、秘密基地っぽい導線と遊べるページ。</li>
+          <li>重いページは shell 構造の中で見せ方を整える。</li>
+          <li>没案やログは黒歴史側へ隔離する。</li>
+        </ul>
+      </article>
     </section>
 
     <section class="grid2">
-      <div class="card card-profile">
+      <div class="card card-profile eva-reveal">
         <h2>プロフィール</h2>
         <ul class="list">
           <li>名前：tomoponz</li>
@@ -242,7 +493,7 @@
         <div class="note">※住所や通学ルートなど、特定につながる情報は書かない方針</div>
       </div>
 
-      <div class="card card-quote">
+      <div class="card card-quote eva-reveal">
         <h2>今日の一言（名言）</h2>
 
         <div class="quoteBox">
@@ -266,7 +517,7 @@
     </div>
   </main>
 
-  <script src="app.js?v=20260224-1"></script>
+  <script src="app.js?v=20260307-eva"></script>
 <script src="quotes_base.js?v=20260223"></script>
   <script src="user_quotes.js?v=20260223"></script>
   <script src="counter.js?v=20260222"></script>

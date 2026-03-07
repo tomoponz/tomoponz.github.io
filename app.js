@@ -2151,6 +2151,83 @@ function initDangerEscalation(){
     })();
   }
 
+
+
+  function initEvaMotionFx(){
+    const reduced = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+    const shellClock = document.getElementById("shellClock");
+    if(shellClock){
+      const renderClock = ()=>{
+        const d = new Date();
+        const hh = String(d.getHours()).padStart(2, "0");
+        const mm = String(d.getMinutes()).padStart(2, "0");
+        const ss = String(d.getSeconds()).padStart(2, "0");
+        shellClock.textContent = `${hh}:${mm}:${ss}`;
+      };
+      renderClock();
+      setInterval(renderClock, 1000);
+    }
+
+    const shellStatusText = document.getElementById("shellStatusText");
+    const shellStatusMeta = document.getElementById("shellStatusMeta");
+    if(shellStatusText || shellStatusMeta){
+      const statuses = [
+        { text:"STANDBY", meta:"STAGE // PROFILE" },
+        { text:"MAGI LINK", meta:"ROUTE // ACTIVE" },
+        { text:"PATTERN GREEN", meta:"ALERT // LOW" },
+        { text:"ARCHIVE READY", meta:"CACHE // STABLE" },
+        { text:"SYNC OK", meta:"SYSTEM // ONLINE" },
+      ];
+      let idx = 0;
+      const applyStatus = ()=>{
+        const item = statuses[idx % statuses.length];
+        if(shellStatusText) shellStatusText.textContent = item.text;
+        if(shellStatusMeta) shellStatusMeta.textContent = item.meta;
+        idx++;
+      };
+      applyStatus();
+      if(!reduced) setInterval(applyStatus, 2600);
+    }
+
+    const targets = Array.from(document.querySelectorAll('.eva-reveal, .hero-home, .card, .quoteBox, .hero-side'))
+      .filter(Boolean);
+
+    function animateSignals(scope){
+      const root = scope && scope.querySelectorAll ? scope : document;
+      root.querySelectorAll('.signal-fill[data-signal], .hero-meter-fill[data-signal]').forEach((fill)=>{
+        if(fill.dataset.animated === '1') return;
+        fill.dataset.animated = '1';
+        const value = clamp(parseInt(fill.getAttribute('data-signal') || '0', 10) || 0, 0, 100);
+        requestAnimationFrame(()=>{ fill.style.width = value + '%'; });
+      });
+    }
+
+    if(!targets.length){
+      animateSignals(document);
+      return;
+    }
+
+    if(reduced || !("IntersectionObserver" in window)){
+      targets.forEach((el)=>{
+        el.classList.add('is-visible');
+        animateSignals(el);
+      });
+      return;
+    }
+
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach((entry)=>{
+        if(!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        animateSignals(entry.target);
+        io.unobserve(entry.target);
+      });
+    }, { threshold: 0.16, rootMargin: '0px 0px -6% 0px' });
+
+    targets.forEach((el)=> io.observe(el));
+  }
+
 // ========== init ==========
   document.addEventListener("DOMContentLoaded", ()=>{
     applyPageMeta();
@@ -2163,6 +2240,7 @@ function initDangerEscalation(){
     initAeroWmpUI();
     initDangerEscalation();
     initHomeHackerFx();
+    initEvaMotionFx();
   });
 
 
