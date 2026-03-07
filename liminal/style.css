@@ -137,3 +137,48 @@ body {
   .xrBar{ right:14px; bottom:14px; gap:8px; }
   .xrBtn{ padding:9px 10px; border-radius:10px; }
 }
+
+
+/* =========================================================
+   mobile usability patch
+   - EXIT と操作パッド / XR UI の重なり回避
+   ========================================================= */
+@media (max-width: 900px){
+  .level-doors{
+    top: calc(72px + env(safe-area-inset-top)) !important;
+    left: 12px !important;
+    right: 12px;
+    max-width: min(320px, calc(100vw - 24px));
+    padding: 12px;
+    gap: 6px;
+    border-radius: 14px;
+    z-index: 130;
+  }
+
+  .exit-sign{
+    top: calc(18px + env(safe-area-inset-top)) !important;
+    right: calc(12px + env(safe-area-inset-right)) !important;
+    bottom: auto !important;
+    left: auto !important;
+    padding: 8px 12px;
+    font-size: 14px;
+    line-height: 1.2;
+    z-index: 140;
+  }
+
+  #daisy-btn{
+    left: calc(12px + env(safe-area-inset-left)) !important;
+    bottom: calc(160px + env(safe-area-inset-bottom)) !important;
+    width: 48px;
+    z-index: 125;
+  }
+
+  .xrBar{
+    left: calc(12px + env(safe-area-inset-left));
+    right: auto;
+    bottom: calc(84px + env(safe-area-inset-bottom));
+    flex-direction: column;
+    align-items: stretch;
+    z-index: 135;
+  }
+}
