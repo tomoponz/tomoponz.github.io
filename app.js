@@ -512,10 +512,7 @@ function resolveOmikujiItem(item){
     const searchInput = document.getElementById("searchInput");
     if(!searchBtn || !searchInput) return;
 
-    // プロフィール(index)は index.html 側で検索が動いてる前提。二重発火を避ける
-    const file = (location.pathname.split("/").pop() || "index.html").toLowerCase();
-    if(file === "index.html") return;
-
+    // data-search-mode="page" が付いていないページは共通サイト内検索を使う
     // data-search-mode="page" が付いている場合は「ページ内検索」専用なので、共通サイト内検索は付けない
     const searchMode = String(searchInput.dataset.searchMode || searchBtn.dataset.searchMode || "").toLowerCase();
     if(searchMode === "page") return;
