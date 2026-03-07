@@ -298,21 +298,6 @@
     // 没入：shellのメニューを隠す
     postToShell({type:"IMMERSION", active:true});
 
-    // achievements：vaporwaveページ訪問を記録（localStorageのみ）
-    (function(){
-      const K="tomoponz_ach_v1";
-      try{
-        const raw=localStorage.getItem(K);
-        const s=raw?JSON.parse(raw):{v:1,pages:{},counters:{},unlocked:{}};
-        s.pages=s.pages&&typeof s.pages==="object"?s.pages:{};
-        s.counters=s.counters&&typeof s.counters==="object"?s.counters:{};
-        s.unlocked=s.unlocked&&typeof s.unlocked==="object"?s.unlocked:{};
-        s.pages["vaporwave/eva.html"]=true;
-        s.counters.visits=(Number(s.counters.visits)||0)+1;
-        localStorage.setItem(K, JSON.stringify(s));
-      }catch(_){ }
-    })();
-
     window.addEventListener('beforeunload', ()=>{ postToShell({type:"IMMERSION", active:false}); });
 
     function startEnding() {
