@@ -6,17 +6,17 @@
   <title>tomoponz｜Shell</title>
   <meta name="description" content="ページ遷移してもSEが途切れないシェル（iframe）">
 
-  <link rel="stylesheet" href="style.css?v=20260307-eva">
+  <link rel="stylesheet" href="style.css?v=20260308-matisse">
   <!-- shell.js を先に（リンクの既定遷移を止める） -->
   <script defer src="shell.js?v=20260223"></script>
 
   <!-- クリックSE / 共通機能 -->
   <script defer src="quotes_base.js?v=20260223"></script>
   <script defer src="user_quotes.js?v=20260223"></script>
-  <script defer src="app.js?v=20260307-eva"></script>
+  <script defer src="app.js?v=20260224-3"></script>
 </head>
 
-<body class="shellPage">
+<body class="shellPage shellCompact">
   <header class="nav">
     <a class="brand" href="index.html" aria-label="tomoponz ホーム">
       <span class="logo" aria-hidden="true"></span>
@@ -45,40 +45,7 @@
   </header>
 
   <main class="wrap shellWrap">
-    <section class="shellHud eva-reveal" aria-label="system status panel">
-      <div class="hudBlock">
-        <span class="hudLabel">DOC-ID</span>
-        <strong>NERV-PERS-01</strong>
-      </div>
-
-      <div class="hudCenter">
-        <span class="hudBeacon" aria-hidden="true"></span>
-        <span class="hudTitle">PERSONAL WEB CONTROL PANEL</span>
-        <small id="shellStatusMeta">STAGE // PROFILE</small>
-      </div>
-
-      <div class="hudBlock hudBlockRight">
-        <span class="hudLabel">SYNC</span>
-        <strong id="shellClock">--:--:--</strong>
-      </div>
-    </section>
-
-    <section class="shellFrame eva-reveal" aria-label="display frame">
-      <div class="frameChrome">
-        <span class="frameTag">ENTRY PLUG</span>
-        <span class="frameLine" aria-hidden="true"></span>
-        <span class="frameTag frameTag--warn" id="shellStatusText">STANDBY</span>
-      </div>
-
-      <span class="frameCorner frameCorner--tl" aria-hidden="true"></span>
-      <span class="frameCorner frameCorner--tr" aria-hidden="true"></span>
-      <span class="frameCorner frameCorner--bl" aria-hidden="true"></span>
-      <span class="frameCorner frameCorner--br" aria-hidden="true"></span>
-
-      <iframe id="viewFrame" class="viewFrame" title="tomoponz view" loading="eager"></iframe>
-      <div class="shellOverlay shellOverlay--scan" aria-hidden="true"></div>
-      <div class="shellOverlay shellOverlay--noise" aria-hidden="true"></div>
-    </section>
+    <iframe id="viewFrame" class="viewFrame" title="tomoponz view" loading="eager"></iframe>
   </main>
 </body>
 </html>
