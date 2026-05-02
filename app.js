@@ -556,74 +556,30 @@
     const searchInput = document.getElementById("searchInput");
     if(!searchBtn || !searchInput) return;
 
-    // data-search-mode="page" が付いていないページは共通サイト内検索を使う
-    // data-search-mode="page" が付いている場合は「ページ内検索」専用なので、共通サイト内検索は付けない
+    // data-search-mode="page" が付いている場合は「ページ内検索」専用なので、
+    // 共通サイト内検索は付けない（hachi.js などが使う）。
     const searchMode = String(searchInput.dataset.searchMode || searchBtn.dataset.searchMode || "").toLowerCase();
     if(searchMode === "page") return;
 
-    // サイト内の簡易辞書（増やしてOK）
-    // ★黒歴史は入れない（ヒットさせない）
-    const siteIndex = [
-      { keywords: ["プロフィール", "profile", "tomoponz", "自己紹介"], url: "index.html" },
-      { keywords: ["おみくじ", "占い", "運勢", "omikuji", "大吉", "凶"], url: "omikuji.html" },
-      { keywords: ["診断", "shindan", "性格", "タイプ"], url: "shindan.html" },
-      { keywords: ["ネタ", "ギャラリー", "gallery", "ネタ置き場", "画像"], url: "gallery.html" },
-      { keywords: ["リンク", "links"], url: "links.html" },
-      { keywords: ["ゲーム", "games"], url: "games.html" },
-      { keywords: ["ミニゲーム", "minigames"], url: "minigames.html" },
-      { keywords: ["ドア", "door", "ワープ", "warp"], url: "door.html" },
-      { keywords: ["八百科事典", "hachi", "百科事典", "事典"], url: "hachi.html" },
-      { keywords: ["名言", "meigen", "迷言", "セリフ"], url: "meigen.html" },
-    ];
+    if(!window.SiteSearch || typeof window.SiteSearch.execute !== "function"){
+      console.warn("SiteSearch is not loaded. Skipping common site search.");
+      return;
+    }
+
+    const localUrl = (url) => {
+      if(window.SiteSearch.resolveDocumentUrl){
+        return window.SiteSearch.resolveDocumentUrl(url);
+      }
+      return url;
+    };
 
     const executeSearch = () => {
-      const query = (searchInput.value || "").trim();
-      if(!query) return;
-
-      // 裏コマンド（必要なら残す）
-      if(query === "kuro-n-tomo"){
-        alert("認証完了。裏付けされた記録を開示します。");
-        location.href = "deep.html";
-        return;
-      }
-
-      // ★黒歴史ワードは検索対象外（ヒットさせない＆Google検索にも投げない）
-      const blocked = /黒歴史|kuro/i;
-      if(blocked.test(query)){
-        alert("そのキーワードは検索対象外。");
-        return;
-      }
-
-      const lower = query.toLowerCase();
-      let found = null;
-
-      for(const page of siteIndex){
-        const hit = page.keywords.some(kw=>{
-          const k = String(kw).toLowerCase();
-          return k.includes(lower) || lower.includes(k);
-        });
-        if(hit){ found = page.url; break; }
-      }
-
-      if(found){
-        if(confirm(`「${query}」に関連するページが見つかった。\n移動する？`)){
-          location.href = found;
-        }
-        return;
-      }
-
-      // 見つからない場合：Googleサイト内検索に投げる（別タブ）
-      if(confirm(`「${query}」は主要ページ辞書に無かった。\nGoogleでサイト内検索する？`)){
-        let domain = window.location.hostname;
-        if(domain === "localhost" || domain === "127.0.0.1" || domain === ""){
-          domain = "tomoponz.github.io";
-        }
-        // ★黒歴史/裏ページはサイト内検索に出さない（通常ワード検索時の漏れ防止）
-        const exclude = " -inurl:kuro -inurl:deep";
-        const q = query + exclude;
-        const url = `https://www.google.com/search?q=site:${domain}+${encodeURIComponent(q)}`;
-        window.open(url, "_blank");
-      }
+      window.SiteSearch.execute({
+        query: searchInput.value || "",
+        navigate: (url) => { location.href = localUrl(url); },
+        hiddenNavigate: (url) => { location.href = localUrl(url); },
+        openUrl: (url) => window.open(url, "_blank", "noopener"),
+      });
     };
 
     searchBtn.addEventListener("click", executeSearch);
