@@ -316,7 +316,7 @@
       const payload = (text + "\n" + by).trim();
       try{
         await navigator.clipboard.writeText(payload);
-        alert("コピーしました");
+        window.showToast ? window.showToast("コピーしました", {type:"success"}) : console.log("コピーしました");
       }catch{
         const ta = document.createElement("textarea");
         ta.value = payload;
@@ -324,7 +324,7 @@
         ta.style.left = "-9999px";
         document.body.appendChild(ta);
         ta.focus(); ta.select();
-        try{ document.execCommand("copy"); alert("コピーしました"); }catch{ alert("コピー失敗"); }
+        try{ document.execCommand("copy"); window.showToast ? window.showToast("コピーしました", {type:"success"}) : console.log("コピーしました"); }catch{ window.showToast ? window.showToast("コピー失敗", {type:"error"}) : console.warn("コピー失敗"); }
         document.body.removeChild(ta);
       }
     }
@@ -348,10 +348,10 @@
       voidClick.addEventListener("click", () => {
         const code = prompt("【管理システム】\nアクセス権限が必要です。パスコードを入力してください。");
         if (String(code || "").trim() === SECRET_CODE) {
-          alert("認証完了。裏付けされた記録を開示します。");
+          window.showToast ? window.showToast("認証完了。裏付けされた記録を開示します。", {type:"success"}) : console.log("認証完了。");
           location.href = "deep.html"; 
         } else if (code) {
-          alert("エラー：記録にない個体です。監視レベルを引き上げます。");
+          window.showToast ? window.showToast("エラー：記録にない個体です。監視レベルを引き上げます。", {type:"error"}) : console.warn("認証失敗");
         }
       });
     }

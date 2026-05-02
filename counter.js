@@ -41,11 +41,9 @@
 
 
   function triggerKiribanEvent(num) {
-    alert(
-      `【🎊 祝・キリ番達成 🎊】\n` +
-      `おめでとうございます！あなたは ${num} 番目の訪問者です！\n` +
-      `この画面をスクリーンショットして店主に報告してください。`
-    );
+    const msg = `【🎊 祝・キリ番達成 🎊】 おめでとうございます！あなたは ${num} 番目の訪問者です！`;
+    if (window.showToast) window.showToast(msg, {type:"success", duration:5200});
+    else console.log(msg);
 
     document.body.style.transition = "all 2s ease";
     document.body.style.background = "linear-gradient(45deg, #ffd700, #ff8c00)";

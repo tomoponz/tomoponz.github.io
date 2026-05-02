@@ -176,7 +176,8 @@
   window.clearWarpLog = function () {
     localStorage.removeItem(WARP_LOG_KEY);
     renderWarpLogs();
-    alert("ログ消した。");
+    if(window.showToast) window.showToast("ログ消した。", {type:"success"});
+    else console.log("ログ消した。");
   };
 
   // =====================

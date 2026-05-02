@@ -192,6 +192,38 @@
     return !!safeRun(() => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches, false);
   }
 
+
+  function ensureToastContainer() {
+    let box = document.querySelector(".site-toast-container");
+    if (box) return box;
+    box = document.createElement("div");
+    box.className = "site-toast-container";
+    box.setAttribute("aria-live", "polite");
+    box.setAttribute("aria-atomic", "true");
+    document.body.appendChild(box);
+    return box;
+  }
+
+  function showToast(message, options = {}) {
+    const text = String(message || "").trim();
+    if (!text) return;
+    const type = String(options.type || "info");
+    const duration = Number.isFinite(options.duration) ? options.duration : 2600;
+    const box = ensureToastContainer();
+    const toast = document.createElement("div");
+    toast.className = "site-toast";
+    toast.dataset.type = type;
+    toast.textContent = text;
+    box.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add("is-visible"));
+    window.setTimeout(() => {
+      toast.classList.remove("is-visible");
+      window.setTimeout(() => toast.remove(), 220);
+    }, Math.max(1200, duration));
+  }
+
+  window.showToast = showToast;
+
   // ========== page meta (body class / dataset) ==========
   function applyPageMeta() {
     const body = document.body;
@@ -571,7 +603,7 @@
       const text = $id("shareBox")?.value || "";
       try{
         await navigator.clipboard.writeText(text);
-        alert("コピーした。友達に貼れ。");
+        showToast("コピーした。友達に貼れ。", {type:"success"});
       }catch(e){
         prompt("コピーして使って:", text);
       }
@@ -1248,8 +1280,9 @@
 
   function getAudio(src){
     if(!src) return null;
-    // スペース等を含むパスでも確実に読めるように URL エンコード（%20 などは二重化しない）
-    const safeSrc = encodeURI(src).replaceAll("#", "%23");
+    // resolveLocalAssetPath() 側で URL 化する。encodeURI() の再適用は %23 / %20 を二重化するため禁止。
+    const safeSrc = resolveLocalAssetPath(src);
+    if(!safeSrc) return null;
     if(sfxCache.has(safeSrc)) return sfxCache.get(safeSrc);
     try{
       const a = new Audio(safeSrc);

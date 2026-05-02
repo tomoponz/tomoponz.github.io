@@ -76,13 +76,13 @@
       <h1 class="h2">📝 書き込み</h1>
       <p class="muted">名前は任意。メッセージは200文字まで。</p>
 
-      <div class="bbsRow">
-        <input id="bbsName" class="bbsName" type="text" placeholder="名前（任意）">
-        <input id="bbsMsg"  class="bbsMsg"  type="text" placeholder="一言どうぞ！">
+      <div class="bbsForm">
+        <input id="bbsName" class="bbsName" type="text" placeholder="名前（任意）" maxlength="40">
+        <textarea id="bbsMsg" class="bbsMsg" rows="3" maxlength="200" placeholder="一言どうぞ！"></textarea>
+        <button id="bbsSubmit" class="btn primary" type="button">書き込む</button>
+        <button id="bbsReload" class="btn" type="button">更新</button>
         <!-- ★重要：id="bbsFile" -->
         <input id="bbsFile" class="bbsFile" type="file" accept="image/*">
-        <button id="bbsSubmit" class="btn primary">書き込む</button>
-        <button id="bbsReload" class="btn">更新</button>
       </div>
 
       <div id="bbsStatus" class="muted"></div>
@@ -101,6 +101,6 @@
   </main>
 
   <!-- 掲示板ロジック -->
-  <script src="bbs.js"></script>
+  <script defer src="bbs.js?v=20260502-uiux"></script>
 </body>
 </html>
