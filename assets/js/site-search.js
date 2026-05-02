@@ -6,6 +6,7 @@
   "use strict";
 
   const DEFAULT_DOMAIN = "tomoponz.github.io";
+  const SOUND_ROOM_URL = "https://tomoponz.github.io/mushroom/";
   const BLOCKED_QUERY_RE = /黒歴史|kuro|deep/i;
   const HIDDEN_COMMAND = ["kuro", "n", "tomo"].join("-");
   const HIDDEN_COMMAND_TARGET = "deep.html";
@@ -16,7 +17,7 @@
     { keywords: ["おみくじ", "占い", "運勢", "omikuji", "大吉", "凶"], url: "omikuji.html" },
     { keywords: ["診断", "shindan", "性格", "タイプ"], url: "shindan.html" },
     { keywords: ["ネタ", "ギャラリー", "gallery", "ネタ置き場", "画像"], url: "gallery.html" },
-    { keywords: ["音楽", "曲", "music", "sound", "sound room", "youtube", "ny", "NYnpsWrVGKg", "night pulse", "サウンドルーム"], url: "music-ny.html" },
+    { keywords: ["音楽", "曲", "music", "sound", "sound room", "youtube", "ny", "NYnpsWrVGKg", "night pulse", "サウンドルーム"], url: SOUND_ROOM_URL },
     { keywords: ["リンク", "links", "お気に入り", "おすすめ", "おすすめ動画"], url: "links.html" },
     { keywords: ["ゲーム", "games", "遊ぶ", "game"], url: "games.html" },
     { keywords: ["ミニゲーム", "minigames", "暇つぶし", "2048", "マイン", "マインスイーパ", "mine", "minigame"], url: "minigames.html" },
@@ -138,18 +139,18 @@
     card.id = "musicNyCard";
     card.innerHTML = `
       <h2>🎧 Sound Room</h2>
-      <p class="muted">好きな曲を流すための暗めのネオン部屋。YouTube公式埋め込みで表示。</p>
+      <p class="muted">好きな曲を流すための暗めのネオン部屋。別リポジトリのGitHub Pagesへ飛ぶ。</p>
 
       <div class="btnrow">
-        <a class="btn primary" href="music-ny.html">開く</a>
+        <a class="btn primary" href="${SOUND_ROOM_URL}">開く</a>
         <a class="btn" href="https://www.youtube.com/watch?v=NYnpsWrVGKg" target="_blank" rel="noopener">YouTube</a>
       </div>
 
       <hr class="sep">
-      <div class="note">歌詞・音源・公式素材は転載せず、ページ内では公式YouTube埋め込みだけを使う。</div>
+      <div class="note">本体ページは <code>tomoponz/mushroom</code> 側で管理。歌詞・音源・公式素材は転載せず、公式YouTube埋め込みだけを使う。</div>
     `;
 
-    const r122 = document.getElementById("musicNyCard") || Array.from(firstGrid.children).find((node) => {
+    const r122 = Array.from(firstGrid.children).find((node) => {
       return node.textContent && node.textContent.includes("R-122");
     });
 
