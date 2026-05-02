@@ -21,6 +21,40 @@
   const __IS_SHELL = (__FILE_LC === "shell.html");
   const __IS_404 = (__FILE_LC === "404.html");
 
+
+  // app.js 自身の読み込み位置を基準に、assets/ の場所を安定して解決する。
+  // defer 実行時やサブフォルダ配下（aero/ など）では document.currentScript が
+  // null になる環境があるため、script[src*="app.js"] も後ろから探索する。
+  function findAppScriptSrc() {
+    const current = document.currentScript;
+    if (current && current.src && /(?:^|\/)app\.js(?:[?#].*)?$/i.test(new URL(current.src, location.href).pathname + (current.src.includes("?") ? "?" : ""))) {
+      return current.src;
+    }
+
+    const scripts = Array.from(document.scripts || []);
+    for (let i = scripts.length - 1; i >= 0; i--) {
+      const raw = scripts[i].getAttribute("src") || "";
+      if (!raw) continue;
+      try {
+        const url = new URL(raw, location.href);
+        if (/(?:^|\/)app\.js$/i.test(url.pathname)) return url.href;
+      } catch (_) {
+        if (/(?:^|\/)app\.js(?:[?#].*)?$/i.test(raw)) return raw;
+      }
+    }
+    return "";
+  }
+
+  const APP_ASSET_BASE_URL = (() => {
+    try {
+      const src = findAppScriptSrc();
+      if (src) return new URL(".", src).href;
+      return new URL("./", location.href).href;
+    } catch (_) {
+      return "./";
+    }
+  })();
+
   // ページ遷移でSEが途切れる問題の回避：通常アクセスは shell.html に集約
   // （noshell=1 を付ければ従来挙動）
   // ※サブフォルダ配下（aero/ 等）はこのリダイレクトをしない（直開き時の誤爆防止）
@@ -52,7 +86,7 @@
     if (typeof window !== "undefined" && !window.__securityLiteInjected) {
       window.__securityLiteInjected = true;
       const sc = document.createElement("script");
-      sc.src = "assets/js/security-lite.js?v=20260222";
+      sc.src = new URL("assets/js/security-lite.js?v=20260222", APP_ASSET_BASE_URL).href;
       sc.defer = true;
       document.head.appendChild(sc);
     }
@@ -1188,11 +1222,6 @@
     });
   }
  // src -> HTMLAudioElement
-
-  const APP_ASSET_BASE_URL = safeRun(() => {
-    const src = document.currentScript && document.currentScript.src;
-    return src ? new URL(".", src).href : new URL("./", location.href).href;
-  }, "./");
 
   function resolveLocalAssetPath(src){
     const s = String(src || "").trim();
