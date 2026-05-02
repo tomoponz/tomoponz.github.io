@@ -92,6 +92,18 @@
     }
   } catch (_) {}
 
+  // ========== i18n (JP/EN language switcher) ==========
+  // 主要UIだけを英語化する軽量レイヤー。本文の完全翻訳ではなく、外国人が迷わない導線を優先。
+  try {
+    if (typeof window !== "undefined" && !window.__tomoponzI18nInjected) {
+      window.__tomoponzI18nInjected = true;
+      const sc = document.createElement("script");
+      sc.src = new URL("assets/js/i18n.js?v=20260502-1", APP_ASSET_BASE_URL).href;
+      sc.defer = true;
+      document.head.appendChild(sc);
+    }
+  } catch (_) {}
+
   // ========== utilities ==========
   const $id = (id) => document.getElementById(id);
 
