@@ -267,8 +267,8 @@
   </main>
 
   <script src="assets/js/site-search.js?v=20260502-1"></script>
-  <script src="app.js?v=20260502-2"></script>
-  <script src="quotes_base.js?v=20260223"></script>
+  <script src="app.js?v=20260502-3"></script>
+<script src="quotes_base.js?v=20260223"></script>
   <script src="user_quotes.js?v=20260223"></script>
   <script src="counter.js?v=20260222"></script>
 
@@ -316,7 +316,7 @@
       const payload = (text + "\n" + by).trim();
       try{
         await navigator.clipboard.writeText(payload);
-        window.showToast ? window.showToast("コピーしました", {type:"success"}) : console.log("コピーしました");
+        alert("コピーしました");
       }catch{
         const ta = document.createElement("textarea");
         ta.value = payload;
@@ -324,7 +324,7 @@
         ta.style.left = "-9999px";
         document.body.appendChild(ta);
         ta.focus(); ta.select();
-        try{ document.execCommand("copy"); window.showToast ? window.showToast("コピーしました", {type:"success"}) : console.log("コピーしました"); }catch{ window.showToast ? window.showToast("コピー失敗", {type:"error"}) : console.warn("コピー失敗"); }
+        try{ document.execCommand("copy"); alert("コピーしました"); }catch{ alert("コピー失敗"); }
         document.body.removeChild(ta);
       }
     }
@@ -348,10 +348,10 @@
       voidClick.addEventListener("click", () => {
         const code = prompt("【管理システム】\nアクセス権限が必要です。パスコードを入力してください。");
         if (String(code || "").trim() === SECRET_CODE) {
-          window.showToast ? window.showToast("認証完了。裏付けされた記録を開示します。", {type:"success"}) : console.log("認証完了。");
+          alert("認証完了。裏付けされた記録を開示します。");
           location.href = "deep.html"; 
         } else if (code) {
-          window.showToast ? window.showToast("エラー：記録にない個体です。監視レベルを引き上げます。", {type:"error"}) : console.warn("認証失敗");
+          alert("エラー：記録にない個体です。監視レベルを引き上げます。");
         }
       });
     }

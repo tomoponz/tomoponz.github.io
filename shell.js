@@ -39,6 +39,121 @@
     return path + u.search + (u.hash || "");
   }
 
+
+  const NAV_LABELS = {
+    "index.html": "プロフィール",
+    "omikuji.html": "おみくじ",
+    "shindan.html": "診断",
+    "gallery.html": "ネタ置き場",
+    "links.html": "リンク",
+    "games.html": "ゲーム",
+    "minigames.html": "ミニゲーム",
+    "door.html": "ドア",
+    "warp.html": "ワープ",
+    "hachi.html": "八百科事典",
+    "achievements.html": "実績",
+    "bbs.html": "足跡帳",
+    "tetris.html": "テトリス",
+    "roadmap.html": "ロードマップ",
+    "staff.html": "スタッフロール",
+    "sweetdeath.html": "甘き死よ",
+    "eva.html": "終劇",
+    "meigen.html": "名言",
+    "kuro.html": "黒歴史",
+    "404.html": "迷ひ道",
+    "aero/index.html": "Aero",
+    "vaporwave/index.html": "Vaporwave",
+    "dreamcore/index.html": "Dreamcore",
+    "liminal/index.html": "Liminal",
+  };
+
+  let currentFramePath = "";
+
+  function navPathOnly(raw){
+    let p = normalizeP(raw || "index.html");
+    try{
+      const u = new URL(p, location.href);
+      u.searchParams.delete("embed");
+      let path = (u.pathname || "/index.html").replace(/^\/+/, "").toLowerCase();
+      if(!path) path = "index.html";
+      if(path.endsWith("/")) path += "index.html";
+      return path;
+    }catch(_){
+      p = String(p || "index.html").split(/[?#]/)[0].replace(/^\/+/, "").toLowerCase();
+      if(!p) p = "index.html";
+      if(p.endsWith("/")) p += "index.html";
+      return p;
+    }
+  }
+
+  function navFileName(path){
+    return (String(path || "index.html").split("/").pop() || "index.html").toLowerCase();
+  }
+
+  function isNavMatch(linkHref, activePath){
+    const hrefPath = navPathOnly(linkHref || "index.html");
+    const activeFile = navFileName(activePath);
+    const hrefFile = navFileName(hrefPath);
+
+    return (
+      hrefPath === activePath ||
+      hrefFile === activeFile ||
+      (activeFile === "warp.html" && hrefFile === "door.html") ||
+      (activeFile === "minigames.html" && hrefFile === "games.html")
+    );
+  }
+
+  function updateShellNav(rawPath){
+    const activePath = navPathOnly(rawPath || currentFramePath || getPFromLocation());
+    currentFramePath = activePath;
+
+    const activeFile = navFileName(activePath);
+    const label = NAV_LABELS[activePath] || NAV_LABELS[activeFile] || "";
+
+    const sub = document.getElementById("brandSub") || document.querySelector(".brand small");
+    if(sub) sub.textContent = label;
+
+    let activeLink = null;
+    document.querySelectorAll(".navlinks a.chip[href]").forEach((a)=>{
+      const active = isNavMatch(a.getAttribute("href") || "", activePath);
+      a.classList.toggle("active", active);
+      if(active){
+        a.setAttribute("aria-current", "page");
+        activeLink = a;
+      }else{
+        a.removeAttribute("aria-current");
+      }
+    });
+
+    if(activeLink){
+      try{
+        activeLink.scrollIntoView({behavior:"smooth", inline:"center", block:"nearest"});
+      }catch(_){
+        try{ activeLink.scrollIntoView(false); }catch(__){}
+      }
+    }
+  }
+
+  function syncShellFromFrame(){
+    try{
+      const loc = frame.contentWindow && frame.contentWindow.location;
+      if(!loc || loc.origin !== location.origin) return;
+
+      const sp = new URLSearchParams(loc.search || "");
+      sp.delete("embed");
+      const qs = sp.toString();
+      const raw = (loc.pathname || "/index.html").replace(/^\/+/, "") + (qs ? ("?" + qs) : "") + (loc.hash || "");
+      const nextPath = navPathOnly(raw);
+      if(!nextPath || nextPath === navPathOnly(currentFramePath)) return;
+
+      currentFramePath = raw;
+      const shellQs = new URLSearchParams(location.search);
+      shellQs.set("p", raw);
+      history.replaceState({p: raw}, "", "shell.html?" + shellQs.toString());
+      updateShellNav(raw);
+    }catch(_){}
+  }
+
   function setFrame(p, push){
     const norm = normalizeP(p);
 
@@ -59,6 +174,7 @@
     }catch(_){ }
 
     
+    currentFramePath = norm;
     frame.src = withEmbed(norm);
 
     if(push){
@@ -66,7 +182,9 @@
       qs.set("p", norm);
       history.pushState({p:norm}, "", "shell.html?"+qs.toString());
     }
-    // nav 表示更新（app.js が window.setActiveNav を持ってるなら使う）
+
+    // shell 側のナビ表示は即時更新する。app.js 側の URLSearchParams キャッシュに依存しない。
+    updateShellNav(norm);
     try{
       if(typeof window.setActiveNav === "function") window.setActiveNav();
     }catch(_){}
@@ -162,6 +280,11 @@ if(d.type === "IMMERSION" && typeof d.active === "boolean"){
 
   window.addEventListener("popstate", ()=>{
     setFrame(getPFromLocation(), false);
+  });
+
+  frame.addEventListener("load", ()=>{
+    syncShellFromFrame();
+    updateShellNav(currentFramePath || getPFromLocation());
   });
 
 

@@ -151,7 +151,8 @@
     const file = getFileName(path);
     if (file !== "shell.html") return path.toLowerCase();
 
-    const target = __QS.get("p");
+    const liveQs = new URLSearchParams(location.search);
+    const target = liveQs.get("p");
     if (!target) return path.toLowerCase();
     const decoded = safeRun(() => decodeURIComponent(target), target);
     return normalizeRootPath(decoded).toLowerCase();
@@ -191,38 +192,6 @@
   function prefersReducedMotion() {
     return !!safeRun(() => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches, false);
   }
-
-
-  function ensureToastContainer() {
-    let box = document.querySelector(".site-toast-container");
-    if (box) return box;
-    box = document.createElement("div");
-    box.className = "site-toast-container";
-    box.setAttribute("aria-live", "polite");
-    box.setAttribute("aria-atomic", "true");
-    document.body.appendChild(box);
-    return box;
-  }
-
-  function showToast(message, options = {}) {
-    const text = String(message || "").trim();
-    if (!text) return;
-    const type = String(options.type || "info");
-    const duration = Number.isFinite(options.duration) ? options.duration : 2600;
-    const box = ensureToastContainer();
-    const toast = document.createElement("div");
-    toast.className = "site-toast";
-    toast.dataset.type = type;
-    toast.textContent = text;
-    box.appendChild(toast);
-    requestAnimationFrame(() => toast.classList.add("is-visible"));
-    window.setTimeout(() => {
-      toast.classList.remove("is-visible");
-      window.setTimeout(() => toast.remove(), 220);
-    }, Math.max(1200, duration));
-  }
-
-  window.showToast = showToast;
 
   // ========== page meta (body class / dataset) ==========
   function applyPageMeta() {
@@ -272,8 +241,10 @@
     const sub = document.getElementById("brandSub") || document.querySelector(".brand small");
     if (sub) sub.textContent = labelMap[path] || labelMap[file] || "";
 
+    let activeLink = null;
     document.querySelectorAll(".navlinks a.chip").forEach((a) => {
       a.classList.remove("active");
+      a.removeAttribute("aria-current");
       const href = ((a.getAttribute("href") || "").toLowerCase()).replace(/^\/+/, "");
 
       const isActive =
@@ -284,8 +255,18 @@
         // minigames は nav に直リンクが無いので「ゲーム」をアクティブにする
         (file === "minigames.html" && href === "games.html");
 
-      if (isActive) a.classList.add("active");
+      if (isActive) {
+        a.classList.add("active");
+        a.setAttribute("aria-current", "page");
+        activeLink = a;
+      }
     });
+
+    if (activeLink) {
+      try {
+        activeLink.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      } catch (_) {}
+    }
   }
 
 // 外部（shell.js）から呼べるように
@@ -603,7 +584,7 @@
       const text = $id("shareBox")?.value || "";
       try{
         await navigator.clipboard.writeText(text);
-        showToast("コピーした。友達に貼れ。", {type:"success"});
+        alert("コピーした。友達に貼れ。");
       }catch(e){
         prompt("コピーして使って:", text);
       }
@@ -1280,9 +1261,8 @@
 
   function getAudio(src){
     if(!src) return null;
-    // resolveLocalAssetPath() 側で URL 化する。encodeURI() の再適用は %23 / %20 を二重化するため禁止。
-    const safeSrc = resolveLocalAssetPath(src);
-    if(!safeSrc) return null;
+    // スペース等を含むパスでも確実に読めるように URL エンコード（%20 などは二重化しない）
+    const safeSrc = encodeURI(src).replaceAll("#", "%23");
     if(sfxCache.has(safeSrc)) return sfxCache.get(safeSrc);
     try{
       const a = new Audio(safeSrc);
