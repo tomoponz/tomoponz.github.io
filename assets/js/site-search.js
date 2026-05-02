@@ -16,6 +16,7 @@
     { keywords: ["おみくじ", "占い", "運勢", "omikuji", "大吉", "凶"], url: "omikuji.html" },
     { keywords: ["診断", "shindan", "性格", "タイプ"], url: "shindan.html" },
     { keywords: ["ネタ", "ギャラリー", "gallery", "ネタ置き場", "画像"], url: "gallery.html" },
+    { keywords: ["音楽", "曲", "music", "sound", "sound room", "youtube", "ny", "NYnpsWrVGKg", "night pulse", "サウンドルーム"], url: "music-ny.html" },
     { keywords: ["リンク", "links", "お気に入り", "おすすめ", "おすすめ動画"], url: "links.html" },
     { keywords: ["ゲーム", "games", "遊ぶ", "game"], url: "games.html" },
     { keywords: ["ミニゲーム", "minigames", "暇つぶし", "2048", "マイン", "マインスイーパ", "mine", "minigame"], url: "minigames.html" },
@@ -119,6 +120,47 @@
 
     return { status: "cancelled" };
   }
+
+  function getCurrentPageName() {
+    const path = String(window.location.pathname || "").split(/[?#]/)[0].replace(/^\/+/, "");
+    return (path.split("/").pop() || "index.html").toLowerCase();
+  }
+
+  function injectMusicCardIntoGallery() {
+    if (getCurrentPageName() !== "gallery.html") return;
+    if (document.getElementById("musicNyCard")) return;
+
+    const firstGrid = document.querySelector("main .grid2");
+    if (!firstGrid) return;
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.id = "musicNyCard";
+    card.innerHTML = `
+      <h2>🎧 Sound Room</h2>
+      <p class="muted">好きな曲を流すための暗めのネオン部屋。YouTube公式埋め込みで表示。</p>
+
+      <div class="btnrow">
+        <a class="btn primary" href="music-ny.html">開く</a>
+        <a class="btn" href="https://www.youtube.com/watch?v=NYnpsWrVGKg" target="_blank" rel="noopener">YouTube</a>
+      </div>
+
+      <hr class="sep">
+      <div class="note">歌詞・音源・公式素材は転載せず、ページ内では公式YouTube埋め込みだけを使う。</div>
+    `;
+
+    const r122 = document.getElementById("musicNyCard") || Array.from(firstGrid.children).find((node) => {
+      return node.textContent && node.textContent.includes("R-122");
+    });
+
+    if (r122 && r122.insertAdjacentElement) {
+      r122.insertAdjacentElement("afterend", card);
+    } else {
+      firstGrid.appendChild(card);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", injectMusicCardIntoGallery);
 
   window.SiteSearch = Object.freeze({
     pages: PAGES,
