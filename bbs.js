@@ -1,4 +1,4 @@
-// bbs.js（画像表示 修正版：Drive画像を確実に表示）
+// bbs.js
 // 接続先：Cloudflare Worker
 const API_URL = "https://tomoponz-bbs-proxy.yuto181130.workers.dev";
 
@@ -13,8 +13,50 @@ function getUid(){
   return uid;
 }
 
-function esc(s){
-  return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+function createEl(tag, attrs = {}, ...children){
+  const node = document.createElement(tag);
+  for(const [key, value] of Object.entries(attrs)){
+    if(value == null || value === false) continue;
+    if(key === "className") node.className = value;
+    else if(key === "text") node.textContent = value;
+    else if(key === "style" && typeof value === "object") Object.assign(node.style, value);
+    else node.setAttribute(key, String(value));
+  }
+  for(const child of children){
+    if(child == null) continue;
+    node.append(child instanceof Node ? child : document.createTextNode(String(child)));
+  }
+  return node;
+}
+
+function setListMessage(list, message){
+  list.replaceChildren(createEl("li", { className:"muted", text:message }));
+}
+
+function safeUrl(raw){
+  const value = String(raw || "").trim();
+  if(!value) return "";
+  try{
+    const url = new URL(value, location.href);
+    if(url.protocol !== "http:" && url.protocol !== "https:") return "";
+    return url.href;
+  }catch{
+    return "";
+  }
+}
+
+// Driveのuc URL → 画像として確実に返る thumbnail URL に変換
+function driveThumb(url){
+  const safe = safeUrl(url);
+  if(!safe) return "";
+  try{
+    const u = new URL(safe);
+    const id = u.searchParams.get("id");
+    if(!id) return safe;
+    return `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w2000`;
+  }catch{
+    return safe;
+  }
 }
 
 function fileToImage(file){
@@ -25,18 +67,6 @@ function fileToImage(file){
     img.onerror = (e)=>{ URL.revokeObjectURL(url); reject(e); };
     img.src = url;
   });
-}
-
-// Driveのuc URL → 画像として確実に返る thumbnail URL に変換
-function driveThumb(url){
-  try{
-    const u = new URL(url);
-    const id = u.searchParams.get("id");
-    if(!id) return url;
-    return `https://drive.google.com/thumbnail?id=${id}&sz=w2000`;
-  }catch{
-    return url;
-  }
 }
 
 // 長辺1280 / JPEG圧縮
@@ -68,61 +98,114 @@ async function compressToDataURL(file){
   return dataUrl;
 }
 
+function renderImageBlock(rawImgUrl){
+  const href = safeUrl(rawImgUrl);
+  if(!href) return null;
+
+  const src = driveThumb(href) || href;
+  const img = createEl("img", {
+    src,
+    alt:"投稿画像",
+    loading:"lazy",
+    style:{
+      maxWidth:"420px",
+      width:"100%",
+      maxHeight:"280px",
+      height:"auto",
+      objectFit:"cover",
+      borderRadius:"12px",
+      border:"1px solid rgba(255,255,255,.12)"
+    }
+  });
+
+  // 属性文字列ではなくプロパティに入れる。URLをHTMLへ連結しない。
+  img.addEventListener("error", () => {
+    if(img.dataset.fallbackTried === "1") return;
+    img.dataset.fallbackTried = "1";
+    img.src = href;
+  });
+
+  const link = createEl("a", { href, target:"_blank", rel:"noopener noreferrer" }, img);
+  return createEl("div", { style:{ marginTop:"8px" } }, link);
+}
+
+function renderBBSItem(item){
+  const li = createEl("li", {
+    style:{
+      marginBottom:"12px",
+      borderBottom:"1px dashed rgba(255,255,255,.12)",
+      paddingBottom:"10px"
+    }
+  });
+
+  const header = createEl("div", {
+    style:{
+      display:"flex",
+      gap:"10px",
+      alignItems:"baseline",
+      flexWrap:"wrap"
+    }
+  });
+
+  header.appendChild(createEl("b", {
+    text:item.name || "名無し",
+    style:{ color:"rgba(124,203,255,.95)" }
+  }));
+
+  if(item.tag){
+    header.appendChild(createEl("span", {
+      className:"chip",
+      text:item.tag,
+      style:{ opacity:".85" }
+    }));
+  }
+
+  header.appendChild(createEl("span", {
+    text:item.date || "",
+    style:{ fontSize:"11px", color:"rgba(255,255,255,.55)" }
+  }));
+
+  const body = createEl("div", {
+    text:item.message || "",
+    style:{
+      color:"rgba(234,241,255,.95)",
+      lineHeight:"1.55",
+      marginTop:"6px",
+      whiteSpace:"pre-wrap",
+      overflowWrap:"anywhere"
+    }
+  });
+
+  li.append(header, body);
+
+  const imageBlock = renderImageBlock(item.imgUrl);
+  if(imageBlock) li.appendChild(imageBlock);
+
+  return li;
+}
+
 async function loadBBS(){
   const list = $("bbsList");
   if(!list) return;
 
-  list.innerHTML = `<li class="muted">通信中…</li>`;
+  setListMessage(list, "通信中…");
   try{
     const res = await fetch(API_URL, { method:"GET" });
-    const data = await res.json();
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
 
-    list.innerHTML = "";
-    if(!data.length){
-      list.innerHTML = `<li class="muted">まだ書き込みはありません。</li>`;
+    const data = await res.json();
+    if(!Array.isArray(data) || !data.length){
+      setListMessage(list, "まだ書き込みはありません。");
       return;
     }
 
+    const frag = document.createDocumentFragment();
     for(const item of data){
-      const li = document.createElement("li");
-      li.style.marginBottom = "12px";
-      li.style.borderBottom = "1px dashed rgba(255,255,255,.12)";
-      li.style.paddingBottom = "10px";
-
-      const name = esc(item.name || "名無し");
-      const msg  = esc(item.message || "");
-      const date = esc(item.date || "");
-      const tag  = esc(item.tag || "");
-      const imgUrl = String(item.imgUrl || "").trim();
-
-      let imgHtml = "";
-      if(imgUrl){
-        const src = driveThumb(imgUrl);
-        // 画像が取れない場合の保険：imgUrl にフォールバック
-        imgHtml = `
-          <div style="margin-top:8px;">
-            <a href="${imgUrl}" target="_blank" rel="noopener">
-              <img src="${src}" alt="img"
-              style="max-width:420px; width:100%; max-height:280px; height:auto; object-fit:cover; border-radius:12px; border:1px solid rgba(255,255,255,.12);"
-              onerror="this.onerror=null; this.src='${imgUrl}';">
-            </a>
-          </div>
-        `;
-      }
-
-      li.innerHTML = `
-        <div style="display:flex; gap:10px; align-items:baseline; flex-wrap:wrap;">
-          <b style="color:rgba(124,203,255,.95);">${name}</b>
-          ${tag ? `<span class="chip" style="opacity:.85">${tag}</span>` : ""}
-          <span style="font-size:11px; color:rgba(255,255,255,.55);">${date}</span>
-        </div>
-        <div style="color:rgba(234,241,255,.95); line-height:1.55; margin-top:6px;">${msg}</div>
-        ${imgHtml}
-      `;
-      list.appendChild(li);
+      frag.appendChild(renderBBSItem(item || {}));
     }
+    list.replaceChildren(frag);
   }catch(e){
-    list.innerHTML = `<li class="muted">読み込みに失敗しました。</li>`;
+    setListMessage(list, "読み込みに失敗しました。");
   }
 }
 
@@ -143,8 +226,10 @@ async function submitBBS(){
 
   try{ window.playSfx && window.playSfx("bbsPost", 0.85, {local:true}); }catch(_){ }
 
-  btn.disabled = true;
-  btn.textContent = "送信中…";
+  if(btn){
+    btn.disabled = true;
+    btn.textContent = "送信中…";
+  }
   if(st) st.textContent = "";
 
   try{
@@ -180,7 +265,7 @@ async function submitBBS(){
       throw new Error(txt || "unknown");
     }
 
-    msgEl.value = "";
+    if(msgEl) msgEl.value = "";
     if(fileEl) fileEl.value = "";
     if(st) st.textContent = "投稿しました。";
 
@@ -189,8 +274,10 @@ async function submitBBS(){
     alert("送信に失敗: " + (e?.message || e));
     if(st) st.textContent = "送信に失敗しました。";
   }finally{
-    btn.disabled = false;
-    btn.textContent = "書き込む";
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = "書き込む";
+    }
   }
 }
 
