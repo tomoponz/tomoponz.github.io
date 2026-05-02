@@ -339,14 +339,15 @@
     // 1. F12 コンソールへの語りかけ（パスコードのヒント）
     console.log("%c[SYSTEM] 端末からのアクセスを検知。監視プロトコルを開始します。", "color: #888; font-size: 11px;");
     console.log("%c[WARNING] 当サイトのソースコードを閲覧している方へ。これ以上の深入りは推奨しません。", "color: #ff0000; font-weight: bold; font-size: 14px;");
-    console.log("%c 機密領域アクセスコード: 'kuro-n-tomo' ", "color: #000; background-color: #000; padding: 2px;");
+    console.log("%c[HINT] 機密領域は通常検索には表示されません。", "color: #666; font-size: 11px;");
 
     // 2. 隠しログインの処理（左下クリック）
+    const SECRET_CODE = ["kuro", "n", "tomo"].join("-");
     const voidClick = document.getElementById("voidClick");
     if (voidClick) {
       voidClick.addEventListener("click", () => {
         const code = prompt("【管理システム】\nアクセス権限が必要です。パスコードを入力してください。");
-        if (code === "kuro-n-tomo") {
+        if (String(code || "").trim() === SECRET_CODE) {
           alert("認証完了。裏付けされた記録を開示します。");
           location.href = "deep.html"; 
         } else if (code) {
@@ -355,75 +356,7 @@
       });
     }
 
-    // 3. ハイブリッドサイト内検索
-    const searchBtn = document.getElementById("searchBtn");
-    const searchInput = document.getElementById("searchInput");
-
-    // サイト内の簡易案内辞書（※黒歴史は削除済）
-    const siteIndex = [
-      { keywords: ["プロフィール", "profile", "名前", "tomoponz", "自己紹介"], url: "index.html" },
-      { keywords: ["おみくじ", "占い", "運勢", "omikuji", "大吉", "凶"], url: "omikuji.html" },
-      { keywords: ["診断", "shindan", "性格", "タイプ"], url: "shindan.html" },
-      { keywords: ["ネタ", "ギャラリー", "gallery", "ネタ置き場", "画像"], url: "gallery.html" },
-      { keywords: ["リンク", "links", "お気に入り", "おすすめ"], url: "links.html" },
-      { keywords: ["ゲーム", "games", "遊ぶ", "game"], url: "games.html" },
-      { keywords: ["ミニゲーム", "minigames", "暇つぶし", "minigame"], url: "minigames.html" },
-      { keywords: ["ドア", "door", "ワープ", "warp", "移動"], url: "door.html" },
-      { keywords: ["八百科事典", "hachi", "事典", "辞典", "百科事典"], url: "hachi.html" },
-      { keywords: ["名言", "meigen", "迷言", "セリフ", "言葉"], url: "meigen.html" }
-    ];
-
-    if (searchBtn && searchInput) {
-      const executeSearch = () => {
-        const query = searchInput.value.trim();
-        if (query === "") return;
-
-        // 【裏コード】
-        if (query === "kuro-n-tomo") {
-          alert("認証完了。裏付けされた記録を開示します。");
-          location.href = "deep.html"; 
-          return;
-        }
-
-        // ★黒歴史ワードは検索対象外（ヒットさせない＆Google検索にも投げない）
-        const blocked = /黒歴史|kuro/i;
-        if (blocked.test(query)) {
-          alert("そのキーワードは検索対象外。");
-          return;
-        }
-
-        // 【簡易ナビゲーション】
-        const lowerQuery = query.toLowerCase();
-        let foundUrl = null;
-        for (const page of siteIndex) {
-          if (page.keywords.some(kw => kw.includes(lowerQuery) || lowerQuery.includes(kw))) {
-            foundUrl = page.url;
-            break;
-          }
-        }
-
-        if (foundUrl) {
-          if (confirm(`「${query}」に関連するページが見つかりました。\n移動しますか？`)) {
-            location.href = foundUrl;
-          }
-        } else {
-          // 【Googleサイト内検索】
-          if (confirm(`サイト内の主要ページに「${query}」は見つかりませんでした。\nGoogleを使用してサイト全体から検索しますか？`)) {
-            let domain = window.location.hostname;
-            if (domain === "localhost" || domain === "127.0.0.1" || domain === "") {
-              domain = "tomoponz.github.io"; // 本番ドメイン
-            }
-            const googleSearchUrl = `https://www.google.com/search?q=site:${domain}+${encodeURIComponent(query)}`;
-            window.open(googleSearchUrl, "_blank");
-          }
-        }
-      };
-
-      searchBtn.addEventListener("click", executeSearch);
-      searchInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") executeSearch();
-      });
-    }
+    // 3. サイト内検索は assets/js/site-search.js + app.js に集約済み。
 
 // 4. 絶対に押してはいけないボタンの処理（絶望ホラー演出版・初期音声追加）
     const dangerBtn = document.getElementById("dangerBtn");
@@ -710,6 +643,7 @@
       });
     }
   </script>
+  <script src="danger_crack_patch.js?v=20260502-2"></script>
     
 </body>
 </html>

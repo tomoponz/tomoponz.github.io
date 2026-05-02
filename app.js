@@ -605,37 +605,37 @@
   // ※フォルダ運用にしたら、値を assets/sfx/... に変えるだけ
     const SFX_MAP = {
     // クリック/遷移
-    neta: "/assets/sfx/nc170231_nnnn,nanikore.wav",
-    profile: "/assets/sfx/nc316178_naniwositennnou.mp3",
-    hachi: "/assets/sfx/nc245505_deeeeeeeeenn.mp3",
-    shindan: "/assets/sfx/nc170234_honntokanaa.wav",
+    neta: "assets/sfx/nc170231_nnnn,nanikore.wav",
+    profile: "assets/sfx/nc316178_naniwositennnou.mp3",
+    hachi: "assets/sfx/nc245505_deeeeeeeeenn.mp3",
+    shindan: "assets/sfx/nc170234_honntokanaa.wav",
 
-    achievements: "/assets/sfx/nc93329_xfairu.wav",
-    games: "/assets/sfx/nc108262_RSEonngennbann_hosinoka-bixi_gekitotugurumere-su.mp3",
+    achievements: "assets/sfx/nc93329_xfairu.wav",
+    games: "assets/sfx/nc108262_RSEonngennbann_hosinoka-bixi_gekitotugurumere-su.mp3",
 
     // BBS
-    bbsPost: "/assets/sfx/nc26792_su-pa-marioburaza-zunokoinnonn#U3010famikonn#U3011.mp3",
+    bbsPost: "assets/sfx/nc26792_su-pa-marioburaza-zunokoinnonn#U3010famikonn#U3011.mp3",
 
     // おみくじ
-    omikujiResult: "/assets/sfx/nc64483_detaxa.wav",
+    omikujiResult: "assets/sfx/nc64483_detaxa.wav",
 
     // ミニゲーム
-    msBoom: "/assets/sfx/nc288712_kannkyouhakaihakimotiizoi(BGM delete).mp3",
-    g2048Stuck: "/assets/sfx/nc38022_warattehaikenai#U3010dede-nn#U3011koukaonn.mp3",
+    msBoom: "assets/sfx/nc288712_kannkyouhakaihakimotiizoi(BGM delete).mp3",
+    g2048Stuck: "assets/sfx/nc38022_warattehaikenai#U3010dede-nn#U3011koukaonn.mp3",
 
     // 隠し/演出
-    doorWarp: "/assets/sfx/nc126285_doragonnbo-ru_syunnkannidounokoukaonn.wav",
-    konamiKuro: "/assets/sfx/nc453817_kissyo,nanndewakarunndayo(GetouSuguru).wav",
-    sealUnlock: "/assets/sfx/nc62053_yaroubuxtukorositeyaruxu.wav",
-    nigasanai: "/assets/sfx/nigasanai.wav",
-    yarimasunee: "/assets/sfx/nc116455_yarimasunee.wav",
+    doorWarp: "assets/sfx/nc126285_doragonnbo-ru_syunnkannidounokoukaonn.wav",
+    konamiKuro: "assets/sfx/nc453817_kissyo,nanndewakarunndayo(GetouSuguru).wav",
+    sealUnlock: "assets/sfx/nc62053_yaroubuxtukorositeyaruxu.wav",
+    nigasanai: "assets/sfx/nigasanai.wav",
+    yarimasunee: "assets/sfx/nc116455_yarimasunee.wav",
 
     // Aero
-    aeroPlay: "/assets/sfx/nc28445_yaranaika_se_koukaonn.mp3",
-    aeroTrack: "/assets/sfx/nc123011_uiiissudo-mosyamude-su.mp3",
+    aeroPlay: "assets/sfx/nc28445_yaranaika_se_koukaonn.mp3",
+    aeroTrack: "assets/sfx/nc123011_uiiissudo-mosyamude-su.mp3",
 
     // 既存
-    osuna: "/assets/sfx/nanikore.wav",
+    osuna: "assets/sfx/nanikore.wav",
   };
 
   // SFX volume overrides (the file itself is loud, so tune it here)
@@ -809,7 +809,7 @@
 
   // ========== "To Be Continued" overlay (all achievements complete) ==========
   const TBC_PLAYED_KEY = "tbc_played";
-  const TBC_VIDEO_SRC = "/assets/sfx/nc204179_To_Be_Continued.mp4";
+  const TBC_VIDEO_SRC = "assets/sfx/nc204179_To_Be_Continued.mp4";
   let __tbcLaunching = false;
 
   // During the TBC overlay, all other sounds must be silent (click SFX, BGM, etc.).
@@ -958,7 +958,7 @@
     }
 
     const video = document.createElement("video");
-    video.src = TBC_VIDEO_SRC;
+    video.src = resolveLocalAssetPath(TBC_VIDEO_SRC);
     video.playsInline = true;
     video.muted = true; // start muted for autoplay policy
     video.volume = 0.95;
@@ -1189,12 +1189,32 @@
   }
  // src -> HTMLAudioElement
 
-  function resolveSfxSrc(keyOrPath){
-    const s = (keyOrPath || "").trim();
+  const APP_ASSET_BASE_URL = safeRun(() => {
+    const src = document.currentScript && document.currentScript.src;
+    return src ? new URL(".", src).href : new URL("./", location.href).href;
+  }, "./");
+
+  function resolveLocalAssetPath(src){
+    const s = String(src || "").trim();
     if(!s) return "";
-    // パスっぽい/拡張子があるなら、そのまま使う
-    if(s.includes("/") || /\.(mp3|wav|ogg)$/i.test(s)) return s;
-    return SFX_MAP[s] || "";
+    if(/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(s)) return s;
+
+    // ファイル名に # が含まれる素材があるため、URLのfragment扱いを防ぐ。
+    const safePath = s.replaceAll("#", "%23");
+
+    if(safePath.startsWith("/")){
+      if(location.protocol === "file:") return new URL(safePath.replace(/^\/+/, ""), APP_ASSET_BASE_URL).href;
+      return safePath;
+    }
+
+    return new URL(safePath, APP_ASSET_BASE_URL).href;
+  }
+
+  function resolveSfxSrc(keyOrPath){
+    const s = String(keyOrPath || "").trim();
+    if(!s) return "";
+    const src = (s.includes("/") || /\.(mp3|wav|ogg|m4a|mp4)$/i.test(s)) ? s : (SFX_MAP[s] || "");
+    return resolveLocalAssetPath(src);
   }
 
   function getAudio(src){
@@ -1911,7 +1931,7 @@ function initDangerEscalation(){
           }
         }catch(_){ }
         try{
-          const se = new Audio(encodeURI("assets/sfx/windows error sound.m4a"));
+          const se = new Audio(encodeURI(resolveLocalAssetPath("assets/sfx/windows error sound.m4a")));
           se.volume = 0.6;
           se.muted = (typeof getAudioEnabled === "function") ? (!getAudioEnabled()) : false;
           se.playbackRate = Math.max(0.2, 1.0 - (errorCount * 0.02) + (Math.random() * 0.2 - 0.1));
