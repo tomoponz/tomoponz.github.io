@@ -61,70 +61,120 @@
   // ========== utilities ==========
   const $id = (id) => document.getElementById(id);
 
+  function safeRun(fn, fallback) {
+    try { return fn(); } catch (_) { return fallback; }
+  }
+
   function todayKey() {
     const d = new Date();
-    return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+    return [d.getFullYear(), d.getMonth() + 1, d.getDate()].join("-");
   }
-  function weightedPick(pool) {
-    const total = pool.reduce((s, x) => s + x.w, 0);
-    let r = Math.random() * total;
-    for (const item of pool) {
-      r -= item.w;
-      if (r <= 0) return item;
-    }
-    return pool[0];
-  }
+
   function clamp(n, a, b) {
     return Math.max(a, Math.min(b, n));
   }
 
+  function randomIndex(length) {
+    return Math.floor(Math.random() * length);
+  }
+
+
+  function pickOne(v) {
+    if (Array.isArray(v) && v.length) return v[randomIndex(v.length)];
+    return v;
+  }
+
+  function weightedPick(pool) {
+    const total = pool.reduce((sum, item) => sum + item.w, 0);
+    let rest = Math.random() * total;
+    for (const item of pool) {
+      rest -= item.w;
+      if (rest <= 0) return item;
+    }
+    return pool[0];
+  }
+
+  function parseJson(raw, fallback) {
+    if (!raw) return fallback;
+    try { return JSON.parse(raw); } catch (_) { return fallback; }
+  }
+
+  function readStorageJson(key, fallbackFactory) {
+    const fallback = typeof fallbackFactory === "function" ? fallbackFactory() : fallbackFactory;
+    return parseJson(safeRun(() => localStorage.getItem(key), ""), fallback);
+  }
+
+  function writeStorageJson(key, value) {
+    safeRun(() => localStorage.setItem(key, JSON.stringify(value)), undefined);
+  }
+
+  function normalizeRootPath(path) {
+    return String(path || "index.html").split(/[?#]/)[0].replace(/^\/+/, "") || "index.html";
+  }
+
+  function currentPagePath() {
+    const path = normalizeRootPath(location.pathname || "/index.html");
+    const file = getFileName(path);
+    if (file !== "shell.html") return path.toLowerCase();
+
+    const target = __QS.get("p");
+    if (!target) return path.toLowerCase();
+    const decoded = safeRun(() => decodeURIComponent(target), target);
+    return normalizeRootPath(decoded).toLowerCase();
+  }
+
+  function getFileName(path) {
+    return (String(path || "index.html").split("/").pop() || "index.html").toLowerCase();
+  }
+
+  function getBaseName(path) {
+    return getFileName(path).replace(/\.html?$/i, "") || "index";
+  }
+
+  function postMessageBestEffort(target, payload, origin = location.origin) {
+    if (!target || !target.postMessage) return false;
+    try { target.postMessage(payload, origin); return true; } catch (_) {}
+    try { target.postMessage(payload, "*"); return true; } catch (_) {}
+    return false;
+  }
+
+  function stopAudioElement(media, reset = true) {
+    if (!media) return;
+    try { media.pause(); if (reset) media.currentTime = 0; } catch (_) {}
+  }
+
+  function muteOrStopMedia(media, enabled) {
+    try {
+      media.muted = !enabled;
+      if (!enabled) stopAudioElement(media);
+    } catch (_) {}
+  }
+
+  function forEachMedia(selector, callback) {
+    safeRun(() => document.querySelectorAll(selector).forEach(callback), undefined);
+  }
+
+  function prefersReducedMotion() {
+    return !!safeRun(() => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches, false);
+  }
+
   // ========== page meta (body class / dataset) ==========
-  function applyPageMeta(){
-    try{
-      // 通常は location.pathname から判定。shell は ?p= の中身で判定
-      let rel = (location.pathname || "/index.html").replace(/^\/+/, "") || "index.html";
-      const fileLc = (rel.split("/").pop() || "index.html").toLowerCase();
-      if(fileLc === "shell.html"){
-        const p = new URLSearchParams(location.search).get("p");
-        if(p){
-          try{
-            const decoded = decodeURIComponent(p);
-            const pPath = (decoded.split(/[?#]/)[0] || "").replace(/^\/+/, "");
-            if(pPath) rel = pPath;
-          }catch(_){}
-        }
-      }
-      const baseFile = (rel.split("/").pop() || "index.html").toLowerCase();
-      const base = baseFile.replace(/\.html?$/i,"") || "index";
-      if(document.body){
-        document.body.dataset.page = base;
-        document.body.classList.add("page-" + base);
-        if(base === "index") document.body.classList.add("home");
-      }
-    }catch(_){}
+  function applyPageMeta() {
+    const body = document.body;
+    if (!body) return;
+
+    const base = getBaseName(currentPagePath());
+    body.dataset.page = base;
+    body.classList.add("page-" + base);
+    if (base === "index") body.classList.add("home");
   }
 
 
   // ========== NAV (統一) ==========
   function setActiveNav() {
     // path は "aero/index.html" のようにディレクトリ込みで保持
-    let path = (location.pathname.replace(/^\/+/, "") || "index.html").toLowerCase();
-    let file = (path.split("/").pop() || "index.html").toLowerCase();
-
-    // shell.html は ?p= で中身が変わるので、そのパスで表示判定
-    if(file === "shell.html"){
-      const p = new URLSearchParams(location.search).get("p");
-      if(p){
-        try{
-          const decoded = decodeURIComponent(p);
-          const pPath = (decoded.split(/[?#]/)[0] || "").replace(/^\/+/, "");
-          if(pPath){
-            path = pPath.toLowerCase();
-            file = (pPath.split("/").pop() || "index.html").toLowerCase();
-          }
-        }catch(_){}
-      }
-    }
+    const path = currentPagePath();
+    const file = getFileName(path);
 
     const labelMap = {
       "index.html": "プロフィール",
@@ -258,18 +308,12 @@
   ];
 
 
-
-function pickOne(v){
-  if(Array.isArray(v) && v.length) return v[Math.floor(Math.random()*v.length)];
-  return v;
-}
-
-function resolveOmikujiItem(item){
-  // store resolved msg/tips so daily result is stable
-  const msg = pickOne(item.msgs || item.msg);
-  const tips = pickOne(item.tipsList || item.tips);
-  return { ...item, msg, tips };
-}
+  function resolveOmikujiItem(item) {
+    // store resolved msg/tips so daily result is stable
+    const msg = pickOne(item.msgs || item.msg);
+    const tips = pickOne(item.tipsList || item.tips);
+    return { ...item, msg, tips };
+  }
 
   function showOmikuji(picked) {
     const box = $id("omikujiBox");
@@ -648,8 +692,8 @@ function resolveOmikujiItem(item){
 
   // 長いナビ音（リンク/ゲームなど）は「別ページへ移動したら停止」したい
   const LONG_NAV_SFX_KEYS = new Set(["games","achievements"]);
-  function __stopAudio(a){
-    try{ a.pause(); a.currentTime = 0; }catch(_){ }
+  function __stopAudio(a) {
+    stopAudioElement(a);
   }
   function stopLongNavSfxFor(nextPage){
     try{
@@ -674,23 +718,25 @@ function resolveOmikujiItem(item){
   // 目的：サーバ無しで「探索したくなる」実績システムを追加
   const ACH_KEY = "tomoponz_ach_v1";
 
-  function __achLoad(){
-    try{
-      const raw = localStorage.getItem(ACH_KEY);
-      if(!raw) return {v:1, pages:{}, counters:{}, unlocked:{}};
-      const o = JSON.parse(raw);
-      if(!o || typeof o !== "object") return {v:1, pages:{}, counters:{}, unlocked:{}};
-      o.v = 1;
-      o.pages = (o.pages && typeof o.pages === "object") ? o.pages : {};
-      o.counters = (o.counters && typeof o.counters === "object") ? o.counters : {};
-      o.unlocked = (o.unlocked && typeof o.unlocked === "object") ? o.unlocked : {};
-      return o;
-    }catch(_){
-      return {v:1, pages:{}, counters:{}, unlocked:{}};
-    }
+  function createAchievementState() {
+    return { v: 1, pages: {}, counters: {}, unlocked: {} };
   }
-  function __achSave(s){
-    try{ localStorage.setItem(ACH_KEY, JSON.stringify(s)); }catch(_){ }
+
+  function ensureObject(value, fallback) {
+    return value && typeof value === "object" ? value : fallback;
+  }
+
+  function __achLoad() {
+    const o = ensureObject(readStorageJson(ACH_KEY, createAchievementState), createAchievementState());
+    o.v = 1;
+    o.pages = ensureObject(o.pages, {});
+    o.counters = ensureObject(o.counters, {});
+    o.unlocked = ensureObject(o.unlocked, {});
+    return o;
+  }
+
+  function __achSave(s) {
+    writeStorageJson(ACH_KEY, s);
   }
   function __achInc(key, delta){
     const s = __achLoad();
@@ -852,11 +898,7 @@ function resolveOmikujiItem(item){
 
     // If in iframe, ask parent(shell) to play it.
     if(__IS_EMBED){
-      let sent = false;
-      try{ window.parent && window.parent.postMessage({type:"TBC_PLAY"}, location.origin); sent = true; }catch(_){ }
-      if(!sent){
-        try{ window.parent && window.parent.postMessage({type:"TBC_PLAY"}, "*"); sent = true; }catch(_){ }
-      }
+      const sent = postMessageBestEffort(window.parent, {type:"TBC_PLAY"});
       if(sent){
         // allow retry if something blocked it (origin mismatch, etc.)
         setTimeout(()=>{ try{ __tbcLaunching = false; }catch(_){ } }, 1200);
@@ -875,23 +917,12 @@ function resolveOmikujiItem(item){
     // Hard-mute everything else while the overlay is active.
     try{ __setAudioExclusive(true); }catch(_){ }
     // Stop any currently playing sounds (SFX/BGM/video) before starting TBC.
-    try{
-      document.querySelectorAll("audio,video").forEach(m=>{
-        try{ m.pause(); m.currentTime = 0; }catch(_){ }
-      });
-    }catch(_){ }
-    try{
+    forEachMedia("audio,video", (media) => stopAudioElement(media));
+    safeRun(() => {
       // cached SFX (Audio objects) are not in DOM; stop all of them
-      if(typeof sfxCache !== "undefined"){
-        for(const a of sfxCache.values()){
-          try{ a.pause(); a.currentTime = 0; }catch(_){ }
-        }
-      }
-    }catch(_){ }
-    try{
-      const prev = window.__longNavSfxAudio;
-      if(prev){ prev.pause(); prev.currentTime = 0; }
-    }catch(_){ }
+      for (const audio of sfxCache.values()) stopAudioElement(audio);
+    }, undefined);
+    stopAudioElement(window.__longNavSfxAudio);
     // Also stop media inside iframe (shell mode)
     try{
       const f = document.getElementById("viewFrame");
@@ -1118,24 +1149,12 @@ function resolveOmikujiItem(item){
     try{ document.documentElement.classList.toggle("audioOff", !on); }catch(_){ }
 
     // pause/mute in-page media tags
-    try{
-      document.querySelectorAll("audio,video").forEach(m=>{
-        try{
-          m.muted = !on;
-          if(!on){ m.pause(); m.currentTime = 0; }
-        }catch(_){ }
-      });
-    }catch(_){ }
+    forEachMedia("audio,video", (media) => muteOrStopMedia(media, on));
 
     // stop cached SFX
-    try{
-      for(const a of sfxCache.values()){
-        try{
-          a.muted = !on;
-          if(!on){ a.pause(); a.currentTime = 0; }
-        }catch(_){ }
-      }
-    }catch(_){ }
+    safeRun(() => {
+      for (const audio of sfxCache.values()) muteOrStopMedia(audio, on);
+    }, undefined);
 
     // A-Frame sound components (best-effort)
     try{
@@ -1161,12 +1180,7 @@ function resolveOmikujiItem(item){
     }catch(_){ }
 
     // stop long navigation SFX immediately when turning off
-    if(!on){
-      try{
-        const prev = window.__longNavSfxAudio;
-        if(prev){ prev.pause(); prev.currentTime = 0; }
-      }catch(_){ }
-    }
+    if (!on) stopAudioElement(window.__longNavSfxAudio);
 
     // update toggle button (shell only)
     const btn = document.getElementById("audioToggle");
@@ -1179,22 +1193,16 @@ function resolveOmikujiItem(item){
   // ========== stop media (BGM) ==========
   // 目的：shell(iframe方式)でページを切り替えるとき、BGMだけは即停止させる
   // ※SEは短いので基本そのまま。ループしている音だけ止める。
-  function stopAllMedia(){
+  function stopAllMedia() {
     // stop in-page media
-    try{
-      document.querySelectorAll("audio,video").forEach(m=>{
-        try{ m.pause(); m.currentTime = 0; }catch(_){ }
-      });
-    }catch(_){ }
+    forEachMedia("audio,video", (media) => stopAudioElement(media));
 
     // stop looped SFX (treat as BGM)
-    try{
-      for(const a of sfxCache.values()){
-        try{
-          if(a && a.loop){ a.pause(); a.currentTime = 0; }
-        }catch(_){ }
+    safeRun(() => {
+      for (const audio of sfxCache.values()) {
+        if (audio && audio.loop) stopAudioElement(audio);
       }
-    }catch(_){ }
+    }, undefined);
   }
   window.stopAllMedia = stopAllMedia;
 
@@ -1219,12 +1227,8 @@ function resolveOmikujiItem(item){
       const next = !getAudioEnabled();
       setAudioEnabled(next);
       // iframeにも即反映（storageイベントが効かないブラウザ対策）
-      try{
-        const f = document.getElementById("viewFrame");
-        if(f && f.contentWindow){
-          f.contentWindow.postMessage({type:"AUDIO", enabled: next}, location.origin);
-        }
-      }catch(_){ }
+      const f = document.getElementById("viewFrame");
+      if (f && f.contentWindow) postMessageBestEffort(f.contentWindow, {type:"AUDIO", enabled: next});
     });
   }
  // src -> HTMLAudioElement
@@ -1487,11 +1491,8 @@ function resolveOmikujiItem(item){
       }
     }
 
-    function postToParent(cmd){
-      try{ window.parent && window.parent.postMessage({type:"MUSIC", cmd, playlist:PL}, location.origin); return true; }catch(_){
-        try{ window.parent && window.parent.postMessage({type:"MUSIC", cmd, playlist:PL}, "*"); return true; }catch(__){}
-      }
-      return false;
+    function postToParent(cmd) {
+      return postMessageBestEffort(window.parent, {type:"MUSIC", cmd, playlist:PL});
     }
 
     function ensureStandaloneInit(){
@@ -1667,21 +1668,13 @@ function resolveOmikujiItem(item){
           if(u.origin !== location.origin) return;
 
           e.preventDefault();
-          try{
-            window.parent && window.parent.postMessage({type:"NAV", href:u.href, key:key||""}, location.origin);
-          }catch(_){
-            try{ window.parent && window.parent.postMessage({type:"NAV", href:u.href, key:key||""}, "*"); }catch(__){}
-          }
+          postMessageBestEffort(window.parent, {type:"NAV", href:u.href, key:key||""});
           return;
         }
 
         // リンクじゃないクリックSEは親に鳴らしてもらう
         if(key){
-          try{
-            window.parent && window.parent.postMessage({type:"SFX", key:key}, location.origin);
-          }catch(_){
-            try{ window.parent && window.parent.postMessage({type:"SFX", key:key}, "*"); }catch(__){}
-          }
+          postMessageBestEffort(window.parent, {type:"SFX", key:key});
         }
         return;
       }
@@ -1763,21 +1756,14 @@ function initDangerEscalation(){
 
   const isMobile = (window.matchMedia && window.matchMedia("(max-width:780px)").matches) || ("ontouchstart" in window);
 
-  function postImmersion(active){
-    try{
-      if(window.top !== window.self){
-        window.parent.postMessage({type:"IMMERSION", active: !!active}, location.origin);
-      }
-    }catch(_){}
+  function postImmersion(active) {
+    if (window.top !== window.self) {
+      postMessageBestEffort(window.parent, {type:"IMMERSION", active: !!active});
+    }
   }
 
-  function navTo(href){
-    try{
-      if(window.top !== window.self){
-        window.parent.postMessage({type:"NAV", href: href}, location.origin);
-        return;
-      }
-    }catch(_){}
+  function navTo(href) {
+    if (window.top !== window.self && postMessageBestEffort(window.parent, {type:"NAV", href})) return;
     location.href = href;
   }
 
@@ -2075,7 +2061,7 @@ function initDangerEscalation(){
   function initHomeHackerFx(){
     if(!document.body.classList.contains("home")) return;
 
-    const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduced = prefersReducedMotion();
     const sleep = (ms)=> new Promise(r=>setTimeout(r, ms));
     const rand = (a,b)=> Math.floor(a + Math.random()*(b-a+1));
 
@@ -2154,7 +2140,7 @@ function initDangerEscalation(){
 
 
   function initEvaMotionFx(){
-    const reduced = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    const reduced = prefersReducedMotion();
 
     const shellClock = document.getElementById("shellClock");
     if(shellClock){
