@@ -3,440 +3,469 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>R-122｜Gate</title>
-  <meta name="description" content="R-122 年齢確認ゲート" />
+  <title>R-122｜ParnHub</title>
+  <meta name="description" content="R-122 バイオ動画アーカイブ" />
 
-  <link rel="stylesheet" href="style.css?v=20260223">
+  <link rel="stylesheet" href="style.css?v=20260502-navfix">
   <script defer src="assets/js/site-search.js?v=20260502-1"></script>
   <script defer src="app.js?v=20260502-3"></script>
 
   <style>
     :root{
-      --bg:#000;
-      --panel:#0b0b0b;
-      --panel2:#101010;
-      --bd:#2a2a2a;
-      --bd2:#3a3a3a;
-      --tx:#f2f2f2;
-      --mut:#cfcfcf;
-      --mut2:#a8a8a8;
-      --acc:#f90;
-      --acc2:#ffb84d;
-      --shadow: 0 18px 60px rgba(0,0,0,.65);
-      --r: 6px;
-      --r2: 10px;
+      --r122-bg:#000;
+      --r122-panel:#0d0d0d;
+      --r122-panel2:#151515;
+      --r122-line:#242424;
+      --r122-line2:#333;
+      --r122-text:#f3f3f3;
+      --r122-muted:#b9b9b9;
+      --r122-muted2:#858585;
+      --r122-orange:#f90;
+      --r122-orange2:#ffb24a;
+      --r122-shadow:0 18px 60px rgba(0,0,0,.72);
     }
-    html,body{ height:100%; }
+
+    html,body{height:100%;}
     body{
       margin:0;
-      background: var(--bg);
-      color: var(--tx);
-      font-family: Arial, Helvetica, "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
+      background:var(--r122-bg);
+      color:var(--r122-text);
+      font-family:Arial, Helvetica, "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
     }
-    a{ color: var(--acc2); text-decoration: underline; }
-    a:hover{ filter: brightness(1.08); }
+    body::before,body::after{display:none !important;}
+    a{color:var(--r122-orange2); text-decoration:none;}
+    button,input{font:inherit;}
 
-    /* ====== Gate (スクショ寄せ) ====== */
+    /* ===== Gate ===== */
     .gateWrap{
-      min-height: 100vh;
+      min-height:100vh;
       display:grid;
       place-items:center;
-      padding: 24px 14px;
+      padding:24px 14px;
+      background:#000;
     }
     .gatePanel{
-      width: min(920px, 100%);
-      background: #0a0a0a;
-      border: 1px solid var(--bd);
-      box-shadow: var(--shadow);
-      border-radius: 2px;
-      position:relative;
-      padding: 28px 26px 22px;
+      width:min(920px,100%);
+      background:#090909;
+      border:1px solid #2a2a2a;
+      box-shadow:var(--r122-shadow);
+      border-radius:2px;
+      padding:28px 26px 22px;
     }
     .gateInner{
-      border: 1px solid #1f1f1f;
-      padding: 26px 24px 22px;
-      background: linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.35));
+      border:1px solid #1f1f1f;
+      padding:26px 24px 22px;
+      background:linear-gradient(180deg,rgba(0,0,0,.56),rgba(0,0,0,.34));
     }
-    .langRow{
-      display:flex;
-      justify-content:flex-start;
-      margin-bottom: 28px;
-    }
+    .langRow{display:flex; justify-content:flex-start; margin-bottom:28px;}
     .langBtn{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      border: 1px solid #2b2b2b;
-      background: #111;
-      color: #e6e6e6;
-      padding: 6px 10px;
-      border-radius: 2px;
-      font-size: 14px;
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid #2b2b2b;
+      background:#111;
+      color:#e6e6e6;
+      padding:6px 10px;
+      border-radius:2px;
+      font-size:14px;
     }
-    .langBtn .car{ opacity:.85; font-size: 12px; }
-
+    .langBtn .car{opacity:.85; font-size:12px;}
     .phLogo{
       display:flex;
       justify-content:center;
-      margin: 0 0 18px;
-      font-weight: 800;
-      font-size: 46px;
-      letter-spacing: .2px;
+      margin:0 0 18px;
+      font-weight:900;
+      font-size:clamp(38px,7vw,54px);
+      line-height:1;
+      letter-spacing:-1.2px;
       user-select:none;
     }
-    .phLogo .porn{ color:#fff; }
+    .phLogo .porn{color:#fff;}
     .phLogo .hub{
-      margin-left:2px; padding: 2px 8px 3px;
-      background: var(--acc); color:#000;
-      border-radius:4px; line-height:1;
-      display:inline-flex; align-items:center; justify-content:center;
+      margin-left:3px;
+      padding:3px 9px 4px;
+      background:var(--r122-orange);
+      color:#000;
+      border-radius:5px;
+      line-height:1;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
       font-size:.88em;
     }
-
     .gateH1{
       text-align:center;
-      font-size: clamp(28px, 3.2vw, 44px);
-      font-weight: 800;
-      margin: 0 0 18px;
+      font-size:clamp(27px,3.2vw,44px);
+      font-weight:900;
+      margin:0 0 18px;
+      letter-spacing:-.6px;
     }
-    .noticeBtn{
-      display:flex;
-      justify-content:center;
-      margin: 0 0 16px;
-    }
+    .noticeBtn{display:flex; justify-content:center; margin:0 0 16px;}
     .noticeBtn span{
-      border: 2px solid var(--acc);
-      color: #eaeaea;
-      padding: 8px 18px;
-      font-weight: 700;
-      border-radius: 3px;
+      border:2px solid var(--r122-orange);
+      color:#ececec;
+      padding:8px 18px;
+      font-weight:800;
+      border-radius:3px;
       letter-spacing:.2px;
-      background: rgba(0,0,0,.25);
-      font-size: 14px;
+      background:rgba(0,0,0,.25);
+      font-size:14px;
     }
-
     .gateP{
-      max-width: 720px;
-      margin: 0 auto;
-      color: var(--mut);
-      line-height: 1.75;
-      font-size: 14px;
+      max-width:720px;
+      margin:0 auto;
+      color:#d1d1d1;
+      line-height:1.75;
+      font-size:14px;
       text-align:left;
     }
     .law{
       text-align:center;
-      color: var(--acc);
-      font-weight: 800;
-      margin: 16px 0 14px;
-      font-size: 18px;
+      color:var(--r122-orange);
+      font-weight:900;
+      margin:16px 0 14px;
+      font-size:18px;
       letter-spacing:.1px;
     }
     .gateBtns{
       display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin: 18px auto 14px;
-      max-width: 720px;
-    }
-    @media (max-width: 700px){
-      .gateBtns{ grid-template-columns: 1fr; }
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+      margin:18px auto 14px;
+      max-width:720px;
     }
     .gateBtn{
-      padding: 18px 16px;
-      font-size: 18px;
-      font-weight: 800;
-      border-radius: 3px;
-      border: 2px solid var(--acc);
-      background: rgba(0,0,0,.55);
-      color: #fff;
+      padding:18px 16px;
+      font-size:18px;
+      font-weight:900;
+      border-radius:3px;
+      border:2px solid var(--r122-orange);
+      background:rgba(0,0,0,.58);
+      color:#fff;
       cursor:pointer;
       text-align:center;
+      min-height:58px;
     }
-    .gateBtn:hover{ filter: brightness(1.06); }
-    .gateBtn:active{ transform: translateY(1px); }
-
+    .gateBtn:hover{filter:brightness(1.08); background:rgba(255,153,0,.08);}
+    .gateBtn:active{transform:translateY(1px);}
     .footLinks{
-      max-width: 720px;
-      margin: 6px auto 0;
-      color: var(--mut2);
-      font-size: 13px;
-      line-height: 1.65;
+      max-width:720px;
+      margin:6px auto 0;
+      color:#aaa;
+      font-size:13px;
+      line-height:1.65;
       text-align:center;
     }
-    .footLinks a{ color: var(--acc); text-decoration: none; font-weight: 800; }
-    .footLinks a:hover{ text-decoration: underline; }
+    .footLinks a{color:var(--r122-orange); font-weight:900;}
+    .footLinks a:hover{text-decoration:underline;}
+    .fadeOut{animation:fadeOut .28s ease forwards;}
+    @keyframes fadeOut{to{opacity:0; transform:translateY(10px) scale(.99);}}
 
-    .fadeOut{ animation: fadeOut .28s ease forwards; }
-    @keyframes fadeOut{
-      to{ opacity:0; transform: translateY(10px) scale(.99); }
-    }
-
-    /* ====== "Site" (スクショ2寄せの黒UI) ====== */
-    .siteStage{ display:none; }
-    .siteStage.show{ display:block; }
-
+    /* ===== Site ===== */
+    .siteStage{display:none; min-height:100vh; background:#000;}
+    .siteStage.show{display:block;}
     .topbar{
-      background: #111;
-      border-bottom: 1px solid #222;
-      padding: 12px 18px;
+      min-height:64px;
+      background:#111;
+      border-bottom:1px solid #222;
+      padding:10px 18px;
       display:flex;
       align-items:center;
-      gap: 14px;
+      gap:14px;
+      position:sticky;
+      top:0;
+      z-index:20;
     }
-    .hamb{ width: 28px; height: 20px; display:grid; gap:4px; }
-    .hamb span{ background:#fff; height:2px; opacity:.9; border-radius: 2px; }
-
-    .topLogo{ display:flex; align-items:center; font-weight: 900; font-size: 34px; user-select:none; }
+    .hamb{width:28px; height:20px; display:grid; gap:4px; flex:0 0 auto;}
+    .hamb span{background:#fff; height:2px; opacity:.92; border-radius:2px;}
+    .topLogo{
+      display:flex;
+      align-items:center;
+      font-weight:900;
+      font-size:34px;
+      user-select:none;
+      line-height:1;
+      letter-spacing:-1px;
+      flex:0 0 auto;
+    }
     .topLogo .hub{
-      margin-left:2px; padding: 2px 8px 3px;
-      background: var(--acc); color:#000;
-      border-radius:4px; line-height:1;
-      display:inline-flex; align-items:center; justify-content:center;
+      margin-left:2px;
+      padding:2px 8px 3px;
+      background:var(--r122-orange);
+      color:#000;
+      border-radius:4px;
+      line-height:1;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
       font-size:.88em;
     }
-
     .search{
-      flex: 1;
+      flex:1 1 420px;
+      min-width:180px;
       display:flex;
       align-items:center;
-      max-width: 560px;
-      background:#1c1c1c;
-      border: 1px solid #2a2a2a;
-      border-radius: 999px;
-      padding: 8px 12px;
-      gap: 10px;
-      margin-left: 10px;
+      max-width:640px;
+      background:#1b1b1b;
+      border:1px solid #2d2d2d;
+      border-radius:999px;
+      padding:8px 12px;
+      gap:10px;
+      margin-left:6px;
     }
-    .search .icon{ opacity:.8; }
+    .search .icon{opacity:.8; flex:0 0 auto;}
+    .search .clearSearch{cursor:pointer; color:#aaa; border:0; background:transparent; padding:0; display:grid; place-items:center;}
+    .search .clearSearch:hover{color:#fff;}
     .search input{
       flex:1;
-      background: transparent;
+      min-width:0;
+      background:transparent;
       border:0;
       outline:0;
       color:#fff;
-      font-size: 15px;
+      font-size:15px;
     }
-
     .pill{
-      border-radius: 999px;
-      padding: 8px 14px;
-      background: var(--acc);
-      color: #000;
-      font-weight: 900;
-      font-size: 14px;
-      border: 0;
+      border-radius:999px;
+      padding:9px 14px;
+      background:var(--r122-orange);
+      color:#000;
+      font-weight:900;
+      font-size:14px;
+      border:0;
       cursor:pointer;
+      white-space:nowrap;
     }
-    .topIcons{ display:flex; gap: 10px; align-items:center; opacity:.9; }
+    .pill:hover{filter:brightness(1.07);}
+    .topIcons{display:flex; gap:10px; align-items:center; opacity:.94; flex:0 0 auto;}
     .circ{
-      width: 36px; height: 36px;
-      border-radius: 999px;
+      width:36px; height:36px;
+      border-radius:999px;
       background:#2a2a2a;
-      display:grid; place-items:center;
+      display:grid;
+      place-items:center;
       color:#fff;
       font-weight:900;
-      font-size: 14px;
+      font-size:14px;
     }
-
     .subnav{
       background:#0d0d0d;
-      border-bottom: 1px solid #1a1a1a;
-      padding: 10px 18px;
+      border-bottom:1px solid #1a1a1a;
+      padding:10px 18px;
       display:flex;
-      gap: 28px;
+      gap:26px;
       color:#e6e6e6;
-      font-size: 14px;
+      font-size:14px;
       align-items:center;
+      overflow-x:auto;
+      scrollbar-width:none;
     }
-    .subnav a{ color:#e6e6e6; text-decoration:none; opacity:.92; }
-    .subnav a:hover{ opacity:1; }
-    .subnav .dd::after{ content:" ▼"; font-size: 11px; opacity:.75; }
-
-    .content{
-      padding: 22px 18px 46px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .pageTitle{
-      font-size: 24px;
-      font-weight: 900;
-      margin: 0 0 12px;
-      letter-spacing:.2px;
-    }
-    .chips{
-      display:flex;
-      flex-wrap:wrap;
-      gap: 10px;
-      margin-bottom: 18px;
-    }
+    .subnav::-webkit-scrollbar{display:none;}
+    .subnav a{color:#e6e6e6; text-decoration:none; opacity:.92; white-space:nowrap;}
+    .subnav a:hover{opacity:1; color:#fff;}
+    .subnav .dd::after{content:" ▼"; font-size:11px; opacity:.75;}
+    .content{padding:22px 18px 46px; max-width:1280px; margin:0 auto;}
+    .pageHead{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin:0 0 12px;}
+    .pageTitle{font-size:24px; font-weight:900; margin:0; letter-spacing:.2px;}
+    .resultMeta{color:#aaa; font-size:13px; white-space:nowrap;}
+    .chips{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px;}
     .chip{
-      padding: 10px 14px;
-      border-radius: 999px;
+      padding:9px 14px;
+      border-radius:999px;
       background:#1b1b1b;
-      border: 1px solid #2a2a2a;
+      border:1px solid #2a2a2a;
       color:#e8e8e8;
-      font-weight: 700;
-      font-size: 14px;
-      opacity:.95;
-      cursor: default;
+      font-weight:800;
+      font-size:14px;
+      opacity:.96;
+      cursor:pointer;
+      min-height:40px;
+    }
+    .chip:hover{background:#242424;}
+    .chip.active{
+      color:#000;
+      border-color:var(--r122-orange);
+      background:var(--r122-orange);
     }
     .grid{
       display:grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      gap:17px 16px;
     }
-    @media (max-width: 1150px){ .grid{ grid-template-columns: repeat(3, 1fr);} }
-    @media (max-width: 860px){ .grid{ grid-template-columns: repeat(2, 1fr);} }
-    @media (max-width: 560px){ .grid{ grid-template-columns: 1fr;} }
-
     .card{
       background:#101010;
-      border: 1px solid #222;
-      border-radius: 6px;
+      border:1px solid #222;
+      border-radius:6px;
       overflow:hidden;
-      box-shadow: 0 10px 40px rgba(0,0,0,.55);
+      box-shadow:0 10px 40px rgba(0,0,0,.55);
       cursor:pointer;
+      transition:transform .16s ease, border-color .16s ease, filter .16s ease;
     }
-    .thumb{
-      position:relative;
-      aspect-ratio: 16/9;
-      background:#000;
-      overflow:hidden;
-    }
-    .thumb img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-      filter: contrast(1.05) saturate(1.05);
-    }
+    .card:hover{transform:translateY(-2px); border-color:#383838; filter:brightness(1.04);}
+    .card:focus-visible{outline:2px solid var(--r122-orange); outline-offset:3px;}
+    .thumb{position:relative; aspect-ratio:16/9; background:#050505; overflow:hidden;}
+    .thumb img{width:100%; height:100%; object-fit:cover; display:block; filter:contrast(1.06) saturate(1.08);}
     .dur{
       position:absolute;
-      left: 8px;
-      bottom: 8px;
-      background: rgba(0,0,0,.75);
+      left:8px;
+      bottom:8px;
+      background:rgba(0,0,0,.82);
       color:#fff;
-      font-weight: 800;
-      font-size: 12px;
-      padding: 4px 7px;
-      border-radius: 4px;
+      font-weight:900;
+      font-size:12px;
+      padding:4px 7px;
+      border-radius:4px;
     }
-    .meta{
-      padding: 10px 10px 12px;
+    .quality{
+      position:absolute;
+      right:8px;
+      top:8px;
+      background:rgba(255,153,0,.92);
+      color:#000;
+      font-weight:900;
+      font-size:11px;
+      padding:3px 6px;
+      border-radius:4px;
     }
-    .title{
-      margin:0 0 6px;
-      font-weight: 900;
-      font-size: 14px;
-      line-height: 1.35;
-      color:#fff;
+    .meta{padding:10px 10px 12px;}
+    .title{margin:0 0 6px; font-weight:900; font-size:14px; line-height:1.35; color:#fff;}
+    .sub{margin:0 0 8px; color:#bdbdbd; font-size:12px; line-height:1.35;}
+    .cardStats{display:flex; align-items:center; justify-content:space-between; gap:8px; color:#858585; font-size:12px;}
+    .uploader{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+    .rating{color:#ccc; flex:0 0 auto;}
+    .empty{
+      display:none;
+      border:1px dashed #333;
+      background:#0b0b0b;
+      border-radius:8px;
+      padding:26px 18px;
+      color:#c9c9c9;
+      text-align:center;
+      line-height:1.7;
     }
-    .sub{
-      margin:0;
-      color:#bdbdbd;
-      font-size: 12px;
-      line-height: 1.35;
-    }
+    .empty.show{display:block;}
 
-    /* ==========================
-       Modal（見切れ修正版）
-       ========================== */
+    /* ===== Modal ===== */
     .modal{
-      position:fixed; inset:0;
-      background: rgba(0,0,0,.78);
-      z-index: 9999;
-
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.82);
+      z-index:9999;
       display:none;
       justify-content:center;
-
-      /* ★中央固定だと下が見切れるので、上寄せ＋縦スクロール可能に */
       align-items:flex-start;
-      padding: 22px 14px;
+      padding:22px 14px;
       overflow-y:auto;
-      -webkit-overflow-scrolling: touch;
+      -webkit-overflow-scrolling:touch;
     }
-    .modal.show{ display:flex; }
-
+    .modal.show{display:flex;}
     .modalBox{
-      width: min(900px, 100%);
-      background: #0f0f0f;
-      border: 1px solid #262626;
-      border-radius: 8px;
-      box-shadow: var(--shadow);
-
+      width:min(980px,100%);
+      background:#0f0f0f;
+      border:1px solid #262626;
+      border-radius:8px;
+      box-shadow:var(--r122-shadow);
       overflow:hidden;
       display:flex;
       flex-direction:column;
-
-      /* ★画面内に収める（vh fallback + dvh 対応） */
-      max-height: calc(100vh - 44px);
+      max-height:calc(100vh - 44px);
     }
-    @supports (height: 100dvh){
-      .modalBox{ max-height: calc(100dvh - 44px); }
-    }
-
+    @supports (height:100dvh){.modalBox{max-height:calc(100dvh - 44px);}}
     .modalTop{
-      display:flex; align-items:center; justify-content:space-between;
-      padding: 10px 12px;
-      border-bottom: 1px solid #202020;
-      background: #131313;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 12px;
+      border-bottom:1px solid #202020;
+      background:#131313;
       color:#eaeaea;
-      font-weight: 800;
+      font-weight:900;
     }
     .xbtn{
-      width: 34px; height: 34px;
-      border-radius: 8px;
-      border: 1px solid #2a2a2a;
-      background: #111;
+      width:36px; height:36px;
+      border-radius:8px;
+      border:1px solid #2a2a2a;
+      background:#111;
       color:#fff;
       cursor:pointer;
-      font-weight: 900;
+      font-weight:900;
+      flex:0 0 auto;
     }
-
-    /* ★本文だけスクロールする */
-    .modalBody{
-      padding: 14px 14px 16px;
-      overflow:auto;
-      flex: 1;
-      min-height: 0;
+    .modalBody{padding:14px; overflow:auto; flex:1; min-height:0;}
+    .playerFrame{background:#000; border:1px solid #222; border-radius:8px; overflow:hidden; position:relative;}
+    .playerFrame img{width:100%; max-height:58vh; object-fit:contain; display:block; background:#000;}
+    .playOverlay{
+      position:absolute;
+      inset:0;
+      display:grid;
+      place-items:center;
+      pointer-events:none;
+      background:radial-gradient(circle at center, rgba(0,0,0,.08), rgba(0,0,0,.0) 42%);
     }
-    .modalBody img{
-      width:100%;
-      height:auto;
-      border-radius: 8px;
-      border: 1px solid #222;
-      background:#000;
-
-      /* ★画像が長すぎると下が押し出されるので保険 */
-      max-height: 60vh;
-      object-fit: contain;
+    .playTriangle{
+      width:74px;
+      height:74px;
+      border-radius:999px;
+      background:rgba(0,0,0,.64);
+      border:2px solid rgba(255,255,255,.22);
+      display:grid;
+      place-items:center;
+      color:var(--r122-orange);
+      font-size:34px;
+      padding-left:4px;
     }
-    .modalText{
-      margin-top: 12px;
-      color:#ddd;
-      line-height: 1.8;
-      font-size: 14px;
-    }
+    .detailTitle{font-size:20px; font-weight:900; margin:14px 0 8px; line-height:1.35;}
+    .detailStats{display:flex; flex-wrap:wrap; gap:10px; align-items:center; color:#aaa; font-size:13px; margin-bottom:10px;}
+    .rateBar{height:8px; width:120px; border-radius:999px; background:#2b2b2b; overflow:hidden; display:inline-block; vertical-align:middle;}
+    .rateBar > i{display:block; height:100%; background:var(--r122-orange); width:80%;}
+    .modalText{color:#ddd; line-height:1.75; font-size:14px; margin:10px 0 0;}
+    .tagRow{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;}
+    .tagPill{padding:6px 9px; border-radius:999px; background:#1b1b1b; color:#ddd; border:1px solid #2b2b2b; font-size:12px;}
     .punch{
-      margin-top: 12px;
-      padding: 12px 12px;
-      border-radius: 8px;
-      border: 1px dashed rgba(255,153,0,.45);
-      background: rgba(255,153,0,.06);
+      margin-top:13px;
+      padding:12px 12px;
+      border-radius:8px;
+      border:1px dashed rgba(255,153,0,.48);
+      background:rgba(255,153,0,.065);
       color:#fff;
-      font-weight: 800;
-      line-height: 1.75;
+      font-weight:900;
+      line-height:1.75;
     }
-    .punch small{ font-weight: 600; color: #d8d8d8; }
+    .analysisBox{display:none; margin-top:12px; border:1px solid #333; border-radius:8px; background:#090909; overflow:hidden;}
+    .analysisBox.show{display:block;}
+    .analysisHead{display:flex; justify-content:space-between; gap:12px; padding:10px 12px; background:#141414; border-bottom:1px solid #252525; font-weight:900;}
+    .analysisBody{padding:12px; color:#ddd; font-size:14px; line-height:1.75;}
+    .meter{height:10px; background:#222; border-radius:999px; overflow:hidden; margin:8px 0 10px;}
+    .meter > i{display:block; height:100%; width:0%; background:linear-gradient(90deg,#f90,#ffd16c); transition:width .45s ease;}
 
-    /* small helper */
-    .mut{ color: var(--mut2); }
+    @media (max-width:1150px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
+    @media (max-width:860px){
+      .topbar{flex-wrap:wrap; align-items:center; gap:10px;}
+      .search{order:2; flex:1 0 100%; max-width:none; margin-left:0;}
+      .topIcons{margin-left:auto;}
+      .grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+      .subnav{gap:20px;}
+    }
+    @media (max-width:620px){
+      .gatePanel{padding:18px 14px 16px;}
+      .gateInner{padding:20px 14px 18px;}
+      .gateBtns{grid-template-columns:1fr;}
+      .topbar{padding:10px 12px;}
+      .topLogo{font-size:29px;}
+      .pill{padding:8px 11px;}
+      .topIcons .circ:nth-child(1), .topIcons .circ:nth-child(2){display:none;}
+      .subnav{padding:9px 12px;}
+      .content{padding:18px 12px 36px;}
+      .pageHead{display:block;}
+      .resultMeta{display:block; margin-top:5px;}
+      .grid{grid-template-columns:1fr;}
+      .modal{padding:10px;}
+      .modalBox{max-height:calc(100vh - 20px);}
+      .playerFrame img{max-height:42vh;}
+    }
   </style>
 </head>
 
 <body>
-
-  <!-- Gate -->
   <section class="gateWrap" id="gate">
     <div class="gatePanel">
       <div class="gateInner">
@@ -473,19 +502,18 @@
     </div>
   </section>
 
-  <!-- Site -->
   <section class="siteStage" id="site">
     <header class="topbar">
       <div class="hamb" aria-hidden="true"><span></span><span></span><span></span></div>
 
-      <div class="topLogo" aria-label="R-122">
+      <div class="topLogo" aria-label="ParnHub R-122">
         <span style="color:#fff">Parn</span><span class="hub">hub</span>
       </div>
 
-      <div class="search" role="search" aria-label="search">
+      <div class="search" role="search" aria-label="R-122 search">
         <span class="icon">🔎</span>
         <input id="q" type="search" placeholder="Search R-122" autocomplete="off">
-        <span class="icon">✕</span>
+        <button class="clearSearch" id="clearSearch" type="button" aria-label="検索をクリア">✕</button>
       </div>
 
       <button class="pill" type="button" id="aiBtn">AIで解析</button>
@@ -498,35 +526,31 @@
     </header>
 
     <nav class="subnav" aria-label="primary">
-      <a href="#" class="dd">ホーム</a>
-      <a href="#" class="dd">動画</a>
-      <a href="#" class="dd">カテゴリ</a>
-      <a href="#" class="dd">ライブ</a>
-      <a href="#" class="dd">コミュニティ</a>
-      <a href="#" class="dd">写真&GIF</a>
-      <span class="mut" style="margin-left:auto;">JA</span>
+      <a href="#" class="dd" data-chip="all">ホーム</a>
+      <a href="#" class="dd" data-chip="cell">動画</a>
+      <a href="#" class="dd" data-chip="dna">カテゴリ</a>
+      <a href="#" class="dd" data-chip="neuron">ライブ</a>
+      <a href="#" class="dd" data-chip="immune">コミュニティ</a>
+      <a href="#" class="dd" data-chip="micro">写真&GIF</a>
+      <span class="mut" style="margin-left:auto; white-space:nowrap;">JA</span>
     </nav>
 
     <main class="content">
-      <h2 class="pageTitle">R-122 バイオ動画 🔴</h2>
-
-      <div class="chips" aria-hidden="true">
-        <div class="chip">直近</div>
-        <div class="chip">ATP</div>
-        <div class="chip">シナプス</div>
-        <div class="chip">DNA</div>
-        <div class="chip">電子顕微鏡</div>
-        <div class="chip">発火</div>
-        <div class="chip">クリステ</div>
+      <div class="pageHead">
+        <h2 class="pageTitle">R-122 バイオ動画 🔴</h2>
+        <span class="resultMeta" id="resultMeta">0 videos</span>
       </div>
 
-      <section class="grid" id="grid" aria-label="video grid">
-        <!-- cards injected by JS -->
-      </section>
+      <div class="chips" id="chips" aria-label="filter chips"></div>
+
+      <section class="grid" id="grid" aria-label="video grid"></section>
+      <div class="empty" id="emptyState">
+        該当するバイオ動画は見つかりませんでした。<br>
+        別の刺激的な生物学ワードを入力してください。
+      </div>
     </main>
   </section>
 
-  <!-- Modal -->
   <div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="detail">
     <div class="modalBox">
       <div class="modalTop">
@@ -534,157 +558,364 @@
         <button class="xbtn" id="mClose" type="button">×</button>
       </div>
       <div class="modalBody">
-        <img id="mImg" alt="" />
+        <div class="playerFrame">
+          <img id="mImg" alt="" />
+          <div class="playOverlay" aria-hidden="true"><div class="playTriangle">▶</div></div>
+        </div>
+        <div class="detailTitle" id="mDetailTitle"></div>
+        <div class="detailStats" id="mStats"></div>
         <div class="modalText" id="mText"></div>
+        <div class="tagRow" id="mTags"></div>
         <div class="punch" id="mPunch"></div>
+        <div class="analysisBox" id="analysisBox">
+          <div class="analysisHead">
+            <span>R-122 AI BIO-ANALYSIS</span>
+            <span id="analysisScore">--%</span>
+          </div>
+          <div class="analysisBody" id="analysisBody">
+            <div>生体刺激パターンを解析中…</div>
+            <div class="meter"><i id="analysisMeter"></i></div>
+            <div id="analysisText"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
     (function(){
+      "use strict";
+
       const gate = document.getElementById("gate");
       const site = document.getElementById("site");
       const enter = document.getElementById("enterBtn");
       const exitBtn = document.getElementById("exitBtn");
+      const grid = document.getElementById("grid");
+      const chipsBox = document.getElementById("chips");
+      const resultMeta = document.getElementById("resultMeta");
+      const emptyState = document.getElementById("emptyState");
+      const q = document.getElementById("q");
+      const clearSearch = document.getElementById("clearSearch");
+      const aiBtn = document.getElementById("aiBtn");
 
       const LS_KEY = "r122_entered";
+      const PLACEHOLDER = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 720'><rect width='1280' height='720' fill='#080808'/><rect x='50' y='50' width='1180' height='620' rx='22' fill='#111' stroke='#333' stroke-width='6'/><text x='640' y='345' text-anchor='middle' fill='#ff9900' font-family='Arial' font-size='58' font-weight='800'>R-122</text><text x='640' y='410' text-anchor='middle' fill='#aaa' font-family='Arial' font-size='24'>BIO CONTENT UNAVAILABLE</text></svg>");
+
+      const FILTERS = [
+        { key:"all", label:"すべて" },
+        { key:"new", label:"直近" },
+        { key:"atp", label:"ATP" },
+        { key:"dna", label:"DNA" },
+        { key:"neuron", label:"神経" },
+        { key:"cell", label:"細胞" },
+        { key:"immune", label:"免疫" },
+        { key:"micro", label:"電子顕微鏡" }
+      ];
 
       const VIDS = [
         {
-          id:"dna",
-          title:"究極の結合体：DNA二重螺旋",
-          sub:"A–T / G–C —— 水素結合の“硬派なセクシー”",
-          dur:"12:22",
-          img:"img/DNA.png",
-          text:"見てください、この完璧な螺旋構造。A と T、G と C が水素結合で「固く結び合い」、生命の設計図を保存します。",
-          punch:"エロスの根源、 <b>DNA</b> です。"
+          id:"dna", title:"究極の結合体：DNA二重螺旋", sub:"A–T / G–C —— 水素結合の“硬派なセクシー”", dur:"12:22",
+          img:"img/DNA.png", uploader:"Helix Factory", views:"12.2M", rating:98, date:"3日前", category:"Molecular Biology", tags:["dna","micro","new"], quality:"HD",
+          text:"A と T、G と C が規則正しく向かい合う二重螺旋。生命の設計図が、これほど美しく折りたたまれているという事実だけで十分に刺激的です。",
+          punch:"エロスの根源、<b>DNA</b>です。保存・複製・発現、すべての始まりがここにあります。"
         },
         {
-          id:"mito",
-          title:"ミトコンドリアの断面：生命の熱源",
-          sub:"「生命を突き動かす、剥き出しの熱源…」",
-          dur:"24:18",
-          img:"img/mitochondria.png",
-          text:"電子顕微鏡で撮られた、クリステ（中のひだひだ）がはっきり見えるミトコンドリアの断面。",
-          punch:"ミトコンドリアです。この圧倒的なATP産生能力。興奮せずにはいられませんね。"
+          id:"mito", title:"ミトコンドリアの断面：生命の熱源", sub:"剥き出しのクリステ、止まらないATP産生", dur:"24:18",
+          img:"img/mitochondria.png", uploader:"ATP Addict", views:"8.8M", rating:97, date:"1週間前", category:"Cell Biology", tags:["atp","cell","micro","new"], quality:"4K",
+          text:"内膜が折れ込んだクリステ構造は、ATP合成のための面積を稼ぐ合理性そのもの。生命活動の電源ユニットを覗き込むような映像です。",
+          punch:"この圧倒的なATP産生能力。<b>ミトコンドリア</b>なしでは、我々は一歩も動けません。"
         },
         {
-          id:"neuron",
-          title:"ニューロンの発火：禁断のパルス",
-          sub:"「脳内を駆け巡る、禁断のパルス…」",
-          dur:"9:46",
-          img:"img/neuron.png",
-          text:"蛍光タンパク質が光りながらニューロンを伝わっていく…（※イメージ）。視覚的サイバー感。",
-          punch:"シナプス間隙を飛び交う神経伝達物質。これこそが我々の『快感』の正体です。"
+          id:"neuron", title:"ニューロンの発火：禁断のパルス", sub:"脳内を駆け巡る電気信号のライブ感", dur:"09:46",
+          img:"img/neuron.png", uploader:"Synapse Channel", views:"7.1M", rating:96, date:"5日前", category:"Neuroscience", tags:["neuron","cell","new"], quality:"HD",
+          text:"膜電位の変化が軸索を走り、シナプスを越えて次の細胞へ伝わっていく。思考も快感も恐怖も、最終的にはこの発火の連鎖です。",
+          punch:"シナプス間隙を飛び交う神経伝達物質。これこそが我々の<b>快感</b>の正体です。"
+        },
+        {
+          id:"mitosis", title:"有糸分裂：二つに分かれる瞬間", sub:"染色体が中央に並ぶ、細胞周期の山場", dur:"18:04",
+          img:"img/bubbles.png", uploader:"Cell Cycle Pro", views:"5.4M", rating:94, date:"2週間前", category:"Cell Biology", tags:["cell","dna"], quality:"HD",
+          text:"核膜が消え、染色体が凝縮し、紡錘体が両極から引っ張る。細胞が自分自身を二つへ分ける、静かな大事件です。",
+          punch:"分裂とは増殖。増殖とは生命の強引な前進です。"
+        },
+        {
+          id:"enzyme", title:"酵素反応：基質を受け入れる活性部位", sub:"ぴったりはまる、特異性の美学", dur:"07:32",
+          img:"img/panel.png", uploader:"Active Site Lab", views:"3.9M", rating:95, date:"4週間前", category:"Biochemistry", tags:["cell","atp"], quality:"HD",
+          text:"酵素の活性部位に基質が結合し、反応の活性化エネルギーが下がる。生命は力任せではなく、触媒という裏技で進みます。",
+          punch:"鍵と鍵穴。いや、正確には<b>誘導適合</b>。そこに化学の色気があります。"
+        },
+        {
+          id:"protein", title:"タンパク質フォールディング：折りたたまれる快楽", sub:"一次構造から立体構造へ、形が機能になる", dur:"14:09",
+          img:"img/Marble001_2K-JPG_Color.jpg", uploader:"Fold Master", views:"4.6M", rating:93, date:"6日前", category:"Biochemistry", tags:["cell","micro","new"], quality:"HD",
+          text:"アミノ酸配列が、相互作用に導かれて立体構造へ折りたたまれていく。タンパク質は“形”になって初めて仕事を始めます。",
+          punch:"ただの鎖が機能を持つ瞬間。これはもう構造生物学の官能です。"
+        },
+        {
+          id:"immune", title:"免疫細胞の追跡：侵入者を逃がさない", sub:"異物認識、接近、攻撃。白血球の仕事ぶり", dur:"11:58",
+          img:"img/butterfly.png", uploader:"White Blood Unit", views:"6.0M", rating:97, date:"8日前", category:"Immunology", tags:["immune","cell","new"], quality:"HD",
+          text:"免疫細胞は常に体内を巡回し、異物や異常細胞を探している。平和な体内環境は、この地味で執拗な監視によって守られています。",
+          punch:"体内警備のプロフェッショナル。免疫細胞、あまりにも頼もしすぎます。"
+        },
+        {
+          id:"virus", title:"ウイルス侵入：細胞膜への接近", sub:"吸着、侵入、複製。小さすぎる侵略者", dur:"16:40",
+          img:"img/globe.png", uploader:"Viral Studies", views:"9.2M", rating:92, date:"2日前", category:"Virology", tags:["immune","cell","micro","new"], quality:"HD",
+          text:"ウイルスは自力では増殖できない。だから宿主細胞に入り込み、細胞の仕組みを利用して自分を増やす。生命と非生命の境界にいる存在です。",
+          punch:"侵入して、乗っ取って、増える。ウイルスの戦略は単純で、それゆえに強烈です。"
+        },
+        {
+          id:"eye", title:"眼球構造：光を受け止める器官", sub:"網膜・水晶体・視神経、視覚の入口", dur:"10:15",
+          img:"img/eye.png", uploader:"Optic Archive", views:"4.1M", rating:96, date:"10日前", category:"Anatomy", tags:["neuron","cell"], quality:"HD",
+          text:"光は角膜と水晶体で屈折し、網膜へ届く。そこから電気信号へ変換され、視神経を通じて脳へ送られます。",
+          punch:"“見る”とは、外界を神経信号に変換する作業です。眼球、仕事が美しすぎます。"
+        },
+        {
+          id:"synapse", title:"シナプス間隙：伝達物質の放出", sub:"届きそうで届かない距離を化学で越える", dur:"08:29",
+          img:"img/neuron.png", uploader:"Neuro Night", views:"6.7M", rating:98, date:"今日", category:"Neuroscience", tags:["neuron","micro","new"], quality:"HD",
+          text:"電気信号はシナプスで一度途切れ、神経伝達物質として化学信号に変わる。わずかな隙間を超えるための精密な仕組みです。",
+          punch:"届かないからこそ、伝えるための仕組みが発達する。シナプス、あまりにもドラマチックです。"
+        },
+        {
+          id:"chloroplast", title:"葉緑体：光を糖へ変える装置", sub:"光合成、電子伝達、炭素固定の緑の工場", dur:"21:03",
+          img:"img/cloud.png", uploader:"Green Reaction", views:"2.8M", rating:91, date:"3週間前", category:"Plant Biology", tags:["atp","cell"], quality:"HD",
+          text:"光エネルギーを受け取り、ATPとNADPHを経由して糖を作る。葉緑体は植物の中にある太陽光変換システムです。",
+          punch:"光を食べるように生きる。葉緑体の発想、かなり攻めています。"
+        },
+        {
+          id:"heart", title:"心筋細胞：止まらない拍動", sub:"興奮収縮連関、リズム、生命維持", dur:"19:51",
+          img:"img/dolphin.png", uploader:"Pulse Works", views:"5.9M", rating:95, date:"12日前", category:"Physiology", tags:["cell","atp","neuron"], quality:"HD",
+          text:"電気的興奮が心筋細胞に伝わり、カルシウムが動き、収縮が起こる。心臓は休まず、ただリズムを刻み続けます。",
+          punch:"拍動とは生命のBGM。心筋細胞、労働環境が過酷すぎます。"
         }
       ];
+
+      let activeChip = "all";
+      let visibleIds = [];
+      let lastOpened = null;
 
       function showSite(){
         try{ localStorage.setItem(LS_KEY, "1"); }catch(_){}
         gate.classList.add("fadeOut");
-        setTimeout(()=>{
-          gate.style.display="none";
+        setTimeout(function(){
+          gate.style.display = "none";
           site.classList.add("show");
           try{ window.scrollTo({top:0, behavior:"smooth"}); }catch(_){}
         }, 260);
       }
 
-      function goOut(){
-        location.href = "gallery.html";
+      function goOut(){ location.href = "gallery.html"; }
+      enter.addEventListener("click", showSite);
+      exitBtn.addEventListener("click", goOut);
+
+      function el(tag, className, text){
+        const node = document.createElement(tag);
+        if(className) node.className = className;
+        if(text != null) node.textContent = text;
+        return node;
       }
 
-      enter.addEventListener("click", ()=>{
-        showSite();
-      });
-      exitBtn.addEventListener("click", ()=>{
-        goOut();
-      });
+      function includesText(v, kw){
+        if(!kw) return true;
+        const hay = [v.title, v.sub, v.text, v.uploader, v.category, ...(v.tags || [])].join(" ").toLowerCase();
+        return hay.includes(kw);
+      }
 
-      // render cards
-      const grid = document.getElementById("grid");
-      function esc(s){ return String(s||"").replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m])); }
-      grid.innerHTML = VIDS.map(v=>`
-        <article class="card" data-id="${esc(v.id)}" tabindex="0">
-          <div class="thumb">
-            <img src="${esc(v.img)}" alt="">
-            <div class="dur">${esc(v.dur)}</div>
-          </div>
-          <div class="meta">
-            <h3 class="title">${esc(v.title)}</h3>
-            <p class="sub">${esc(v.sub)}</p>
-          </div>
-        </article>
-      `).join("");
+      function matchesChip(v){
+        return activeChip === "all" || (v.tags || []).includes(activeChip);
+      }
 
-      // modal
+      function renderChips(){
+        chipsBox.textContent = "";
+        FILTERS.forEach(function(f){
+          const btn = el("button", "chip" + (f.key === activeChip ? " active" : ""), f.label);
+          btn.type = "button";
+          btn.dataset.chip = f.key;
+          btn.addEventListener("click", function(){
+            activeChip = f.key;
+            renderChips();
+            renderCards();
+          });
+          chipsBox.appendChild(btn);
+        });
+      }
+
+      function renderCards(){
+        const kw = (q.value || "").trim().toLowerCase();
+        const list = VIDS.filter(function(v){ return matchesChip(v) && includesText(v, kw); });
+        visibleIds = list.map(function(v){ return v.id; });
+        grid.textContent = "";
+
+        list.forEach(function(v){
+          const card = el("article", "card");
+          card.tabIndex = 0;
+          card.dataset.id = v.id;
+
+          const thumb = el("div", "thumb");
+          const img = document.createElement("img");
+          img.src = v.img;
+          img.alt = v.title;
+          img.loading = "lazy";
+          img.addEventListener("error", function(){ img.src = PLACEHOLDER; }, {once:true});
+          thumb.appendChild(img);
+          thumb.appendChild(el("div", "dur", v.dur));
+          thumb.appendChild(el("div", "quality", v.quality || "HD"));
+
+          const meta = el("div", "meta");
+          meta.appendChild(el("h3", "title", v.title));
+          meta.appendChild(el("p", "sub", v.sub));
+          const stats = el("div", "cardStats");
+          stats.appendChild(el("span", "uploader", v.uploader + " ・ " + v.views + " views"));
+          stats.appendChild(el("span", "rating", "👍 " + v.rating + "%"));
+          meta.appendChild(stats);
+
+          card.appendChild(thumb);
+          card.appendChild(meta);
+          grid.appendChild(card);
+        });
+
+        const total = VIDS.length;
+        resultMeta.textContent = list.length + " / " + total + " videos";
+        emptyState.classList.toggle("show", list.length === 0);
+      }
+
       const modal = document.getElementById("modal");
       const mClose = document.getElementById("mClose");
       const mTitle = document.getElementById("mTitle");
+      const mDetailTitle = document.getElementById("mDetailTitle");
       const mImg = document.getElementById("mImg");
+      const mStats = document.getElementById("mStats");
       const mText = document.getElementById("mText");
+      const mTags = document.getElementById("mTags");
       const mPunch = document.getElementById("mPunch");
+      const analysisBox = document.getElementById("analysisBox");
+      const analysisScore = document.getElementById("analysisScore");
+      const analysisMeter = document.getElementById("analysisMeter");
+      const analysisText = document.getElementById("analysisText");
 
-      function openModal(v){
-        mTitle.textContent = v.title;
-        mImg.src = v.img;
-        mText.textContent = v.text;
-        mPunch.innerHTML = v.punch;
-        modal.classList.add("show");
+      function pick(id){ return VIDS.find(function(x){ return x.id === id; }); }
 
-        /* ★開いた瞬間、モーダル内スクロールを先頭へ */
-        modal.scrollTop = 0;
+      function renderStats(v){
+        mStats.textContent = "";
+        const pieces = [
+          v.views + " views",
+          "投稿日: " + v.date,
+          "投稿者: " + v.uploader,
+          "カテゴリ: " + v.category
+        ];
+        pieces.forEach(function(t){ mStats.appendChild(el("span", "", t)); });
+        const rate = el("span", "", "評価: ");
+        const bar = el("span", "rateBar");
+        const inner = document.createElement("i");
+        inner.style.width = Math.max(0, Math.min(100, v.rating)) + "%";
+        bar.appendChild(inner);
+        rate.appendChild(bar);
+        rate.appendChild(document.createTextNode(" " + v.rating + "%"));
+        mStats.appendChild(rate);
       }
+
+      function renderTags(v){
+        mTags.textContent = "";
+        (v.tags || []).forEach(function(t){
+          const tag = el("button", "tagPill", "#" + t);
+          tag.type = "button";
+          tag.addEventListener("click", function(){
+            activeChip = t;
+            closeModal();
+            renderChips();
+            renderCards();
+          });
+          mTags.appendChild(tag);
+        });
+      }
+
+      function openModal(v, withAnalysis){
+        lastOpened = v;
+        mTitle.textContent = "DETAIL";
+        mDetailTitle.textContent = v.title;
+        mImg.src = v.img;
+        mImg.alt = v.title;
+        mImg.onerror = function(){ mImg.src = PLACEHOLDER; };
+        renderStats(v);
+        mText.textContent = v.text;
+        renderTags(v);
+        mPunch.innerHTML = v.punch;
+        analysisBox.classList.remove("show");
+        analysisScore.textContent = "--%";
+        analysisMeter.style.width = "0%";
+        analysisText.textContent = "";
+        modal.classList.add("show");
+        modal.scrollTop = 0;
+        if(withAnalysis) runAnalysis(v);
+      }
+
       function closeModal(){
         modal.classList.remove("show");
         try{ mImg.src = ""; }catch(_){}
       }
-      mClose.addEventListener("click", closeModal);
-      modal.addEventListener("click", (e)=>{ if(e.target === modal) closeModal(); });
-      document.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeModal(); });
 
-      function pick(id){ return VIDS.find(x=>x.id===id); }
-      grid.addEventListener("click", (e)=>{
+      function runAnalysis(v){
+        analysisBox.classList.add("show");
+        analysisText.textContent = "生体刺激パターンを解析中…";
+        analysisScore.textContent = "SCAN";
+        analysisMeter.style.width = "12%";
+        setTimeout(function(){ analysisMeter.style.width = "62%"; }, 180);
+        setTimeout(function(){
+          const score = Math.max(88, Math.min(99, v.rating + ((v.tags || []).includes("new") ? 1 : 0)));
+          analysisMeter.style.width = score + "%";
+          analysisScore.textContent = score + "%";
+          analysisText.textContent = "推定興奮源: " + v.category + " / 主要タグ: " + (v.tags || []).join(", ") + "。結論: 視聴に値する生命現象です。";
+        }, 520);
+      }
+
+      mClose.addEventListener("click", closeModal);
+      modal.addEventListener("click", function(e){ if(e.target === modal) closeModal(); });
+      document.addEventListener("keydown", function(e){ if(e.key === "Escape") closeModal(); });
+
+      grid.addEventListener("click", function(e){
         const card = e.target.closest(".card");
         if(!card) return;
         const v = pick(card.dataset.id);
-        if(v) openModal(v);
+        if(v) openModal(v, false);
       });
-      grid.addEventListener("keydown", (e)=>{
+      grid.addEventListener("keydown", function(e){
         if(e.key !== "Enter" && e.key !== " ") return;
         const card = e.target.closest(".card");
         if(!card) return;
         e.preventDefault();
         const v = pick(card.dataset.id);
-        if(v) openModal(v);
+        if(v) openModal(v, false);
       });
 
-      // already entered -> skip gate
-      try{
-        if(localStorage.getItem(LS_KEY) === "1"){
-          gate.style.display="none";
-          site.classList.add("show");
-        }
-      }catch(_){}
+      q.addEventListener("input", renderCards);
+      clearSearch.addEventListener("click", function(){
+        q.value = "";
+        q.focus();
+        renderCards();
+      });
 
-      // fake search UX
-      const q = document.getElementById("q");
-      q.addEventListener("input", ()=>{
-        const kw = q.value.trim().toLowerCase();
-        const cards = grid.querySelectorAll(".card");
-        cards.forEach(c=>{
-          const v = pick(c.dataset.id);
-          const hit = !kw || (v.title+" "+v.sub).toLowerCase().includes(kw);
-          c.style.display = hit ? "" : "none";
+      document.querySelectorAll(".subnav [data-chip]").forEach(function(a){
+        a.addEventListener("click", function(e){
+          e.preventDefault();
+          activeChip = a.dataset.chip || "all";
+          renderChips();
+          renderCards();
         });
       });
 
-      // AIボタン：雑に“解析”してオチへ誘導
-      document.getElementById("aiBtn").addEventListener("click", ()=>{
-        openModal(VIDS[0]);
+      aiBtn.addEventListener("click", function(){
+        const pool = visibleIds.length ? visibleIds.map(pick).filter(Boolean) : VIDS;
+        const v = lastOpened || pool[Math.floor(Math.random() * pool.length)] || VIDS[0];
+        openModal(v, true);
       });
+
+      renderChips();
+      renderCards();
+
+      try{
+        if(localStorage.getItem(LS_KEY) === "1"){
+          gate.style.display = "none";
+          site.classList.add("show");
+        }
+      }catch(_){}
     })();
   </script>
-
 </body>
 </html>
