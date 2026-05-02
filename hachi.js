@@ -6,12 +6,61 @@
 (() => {
   "use strict";
 
+  // ===== constants =====
   const WIKI_BASE = "https://ja.uncyclopedia.info";
   const API = `${WIKI_BASE}/api.php`;
-  const SITE = "ja.uncyclopedia.info"; // fallback用
-
-  // ===== 怪異（ローカル）：1/20 =====
+  const SITE = "ja.uncyclopedia.info";
+  const DEFAULT_TITLE = "メインページ";
   const ANOMALY_RATE = 1 / 20;
+
+  const IDS = Object.freeze({
+    articleTitle: "articleTitle",
+    articleNote: "articleNote",
+    articleContent: "articleContent",
+    console: "console",
+    q: "q",
+    btnOpen: "btnOpen",
+    btnSearch: "btnSearch",
+    btnRandom: "btnRandom",
+    searchInput: "searchInput",
+    searchBtn: "searchBtn",
+  });
+
+  const REMOVABLE_SELECTORS = [
+    "script",
+    "style",
+    "noscript",
+    "iframe",
+    "object",
+    "embed",
+    "link",
+    "meta",
+    ".mw-editsection",
+    "sup.reference",
+  ].join(",");
+
+  const SKIP_HIGHLIGHT_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "MARK"]);
+
+  // ===== local anomaly data =====
+  const ANOMALY_BOX_STYLE = [
+    "white-space:pre-wrap",
+    "background:rgba(0,0,0,.22)",
+    "padding:12px",
+    "border-radius:12px",
+    "border:1px solid rgba(255,255,255,.10)",
+  ].join("; ");
+
+  const createPreBlock = (text) => (
+    `<pre style="${ANOMALY_BOX_STYLE};">${text}</pre>`
+  );
+
+  const MOJIBAKE_LINES = [
+    // Source-level invisible C1 control characters are intentionally avoided.
+    // Runtime text is reconstructed from code points so the visual mojibake effect remains.
+    fromCodePoints([0x00E3, 0x0081, 0x201A, 0x00E3, 0x0081, 0x00AA, 0x00E3, 0x0081, 0x017D, 0x00E3, 0x0081, 0x00AF, 0x00E3, 0x20AC, 0x20AC, 0x00E3, 0x0081, 0x201C, 0x00E3, 0x0081, 0x201C, 0x00E3, 0x0081, 0x00AB, 0x00E3, 0x20AC, 0x20AC, 0x00E3, 0x0081, 0x201E, 0x00E3, 0x201A, 0x2039]),
+    fromCodePoints([0x00E3, 0x0081, 0x201E, 0x00E3, 0x0081, 0x00BE, 0x00E3, 0x0081, 0x00AF, 0x00E3, 0x20AC, 0x20AC, 0x00E3, 0x0081, 0x201C, 0x00E3, 0x0081, 0x201C, 0x00E3, 0x0081, 0x00AB, 0x00E3, 0x20AC, 0x20AC, 0x00E3, 0x0081, 0x201E, 0x00E3, 0x0081, 0x00AA, 0x00E3, 0x0081, 0x201E]),
+  ];
+
   const ANOMALIES = [
     {
       title: "■■■について",
@@ -20,8 +69,7 @@
         <p>この項目は閲覧権限が不足しています。</p>
         <p>しかし、あなたはすでに<strong>読んでしまった</strong>。</p>
         <hr>
-        <pre style="white-space:pre-wrap; background:rgba(0,0,0,.22); padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,.10);">
-■■■■■■■■■■■■■■■■■■
+        ${createPreBlock(`■■■■■■■■■■■■■■■■■■
 ■■■  記録番号: 0xDEAD-BEEF  ■■■
 ■■■  観測ログ: 欠損         ■■■
 ■■■■■■■■■■■■■■■■■■
@@ -31,9 +79,8 @@
 ・閉じても、次に開いた時、続きから始まる
 
 ――――――――――――――――――
-見つけないでください
-        </pre>
-      `
+見つけないでください`)}
+      `,
     },
     {
       title: "文字化け資料（復元不能）",
@@ -41,434 +88,543 @@
       html: `
         <p>復元処理に失敗しました。</p>
         <p class="note">※外部APIは呼び出していません。</p>
-        <pre style="white-space:pre-wrap; background:rgba(0,0,0,.22); padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,.10);">
-ã‚ãªãŸã¯ã€€ã“ã“ã«ã€€ã„ã‚‹
-ã„ã¾ã¯ã€€ã“ã“ã«ã€€ã„ãªã„
+        ${createPreBlock(`${MOJIBAKE_LINES.join("\n")}
 
 [ERR] parse.text: NULL
 [WARN] callback: missing
 [INFO] retry: 0
 [INFO] retry: 0
-[INFO] retry: 0
-        </pre>
-      `
-    }
+[INFO] retry: 0`)}
+      `,
+    },
   ];
 
+  // ===== DOM helpers =====
   const el = (id) => document.getElementById(id);
 
-  function log(line){
-    const c = el("console");
-    if(!c) return;
-    c.textContent += `\n${line}`;
+  function fromCodePoints(points) {
+    return String.fromCodePoint(...points);
   }
 
-  function normTitle(s){
-    return (s || "").trim().replaceAll("_"," ").replace(/\s+/g, " ");
+  function getEls() {
+    return {
+      title: el(IDS.articleTitle),
+      note: el(IDS.articleNote),
+      content: el(IDS.articleContent),
+      query: el(IDS.q),
+      open: el(IDS.btnOpen),
+    };
   }
 
-  function pageUrl(title){
-    const t = normTitle(title || "メインページ").replaceAll(" ", "_");
-    return `${WIKI_BASE}/wiki/${encodeURIComponent(t)}`;
+  function log(line) {
+    const consoleEl = el(IDS.console);
+    if (!consoleEl) return;
+    consoleEl.textContent += `\n${line}`;
   }
 
-  function googleSiteSearchUrl(query){
+  function setText(node, text) {
+    if (node) node.textContent = text;
+  }
+
+  function setHtml(node, html) {
+    if (node) node.innerHTML = html;
+  }
+
+  function createElement(tag, attrs = {}, text = "") {
+    const node = document.createElement(tag);
+    for (const [key, value] of Object.entries(attrs)) {
+      if (value == null) continue;
+      node.setAttribute(key, String(value));
+    }
+    if (text) node.textContent = text;
+    return node;
+  }
+
+  // ===== URL/API helpers =====
+  function normTitle(value) {
+    return String(value || "").trim().replaceAll("_", " ").replace(/\s+/g, " ");
+  }
+
+  function normalizedOrDefault(title) {
+    return normTitle(title || DEFAULT_TITLE) || DEFAULT_TITLE;
+  }
+
+  function pageUrl(title) {
+    const pathTitle = normalizedOrDefault(title).replaceAll(" ", "_");
+    return `${WIKI_BASE}/wiki/${encodeURIComponent(pathTitle)}`;
+  }
+
+  function googleSiteSearchUrl(query) {
     const q = normTitle(query);
-    const base = `site:${SITE}`;
-    return `https://www.google.com/search?q=${encodeURIComponent(q ? base + " " + q : base)}`;
+    const siteQuery = `site:${SITE}`;
+    return `https://www.google.com/search?q=${encodeURIComponent(q ? `${siteQuery} ${q}` : siteQuery)}`;
   }
 
-  function openUrl(url, newTab = true){
-    if(newTab){
-      const w = window.open(url, "_blank", "noopener");
-      if(w) return;
+  function openUrl(url, newTab = true) {
+    if (newTab) {
+      const opened = window.open(url, "_blank", "noopener");
+      if (opened) return;
     }
     location.href = url;
   }
 
-  function setOpenLink(title){
-    const a = el("btnOpen");
-    if(!a) return;
-    a.href = pageUrl(title);
+  function setOpenLink(title, url = pageUrl(title)) {
+    const open = el(IDS.btnOpen);
+    if (!open) return;
+    open.href = url;
+    open.setAttribute("target", "_blank");
+    open.setAttribute("rel", "noopener");
   }
 
-  function jsonp(url, timeoutMs = 9000){
+  function buildApiUrl(params) {
+    const url = new URL(API);
+    for (const [key, value] of Object.entries(params)) {
+      url.searchParams.set(key, String(value));
+    }
+    return url.toString();
+  }
+
+  function apiParseUrl(title) {
+    return buildApiUrl({
+      action: "parse",
+      page: normalizedOrDefault(title),
+      prop: "text",
+      redirects: "1",
+      format: "json",
+      formatversion: "2",
+    });
+  }
+
+  function apiRandomUrl() {
+    return buildApiUrl({
+      action: "query",
+      list: "random",
+      rnnamespace: "0",
+      rnlimit: "1",
+      format: "json",
+      formatversion: "2",
+    });
+  }
+
+  function jsonp(url, timeoutMs = 9000) {
     return new Promise((resolve, reject) => {
-      const cb = `__hachi_cb_${Date.now()}_${Math.floor(Math.random()*1e6)}`;
+      const callbackName = `__hachi_cb_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
       const script = document.createElement("script");
-      let done = false;
+      let settled = false;
 
       const cleanup = () => {
-        if(script.parentNode) script.parentNode.removeChild(script);
-        try { delete window[cb]; } catch { window[cb] = undefined; }
+        if (script.parentNode) script.parentNode.removeChild(script);
+        try {
+          delete window[callbackName];
+        } catch (_) {
+          window[callbackName] = undefined;
+        }
+      };
+
+      const finish = (fn, payload) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        cleanup();
+        fn(payload);
       };
 
       const timer = setTimeout(() => {
-        if(done) return;
-        done = true;
-        cleanup();
-        reject(new Error("JSONP timeout"));
+        finish(reject, new Error("JSONP timeout"));
       }, timeoutMs);
 
-      window[cb] = (data) => {
-        if(done) return;
-        done = true;
-        clearTimeout(timer);
-        cleanup();
-        resolve(data);
-      };
+      window[callbackName] = (data) => finish(resolve, data);
 
-      const u = new URL(url);
-      if(!u.searchParams.get("callback")) u.searchParams.set("callback", cb);
+      const parsedUrl = new URL(url);
+      if (!parsedUrl.searchParams.get("callback")) {
+        parsedUrl.searchParams.set("callback", callbackName);
+      }
 
-      script.src = u.toString();
-      script.onerror = () => {
-        if(done) return;
-        done = true;
-        clearTimeout(timer);
-        cleanup();
-        reject(new Error("JSONP script error"));
-      };
+      script.async = true;
+      script.src = parsedUrl.toString();
+      script.onerror = () => finish(reject, new Error("JSONP script error"));
 
       document.head.appendChild(script);
     });
   }
 
-  function apiParseUrl(title){
-    const t = normTitle(title || "メインページ");
-    const u = new URL(API);
-    u.searchParams.set("action", "parse");
-    u.searchParams.set("page", t);
-    u.searchParams.set("prop", "text");
-    u.searchParams.set("redirects", "1");
-    u.searchParams.set("format", "json");
-    u.searchParams.set("formatversion", "2");
-    return u.toString();
-  }
-
-  function apiRandomUrl(){
-    const u = new URL(API);
-    u.searchParams.set("action", "query");
-    u.searchParams.set("list", "random");
-    u.searchParams.set("rnnamespace", "0");
-    u.searchParams.set("rnlimit", "1");
-    u.searchParams.set("format", "json");
-    u.searchParams.set("formatversion", "2");
-    return u.toString();
-  }
-
-  function absolutizeUrl(raw){
-    if(!raw) return raw;
-    if(raw.startsWith("//")) return "https:" + raw;
-    if(raw.startsWith("/")) return WIKI_BASE + raw;
+  // ===== article sanitizing =====
+  function absolutizeUrl(raw) {
+    if (!raw) return raw;
+    if (raw.startsWith("//")) return `https:${raw}`;
+    if (raw.startsWith("/")) return `${WIKI_BASE}${raw}`;
     return raw;
   }
 
-  function fixSrcset(srcset){
-    if(!srcset) return srcset;
+  function fixSrcset(srcset) {
+    if (!srcset) return srcset;
     return srcset
       .split(",")
-      .map(part => part.trim())
-      .map(part => {
-        const sp = part.split(/\s+/);
-        sp[0] = absolutizeUrl(sp[0]);
-        return sp.join(" ");
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .map((part) => {
+        const pieces = part.split(/\s+/);
+        pieces[0] = absolutizeUrl(pieces[0]);
+        return pieces.join(" ");
       })
       .join(", ");
   }
 
-  function sanitizeArticleHtml(html){
-    const doc = new DOMParser().parseFromString(html, "text/html");
-
-    doc.querySelectorAll("script, style, noscript").forEach(n => n.remove());
-    doc.querySelectorAll(".mw-editsection").forEach(n => n.remove());
-    doc.querySelectorAll("sup.reference").forEach(n => n.remove());
-
-    doc.querySelectorAll("a[href]").forEach(a => {
-      const href = a.getAttribute("href") || "";
-      if(href.startsWith("#")) return;
-      const abs = absolutizeUrl(href);
-      a.setAttribute("href", abs);
-      a.setAttribute("target", "_blank");
-      a.setAttribute("rel", "noopener");
+  function removeInlineEventHandlers(root) {
+    root.querySelectorAll("*").forEach((node) => {
+      [...node.attributes].forEach((attr) => {
+        if (/^on/i.test(attr.name)) node.removeAttribute(attr.name);
+      });
     });
+  }
 
-    doc.querySelectorAll("img").forEach(img => {
+  function normalizeLinks(root) {
+    root.querySelectorAll("a[href]").forEach((anchor) => {
+      const href = anchor.getAttribute("href") || "";
+      if (href.startsWith("#")) return;
+      anchor.setAttribute("href", absolutizeUrl(href));
+      anchor.setAttribute("target", "_blank");
+      anchor.setAttribute("rel", "noopener");
+    });
+  }
+
+  function normalizeImages(root) {
+    root.querySelectorAll("img").forEach((img) => {
       const src = img.getAttribute("src") || img.getAttribute("data-src") || "";
-      if(src) img.setAttribute("src", absolutizeUrl(src));
+      if (src) img.setAttribute("src", absolutizeUrl(src));
 
-      const srcset = img.getAttribute("srcset") || img.getAttribute("data-srcset");
-      if(srcset) img.setAttribute("srcset", fixSrcset(srcset));
+      const srcset = img.getAttribute("srcset") || img.getAttribute("data-srcset") || "";
+      if (srcset) img.setAttribute("srcset", fixSrcset(srcset));
 
       img.removeAttribute("width");
       img.removeAttribute("height");
       img.loading = "lazy";
     });
+  }
 
+  function sanitizeArticleHtml(html) {
+    const doc = new DOMParser().parseFromString(String(html || ""), "text/html");
+    doc.querySelectorAll(REMOVABLE_SELECTORS).forEach((node) => node.remove());
+    removeInlineEventHandlers(doc.body);
+    normalizeLinks(doc.body);
+    normalizeImages(doc.body);
     return doc.body.innerHTML;
   }
 
-  // ===== ページ内検索（本文ハイライト） =====
+  function getParsedHtml(data) {
+    const text = data?.parse?.text;
+    if (typeof text === "string") return text;
+    if (text && typeof text["*"] === "string") return text["*"];
+    return "";
+  }
+
+  // ===== in-page search =====
   let articleOriginalHTML = "";
 
-  function escapeRegExp(s){
-    return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  function escapeRegExp(value) {
+    return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
-  function clearHighlights(){
-    const box = el("articleContent");
-    if(!box) return;
-    if(articleOriginalHTML) box.innerHTML = articleOriginalHTML;
+  function resetArticleHtml() {
+    const box = el(IDS.articleContent);
+    if (box && articleOriginalHTML) box.innerHTML = articleOriginalHTML;
   }
 
-  function highlightInArticle(query){
-    const box = el("articleContent");
-    if(!box) return 0;
-    if(!articleOriginalHTML) return 0;
+  function shouldSearchTextNode(node) {
+    const parent = node.parentNode;
+    if (!parent) return false;
+    if (SKIP_HIGHLIGHT_TAGS.has(parent.nodeName.toUpperCase())) return false;
+    return !!(node.nodeValue && node.nodeValue.trim());
+  }
 
-    const q = (query || "").trim();
-    clearHighlights();
-    if(!q) return 0;
-
-    const re = new RegExp(escapeRegExp(q), "gi");
-    let total = 0;
-
+  function collectSearchableTextNodes(root) {
     const walker = document.createTreeWalker(
-      box,
+      root,
       NodeFilter.SHOW_TEXT,
       {
-        acceptNode(node){
-          const p = node.parentNode;
-          if(!p) return NodeFilter.FILTER_REJECT;
-          const tag = (p.nodeName || "").toUpperCase();
-          if(tag === "SCRIPT" || tag === "STYLE" || tag === "NOSCRIPT" || tag === "MARK") {
-            return NodeFilter.FILTER_REJECT;
-          }
-          if(!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
-          return NodeFilter.FILTER_ACCEPT;
-        }
+        acceptNode: (node) => (
+          shouldSearchTextNode(node)
+            ? NodeFilter.FILTER_ACCEPT
+            : NodeFilter.FILTER_REJECT
+        ),
       }
     );
 
     const nodes = [];
-    while(walker.nextNode()) nodes.push(walker.currentNode);
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    return nodes;
+  }
 
-    for(const node of nodes){
-      const text = node.nodeValue;
-      re.lastIndex = 0;
-      let m;
-      let last = 0;
-      let local = 0;
-      const frag = document.createDocumentFragment();
+  function markMatchesInTextNode(node, regexp) {
+    const text = node.nodeValue;
+    let match;
+    let lastIndex = 0;
+    let hitCount = 0;
+    const fragment = document.createDocumentFragment();
 
-      while((m = re.exec(text)) !== null){
-        const start = m.index;
-        const end = start + m[0].length;
-        frag.appendChild(document.createTextNode(text.slice(last, start)));
-        const mark = document.createElement("mark");
-        mark.className = "hachiHit";
-        mark.textContent = text.slice(start, end);
-        frag.appendChild(mark);
-        local++;
-        total++;
-        last = end;
-        if(m.index === re.lastIndex) re.lastIndex++;
-      }
+    regexp.lastIndex = 0;
 
-      if(local > 0){
-        frag.appendChild(document.createTextNode(text.slice(last)));
-        node.parentNode.replaceChild(frag, node);
-      }
+    while ((match = regexp.exec(text)) !== null) {
+      const start = match.index;
+      const end = start + match[0].length;
+
+      fragment.appendChild(document.createTextNode(text.slice(lastIndex, start)));
+
+      const mark = document.createElement("mark");
+      mark.className = "hachiHit";
+      mark.textContent = text.slice(start, end);
+      fragment.appendChild(mark);
+
+      hitCount += 1;
+      lastIndex = end;
+
+      if (regexp.lastIndex === match.index) regexp.lastIndex += 1;
     }
 
-    const first = box.querySelector("mark.hachiHit");
-    first?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (hitCount > 0) {
+      fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+      node.parentNode.replaceChild(fragment, node);
+    }
+
+    return hitCount;
+  }
+
+  function highlightInArticle(query) {
+    const box = el(IDS.articleContent);
+    if (!box || !articleOriginalHTML) return 0;
+
+    const q = String(query || "").trim();
+    resetArticleHtml();
+    if (!q) return 0;
+
+    const regexp = new RegExp(escapeRegExp(q), "gi");
+    const total = collectSearchableTextNodes(box)
+      .reduce((sum, node) => sum + markMatchesInTextNode(node, regexp), 0);
+
+    box.querySelector("mark.hachiHit")?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
 
     return total;
   }
 
-  // ===== 怪異描画（APIを呼ばない） =====
-  function renderAnomaly(){
-    const a = ANOMALIES[Math.floor(Math.random() * ANOMALIES.length)];
+  function runCurrentInPageSearch(baseNote, title) {
+    const searchInput = el(IDS.searchInput);
+    const note = el(IDS.articleNote);
+    const query = searchInput?.value || "";
 
-    const titleEl = el("articleTitle");
-    const noteEl  = el("articleNote");
-    const box     = el("articleContent");
-
-    if(titleEl) titleEl.textContent = a.title;
-    if(noteEl)  noteEl.textContent  = a.note;
-    if(box)     box.innerHTML = a.html;
-
-    // 本文内検索が効くように
-    articleOriginalHTML = a.html;
-
-    const q = el("q");
-    if(q) q.value = a.title;
-
-    // 「本家で開く」はランダムへ（怪異はローカルなので）
-    const open = el("btnOpen");
-    if(open){
-      open.href = `${WIKI_BASE}/wiki/Special:Random`;
-      open.setAttribute("target", "_blank");
-      open.setAttribute("rel", "noopener");
+    if (!query.trim()) {
+      setText(note, baseNote);
+      return 0;
     }
 
-    // nav検索が入ってたら、そのまま本文内検索も走らせる
-    const navQ = el("searchInput")?.value || "";
-    if(navQ.trim()){
-      const hits = highlightInArticle(navQ);
-      if(noteEl) noteEl.textContent = `${a.note}｜本文内検索「${navQ}」：${hits}件`;
+    const hits = highlightInArticle(query);
+    setText(note, `表示中：${title}｜本文内検索「${query}」：${hits}件`);
+    return hits;
+  }
+
+  // ===== rendering =====
+  function renderArticleShell(title) {
+    const nodes = getEls();
+    setText(nodes.title, title);
+    setText(nodes.note, "読み込み中…");
+    setText(nodes.content, "Loading…");
+    setOpenLink(title);
+  }
+
+  function renderArticle(title, html) {
+    const nodes = getEls();
+    const safe = sanitizeArticleHtml(html);
+    const baseNote = `表示中：${title}（右上で本文内検索可）`;
+
+    setText(nodes.title, title);
+    setHtml(nodes.content, safe);
+    articleOriginalHTML = safe;
+
+    runCurrentInPageSearch(baseNote, title);
+
+    if (nodes.query) nodes.query.value = title;
+    setOpenLink(title);
+    log("ok: rendered");
+  }
+
+  function renderFallback(title, reason) {
+    const nodes = getEls();
+    const fragment = document.createDocumentFragment();
+
+    const message = createElement("p", { class: "note" });
+    message.append(
+      "取得に失敗した（環境要因：Cloudflare/通信/ブロック等）。",
+      document.createElement("br"),
+      `代替として、Googleで site:${SITE} 検索を開ける。`
+    );
+
+    const row = createElement("div", { class: "btnrow" });
+    row.append(
+      createElement("a", {
+        class: "btn primary",
+        href: googleSiteSearchUrl(title),
+        target: "_blank",
+        rel: "noopener",
+      }, "Googleで探す"),
+      createElement("a", {
+        class: "btn",
+        href: pageUrl(title),
+        target: "_blank",
+        rel: "noopener",
+      }, "本家で開く")
+    );
+
+    fragment.append(message, row);
+
+    setText(nodes.note, "外部取得に失敗 → 外部検索に逃げます");
+    if (nodes.content) {
+      nodes.content.replaceChildren(fragment);
+      articleOriginalHTML = nodes.content.innerHTML;
+    }
+
+    log(`fail: ${String(reason?.message || reason)}`);
+  }
+
+  function renderAnomaly() {
+    const anomaly = ANOMALIES[Math.floor(Math.random() * ANOMALIES.length)];
+    const nodes = getEls();
+
+    setText(nodes.title, anomaly.title);
+    setText(nodes.note, anomaly.note);
+    setHtml(nodes.content, anomaly.html);
+    articleOriginalHTML = anomaly.html;
+
+    if (nodes.query) nodes.query.value = anomaly.title;
+    setOpenLink(anomaly.title, `${WIKI_BASE}/wiki/Special:Random`);
+
+    const navQuery = el(IDS.searchInput)?.value || "";
+    if (navQuery.trim()) {
+      const hits = highlightInArticle(navQuery);
+      setText(nodes.note, `${anomaly.note}｜本文内検索「${navQuery}」：${hits}件`);
     }
 
     log("anomaly: local render (no api)");
   }
 
-  // ===== 記事読み込み =====
-  async function loadArticle(title){
-    const t = normTitle(title || "メインページ") || "メインページ";
+  // ===== data loading =====
+  async function loadArticle(title) {
+    const normalizedTitle = normalizedOrDefault(title);
+    renderArticleShell(normalizedTitle);
+    log(`load: ${normalizedTitle}`);
 
-    const titleEl = el("articleTitle");
-    const noteEl = el("articleNote");
-    const box = el("articleContent");
-
-    if(titleEl) titleEl.textContent = t;
-    if(noteEl) noteEl.textContent = "読み込み中…";
-    if(box) box.textContent = "Loading…";
-
-    setOpenLink(t);
-    log(`load: ${t}`);
-
-    try{
-      const data = await jsonp(apiParseUrl(t), 9000);
-      const parsedTitle = data?.parse?.title || t;
-      const html = data?.parse?.text || data?.parse?.text?.["*"] || "";
-
-      if(!html) throw new Error("empty parse.text");
-
-      const safe = sanitizeArticleHtml(html);
-      if(titleEl) titleEl.textContent = parsedTitle;
-      if(noteEl) noteEl.textContent = `表示中：${parsedTitle}（右上で本文内検索可）`;
-      if(box) box.innerHTML = safe;
-
-      articleOriginalHTML = safe;
-
-      const navQ = el("searchInput")?.value || "";
-      if(navQ.trim()){
-        const hits = highlightInArticle(navQ);
-        if(noteEl) noteEl.textContent = `表示中：${parsedTitle}｜本文内検索「${navQ}」：${hits}件`;
-      }
-
-      const q = el("q");
-      if(q) q.value = parsedTitle;
-      setOpenLink(parsedTitle);
-
-      log("ok: rendered");
-    }catch(err){
-      log(`fail: ${String(err?.message || err)}`);
-      if(noteEl) noteEl.textContent = "外部取得に失敗 → 外部検索に逃げます";
-      if(box){
-        box.innerHTML = `
-          <p class="note">
-            取得に失敗した（環境要因：Cloudflare/通信/ブロック等）。<br>
-            代替として、Googleで <b>site:${SITE}</b> 検索を開ける。
-          </p>
-          <div class="btnrow">
-            <a class="btn primary" href="${googleSiteSearchUrl(t)}" target="_blank" rel="noopener">Googleで探す</a>
-            <a class="btn" href="${pageUrl(t)}" target="_blank" rel="noopener">本家で開く</a>
-          </div>
-        `;
-      }
+    try {
+      const data = await jsonp(apiParseUrl(normalizedTitle), 9000);
+      const parsedTitle = data?.parse?.title || normalizedTitle;
+      const html = getParsedHtml(data);
+      if (!html) throw new Error("empty parse.text");
+      renderArticle(parsedTitle, html);
+    } catch (error) {
+      renderFallback(normalizedTitle, error);
     }
   }
 
-  async function loadRandom(){
-    // 1/50で怪異（APIを呼ばない）
-    if(Math.random() < ANOMALY_RATE){
+  async function loadRandom() {
+    if (Math.random() < ANOMALY_RATE) {
       renderAnomaly();
       return;
     }
 
-    try{
+    try {
       log("random: query…");
       const data = await jsonp(apiRandomUrl(), 7000);
       const title = data?.query?.random?.[0]?.title;
-      if(!title) throw new Error("no random title");
+      if (!title) throw new Error("no random title");
       await loadArticle(title);
-    }catch(err){
-      log(`random fail: ${String(err?.message || err)}`);
+    } catch (error) {
+      log(`random fail: ${String(error?.message || error)}`);
       openUrl(`${WIKI_BASE}/wiki/Special:Random`, true);
     }
   }
 
-  // ===== 右上（nav）検索を「本文内検索」にする =====
-  function setupNavInPageSearch(){
-    const oldInp = el("searchInput");
-    const oldBtn = el("searchBtn");
-    if(!oldInp || !oldBtn) return;
+  // ===== nav search override =====
+  function replaceNavSearchElementsIfNeeded(input, button, pageMode) {
+    if (pageMode) return { input, button };
 
-    const pageMode = String(oldInp.dataset.searchMode || oldBtn.dataset.searchMode || "").toLowerCase() === "page";
+    const inputClone = input.cloneNode(true);
+    const buttonClone = button.cloneNode(true);
 
-    // app.js のサイト内検索リスナーを消すため clone して差し替え
-    const inp = pageMode ? oldInp : oldInp.cloneNode(true);
-    const btn = pageMode ? oldBtn : oldBtn.cloneNode(true);
-    if(!pageMode){
-      oldInp.parentNode.replaceChild(inp, oldInp);
-      oldBtn.parentNode.replaceChild(btn, oldBtn);
+    input.parentNode.replaceChild(inputClone, input);
+    button.parentNode.replaceChild(buttonClone, button);
+
+    return { input: inputClone, button: buttonClone };
+  }
+
+  function updateSearchNote(query, hits) {
+    const note = el(IDS.articleNote);
+    const title = el(IDS.articleTitle)?.textContent || "";
+
+    if (!query.trim()) {
+      setText(note, `表示中：${title}（右上で本文内検索可）`);
+      return;
     }
 
-    inp.placeholder = "本文内検索（このページだけ）";
-    btn.textContent = "探す";
+    setText(note, `表示中：${title}｜本文内検索「${query}」：${hits}件`);
+    log(`in-page: ${hits} hits for "${query}"`);
+  }
+
+  function setupNavInPageSearch() {
+    const oldInput = el(IDS.searchInput);
+    const oldButton = el(IDS.searchBtn);
+    if (!oldInput || !oldButton) return;
+
+    const pageMode = String(oldInput.dataset.searchMode || oldButton.dataset.searchMode || "")
+      .toLowerCase() === "page";
+
+    // app.js のサイト内検索リスナーを消すため clone して差し替え
+    const { input, button } = replaceNavSearchElementsIfNeeded(oldInput, oldButton, pageMode);
+
+    input.placeholder = "本文内検索（このページだけ）";
+    button.textContent = "探す";
 
     const run = () => {
-      const q = inp.value || "";
-      const hits = highlightInArticle(q);
-
-      const noteEl = el("articleNote");
-      const titleEl = el("articleTitle");
-      const title = titleEl?.textContent || "";
-
-      if(!q.trim()){
-        if(noteEl) noteEl.textContent = `表示中：${title}（右上で本文内検索可）`;
-        return;
-      }
-
-      if(noteEl) noteEl.textContent = `表示中：${title}｜本文内検索「${q}」：${hits}件`;
-      log(`in-page: ${hits} hits for "${q}"`);
+      const query = input.value || "";
+      const hits = highlightInArticle(query);
+      updateSearchNote(query, hits);
     };
 
-    btn.addEventListener("click", run);
-    inp.addEventListener("keydown", (e) => {
-      if(e.key === "Enter") run();
+    button.addEventListener("click", run);
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") run();
     });
   }
 
+  // ===== startup =====
+  function setupArticleSearchForm() {
+    const query = el(IDS.q);
+    const searchButton = el(IDS.btnSearch);
+    const randomButton = el(IDS.btnRandom);
+
+    if (query && !query.value) query.value = DEFAULT_TITLE;
+
+    const runLoad = () => loadArticle(query?.value || DEFAULT_TITLE);
+    const updateOpen = () => setOpenLink(query?.value || DEFAULT_TITLE);
+
+    searchButton?.addEventListener("click", runLoad);
+    query?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") runLoad();
+    });
+    query?.addEventListener("input", updateOpen);
+    randomButton?.addEventListener("click", loadRandom);
+
+    updateOpen();
+    return query;
+  }
+
   document.addEventListener("DOMContentLoaded", async () => {
-    if(el("console")) el("console").textContent = "init…\n";
+    const consoleEl = el(IDS.console);
+    if (consoleEl) consoleEl.textContent = "init…\n";
 
     setupNavInPageSearch();
+    const query = setupArticleSearchForm();
 
-    const q = el("q");
-    const btnSearch = el("btnSearch");
-    const btnRandom = el("btnRandom");
-
-    if(q && !q.value) q.value = "メインページ";
-
-    const runLoad = () => loadArticle(q?.value || "メインページ");
-
-    btnSearch?.addEventListener("click", runLoad);
-    q?.addEventListener("keydown", (e) => {
-      if(e.key === "Enter") runLoad();
-    });
-
-    btnRandom?.addEventListener("click", loadRandom);
-
-    const updateOpen = () => setOpenLink(q?.value || "メインページ");
-    q?.addEventListener("input", updateOpen);
-    updateOpen();
-
-    await loadArticle(q?.value || "メインページ");
-
+    await loadArticle(query?.value || DEFAULT_TITLE);
     log("ready");
   });
-
 })();
