@@ -7,6 +7,7 @@
 
   const DEFAULT_DOMAIN = "tomoponz.github.io";
   const SOUND_ROOM_URL = "https://tomoponz.github.io/mushroom/";
+  const FLY_MOON_URL = "vaporwave/eva.html";
   const BLOCKED_QUERY_RE = /黒歴史|kuro|deep/i;
   const HIDDEN_COMMAND = ["kuro", "n", "tomo"].join("-");
   const HIDDEN_COMMAND_TARGET = "deep.html";
@@ -17,7 +18,7 @@
     { keywords: ["おみくじ", "占い", "運勢", "omikuji", "大吉", "凶"], url: "omikuji.html" },
     { keywords: ["診断", "shindan", "性格", "タイプ"], url: "shindan.html" },
     { keywords: ["ネタ", "ギャラリー", "gallery", "ネタ置き場", "画像"], url: "gallery.html" },
-    { keywords: ["音楽", "曲", "music", "sound", "sound room", "youtube", "ny", "NYnpsWrVGKg", "night pulse", "サウンドルーム"], url: SOUND_ROOM_URL },
+    { keywords: ["音楽", "曲", "music", "sound", "sound room", "youtube", "ny", "NYnpsWrVGKg", "night pulse", "サウンドルーム", "mushroom", "mashroom", "きのこ", "キノコ", "ドコノコノキノコ"], url: SOUND_ROOM_URL },
     { keywords: ["リンク", "links", "お気に入り", "おすすめ", "おすすめ動画"], url: "links.html" },
     { keywords: ["ゲーム", "games", "遊ぶ", "game"], url: "games.html" },
     { keywords: ["ミニゲーム", "minigames", "暇つぶし", "2048", "マイン", "マインスイーパ", "mine", "minigame"], url: "minigames.html" },
@@ -30,7 +31,7 @@
     { keywords: ["テトリス", "tetris"], url: "tetris.html" },
     { keywords: ["ロードマップ", "roadmap", "予定"], url: "roadmap.html" },
     { keywords: ["aero", "エアロ", "windows", "vista"], url: "aero/index.html" },
-    { keywords: ["vaporwave", "ヴェイパー", "eva", "終劇", "fly me to the moon", "エヴァ"], url: "vaporwave/eva.html" },
+    { keywords: ["vaporwave", "ヴェイパー", "eva", "終劇", "fly me to the moon", "fly me", "moon", "エヴァ"], url: FLY_MOON_URL },
     { keywords: ["dreamcore", "ドリームコア", "夢"], url: "dreamcore/index.html" },
     { keywords: ["liminal", "リミナル", "backrooms", "バックルーム"], url: "liminal/index.html" },
   ]);
@@ -129,35 +130,59 @@
 
   function injectMusicCardIntoGallery() {
     if (getCurrentPageName() !== "gallery.html") return;
-    if (document.getElementById("musicNyCard")) return;
 
     const firstGrid = document.querySelector("main .grid2");
     if (!firstGrid) return;
 
-    const card = document.createElement("div");
-    card.className = "card";
-    card.id = "musicNyCard";
-    card.innerHTML = `
-      <h2>🎧 Sound Room</h2>
-      <p class="muted">好きな曲を流すための暗めのネオン部屋。別リポジトリのGitHub Pagesへ飛ぶ。</p>
+    function insertAfterR122OrAppend(card) {
+      const r122 = Array.from(firstGrid.children).find((node) => {
+        return node.textContent && node.textContent.includes("R-122");
+      });
+      if (r122 && r122.insertAdjacentElement) {
+        r122.insertAdjacentElement("afterend", card);
+      } else {
+        firstGrid.appendChild(card);
+      }
+    }
 
-      <div class="btnrow">
-        <a class="btn primary" href="${SOUND_ROOM_URL}">開く</a>
-        <a class="btn" href="https://www.youtube.com/watch?v=NYnpsWrVGKg" target="_blank" rel="noopener">YouTube</a>
-      </div>
+    if (!document.getElementById("musicNyCard")) {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.id = "musicNyCard";
+      card.innerHTML = `
+        <h2>🍄 Mushroom Room</h2>
+        <p class="muted">ドコノコノキノコ系の狂気ページ。shell内ではなく、新しいページとして開く。</p>
 
-      <hr class="sep">
-      <div class="note">本体ページは <code>tomoponz/mushroom</code> 側で管理。歌詞・音源・公式素材は転載せず、公式YouTube埋め込みだけを使う。</div>
-    `;
+        <div class="btnrow">
+          <a class="btn primary" href="${SOUND_ROOM_URL}" target="_top" rel="noopener" data-shell-external="1">Mushroomへ</a>
+          <a class="btn" href="https://www.youtube.com/watch?v=NYnpsWrVGKg" target="_blank" rel="noopener">YouTube</a>
+        </div>
 
-    const r122 = Array.from(firstGrid.children).find((node) => {
-      return node.textContent && node.textContent.includes("R-122");
-    });
+        <hr class="sep">
+        <div class="note">本体ページは <code>tomoponz/mushroom</code> 側で管理。クリック時は shell の iframe ではなく <code>/mushroom/</code> へ直接移動する。</div>
+      `;
+      insertAfterR122OrAppend(card);
+    }
 
-    if (r122 && r122.insertAdjacentElement) {
-      r122.insertAdjacentElement("afterend", card);
-    } else {
-      firstGrid.appendChild(card);
+    if (!document.getElementById("flyMoonCard")) {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.id = "flyMoonCard";
+      card.innerHTML = `
+        <h2>🌕 Fly Me to the Moon</h2>
+        <p class="muted">Vaporwave側の終劇ページへ直接行く導線。スマホでも押しやすい入口。</p>
+
+        <div class="btnrow">
+          <a class="btn primary" href="${FLY_MOON_URL}">開く</a>
+          <a class="btn" href="vaporwave/index.html">Vaporwave入口</a>
+        </div>
+
+        <hr class="sep">
+        <div class="note">検索では <code>fly me</code> / <code>moon</code> / <code>終劇</code> でも開ける。</div>
+      `;
+      const music = document.getElementById("musicNyCard");
+      if (music && music.insertAdjacentElement) music.insertAdjacentElement("afterend", card);
+      else insertAfterR122OrAppend(card);
     }
   }
 
