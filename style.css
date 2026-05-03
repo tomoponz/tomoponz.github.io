@@ -1210,3 +1210,119 @@ button{
   }
 }
 
+
+/* =========================================================
+   2026-05-03 MOBILE ROUTE / SHELL UX PATCH
+   - mobile shell starts as a tiny header, not a full menu wall
+   - direct mobile pages use horizontal nav instead of stacked chips
+   - danger button stays visible above mobile browser/shell edges
+   ========================================================= */
+@media (max-width: 780px){
+  body:not(.shellPage) .nav{
+    padding:10px 12px !important;
+    gap:10px !important;
+  }
+  body:not(.shellPage) .navlinks{
+    width:100% !important;
+    flex-wrap:nowrap !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    justify-content:flex-start !important;
+    gap:10px !important;
+    padding:0 0 5px !important;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;
+  }
+  body:not(.shellPage) .navlinks .chip{
+    min-height:42px;
+    padding:10px 12px !important;
+    font-size:12.5px;
+  }
+  body:not(.shellPage) .navlinks .nav-search{
+    width:min(92vw, 360px) !important;
+    min-width:240px;
+    flex:0 0 auto;
+    margin:0 !important;
+  }
+  body:not(.shellPage) .wrap{
+    padding:24px 12px 82px;
+  }
+  body:not(.shellPage) .grid2,
+  body:not(.shellPage) .grid3{
+    grid-template-columns:1fr !important;
+  }
+  body:not(.shellPage) .btnrow,
+  body:not(.shellPage) .hero-actions{
+    gap:10px;
+  }
+  body:not(.shellPage) .btnrow .btn,
+  body:not(.shellPage) .hero-actions .btnlike{
+    min-height:44px;
+    align-items:center;
+    justify-content:center;
+  }
+
+  html.navCollapsed body.shellPage .nav{
+    grid-template-columns:minmax(0,1fr) auto !important;
+    padding:6px 8px !important;
+    gap:6px !important;
+  }
+  html.navCollapsed body.shellPage .brand{
+    grid-column:1 !important;
+    grid-row:1 !important;
+    min-width:0 !important;
+    overflow:hidden;
+  }
+  html.navCollapsed body.shellPage .logo{
+    width:32px !important;
+    height:32px !important;
+    border-radius:11px !important;
+  }
+  html.navCollapsed body.shellPage .brandName{
+    font-size:.92rem !important;
+  }
+  html.navCollapsed body.shellPage .brandSub{
+    display:none !important;
+  }
+  html.navCollapsed body.shellPage .navtools{
+    grid-column:2 !important;
+    grid-row:1 !important;
+    width:auto !important;
+    justify-content:flex-end !important;
+    gap:6px !important;
+  }
+  html.navCollapsed body.shellPage header.nav .navtools .nav-search,
+  html.navCollapsed body.shellPage #audioToggle{
+    display:none !important;
+  }
+  html.navCollapsed body.shellPage #navCollapse{
+    min-width:42px !important;
+    width:42px !important;
+    height:38px !important;
+    padding:0 !important;
+  }
+  html.navCollapsed body.shellPage .shellWrap{
+    padding:4px !important;
+  }
+  html.navCollapsed body.shellPage .viewFrame{
+    height:calc(100vh - 50px) !important;
+    border-radius:12px !important;
+  }
+}
+
+#dangerBtn{
+  z-index:2147483000 !important;
+}
+@media (max-width:780px){
+  #dangerBtn{
+    right:12px !important;
+    bottom:calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+    padding:9px 12px !important;
+    font-size:11px !important;
+    max-width:calc(100vw - 24px) !important;
+    white-space:nowrap !important;
+  }
+  .embedded #dangerBtn{
+    bottom:calc(14px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}

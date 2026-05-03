@@ -14,6 +14,23 @@
 
   function safeDecode(x){ return String(x || ""); }
 
+  function isMushroomUrl(raw){
+    try{
+      const u = new URL(String(raw || ""), location.href);
+      if(u.origin !== location.origin) return false;
+      const path = (u.pathname || "/").replace(/^\/+/, "").toLowerCase();
+      return path === "mushroom" || path === "mushroom/" || path === "mushroom/index.html" || path.startsWith("mushroom/?");
+    }catch(_){
+      const path = String(raw || "").replace(/^\/+/, "").split(/[?#]/)[0].toLowerCase();
+      return path === "mushroom" || path === "mushroom/" || path === "mushroom/index.html";
+    }
+  }
+
+  function openTopLevel(raw){
+    const u = new URL(String(raw || ""), location.href);
+    location.href = u.href;
+  }
+
   function normalizeP(raw){
     const p = (raw || "index.html").trim() || "index.html";
     // "index.html?x#y" 形式を許容。フルURLなら同一オリジンだけ受ける。
@@ -155,6 +172,10 @@
   }
 
   function setFrame(p, push){
+    if(isMushroomUrl(p)){
+      openTopLevel(p);
+      return;
+    }
     const norm = normalizeP(p);
 
     // immersive はページごとに明示ONする方式。遷移時はいったん解除しておく（戻り忘れ防止）
@@ -204,11 +225,18 @@
 
     // 修飾キー/別タブは尊重
     if(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    if(a.target && a.target.toLowerCase() !== "_self") return;
+    const target = (a.target || "").toLowerCase();
+    if(target && target !== "_self") return;
+    if(a.dataset && a.dataset.shellExternal === "1") return;
 
     let u;
     try{ u = new URL(a.getAttribute("href"), location.href); }catch(_){ return; }
     if(u.origin !== location.origin) return;
+    if(isMushroomUrl(u.href)){
+      e.preventDefault();
+      openTopLevel(u.href);
+      return;
+    }
 
     // shell 自身の遷移に置き換える
     e.preventDefault();
@@ -274,6 +302,10 @@ if(d.type === "IMMERSION" && typeof d.active === "boolean"){
       }
       // iframe内→別ページへ行く直前に、いま鳴っている“音楽”を止める
       try{ if(typeof window.stopAllMedia === "function") window.stopAllMedia(); }catch(_){ }
+      if(isMushroomUrl(d.href)){
+        openTopLevel(d.href);
+        return;
+      }
       setFrame(String(d.href), true);
     }
   });
@@ -334,6 +366,9 @@ if(d.type === "IMMERSION" && typeof d.active === "boolean"){
         html.navCollapsed .brandSub{ display:none !important; }
         @media (max-width:780px){
           html.navCollapsed .nav{ flex-direction:row !important; align-items:center !important; }
+          html.navCollapsed body.shellPage header.nav .navtools .nav-search,
+          html.navCollapsed body.shellPage #audioToggle{ display:none !important; }
+          html.navCollapsed body.shellPage .navtools{ width:auto !important; justify-content:flex-end !important; }
         }
       `;
       document.head.appendChild(st);
@@ -379,9 +414,12 @@ if(d.type === "IMMERSION" && typeof d.active === "boolean"){
     }
 
     let st0 = load();
-    if(st0 === null){
-      // first time: compact on small screens
-      st0 = (window.matchMedia && window.matchMedia("(max-width:780px)").matches) ? true : false;
+    const isSmallScreen = !!(window.matchMedia && window.matchMedia("(max-width:780px)").matches);
+    if(isSmallScreen){
+      // mobile: the iframe content is the main stage, so start compact every time.
+      st0 = true;
+    }else if(st0 === null){
+      st0 = false;
     }
     apply(st0);
 

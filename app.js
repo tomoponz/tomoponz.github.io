@@ -1689,9 +1689,10 @@
           const hrefRaw = a.getAttribute("href") || "";
           if(hrefRaw.startsWith("#")) return;
 
-          // 修飾キー/別タブは尊重
+          // 修飾キー/別タブ/外部プロジェクト直行は尊重
           if(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
           if(a.target && a.target.toLowerCase() !== "_self") return;
+          if(a.dataset && a.dataset.shellExternal === "1") return;
 
           let u;
           try{ u = new URL(hrefRaw, location.href); }catch(_){ return; }
