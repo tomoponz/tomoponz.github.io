@@ -1,6 +1,8 @@
 // bbs.js（画像表示・XSS対策・トースト通知版）
-// 接続先：Cloudflare Worker
-const API_URL = "https://tomoponz-bbs-proxy.yuto181130.workers.dev";
+// 接続先：Google Apps Script Web アプリ
+// window.BBS_API_URL / window.BBS_GAS_URL を設定すれば、HTML側から差し替え可能。
+const API_URL = window.BBS_API_URL || window.BBS_GAS_URL ||
+  "https://script.google.com/macros/s/AKfycbyxfazD2J8CkfQ0eVrS_qYBzuePrXddWELHRNSagdySKmzDPStpyCuAN155csAiKhFu/exec";
 
 function $(id){ return document.getElementById(id); }
 
@@ -172,7 +174,8 @@ async function loadBBS(){
 
   list.replaceChildren(makeMutedItem("通信中…"));
   try{
-    const res = await fetch(API_URL, { method:"GET" });
+    const res = await fetch(API_URL, { method:"GET", cache:"no-store" });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
     list.replaceChildren();
@@ -239,6 +242,7 @@ async function submitBBS(){
       headers:{ "Content-Type":"text/plain" },
       body: JSON.stringify(payload)
     });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const txt = await res.text();
     if(!/^Success/i.test(txt)){
