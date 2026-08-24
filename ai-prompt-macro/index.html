@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AI Prompt Macroは、ChatGPT Webで有限のプロンプト手順を繰り返し・順番に実行するMicrosoft Edge拡張機能です。">
+  <title>AI Prompt Macro</title>
+  <style>
+    :root{color-scheme:light dark;--bg:#08101f;--panel:#101a2b;--text:#f5f7fb;--muted:#b9c3d6;--accent:#32b9ff;--line:#26344d}
+    *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(180deg,#07101f,#0b1423);color:var(--text);line-height:1.7}
+    main{max-width:920px;margin:0 auto;padding:64px 24px 80px}.badge{display:inline-block;padding:6px 12px;border:1px solid var(--line);border-radius:999px;color:#bfeaff;background:#0c1a2e;font-size:.9rem}
+    h1{font-size:clamp(2.4rem,7vw,4.8rem);line-height:1.05;margin:20px 0 18px}.lead{font-size:1.25rem;color:var(--muted);max-width:780px}.accent{color:var(--accent)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin:40px 0}.card{background:rgba(16,26,43,.88);border:1px solid var(--line);border-radius:18px;padding:22px}.card h2{margin-top:0;font-size:1.1rem}
+    .status{margin:32px 0;padding:20px 22px;border-radius:16px;background:#0d2031;border:1px solid #1d5271}.status strong{color:#8ee0ff}
+    a{color:#7fd6ff}.footer{margin-top:48px;color:var(--muted);font-size:.92rem}
+  </style>
+</head>
+<body>
+<main>
+  <span class="badge">Microsoft Edge extension · Beta</span>
+  <h1>AI Prompt <span class="accent">Macro</span></h1>
+  <p class="lead">ChatGPT Webに、あらかじめ決めたプロンプトを繰り返し送ったり、複数の指示を順番に実行したりできる開発支援ツールです。</p>
+
+  <div class="status"><strong>現在:</strong> Microsoft Edge Add-onsでHidden配布版を審査中です。審査完了後、このページにStoreリンクを追加します。</div>
+
+  <div class="grid">
+    <section class="card"><h2>繰り返し実行</h2><p>同じPromptを最大50回まで有限回数で自動実行できます。</p></section>
+    <section class="card"><h2>Flow</h2><p>複数のPromptや待機を組み合わせ、A → B → Cのような手順を作れます。</p></section>
+    <section class="card"><h2>Pause / Resume / Stop</h2><p>長時間実行の途中でも、一時停止・再開・停止ができます。</p></section>
+    <section class="card"><h2>APIキー不要</h2><p>普段使っているChatGPT Webを利用します。AI Prompt Macro独自のAPI従量課金はありません。</p></section>
+    <section class="card"><h2>安全側に停止</h2><p>送信先や送信状態を確認できない場合は、推測して続行せず停止します。</p></section>
+    <section class="card"><h2>Output-Blind</h2><p>ChatGPTのassistant回答本文を使って次の送信内容を決める仕組みではありません。</p></section>
+  </div>
+
+  <h2>こんな使い方</h2>
+  <p>「現在の実装をレビューして、最も重要な改善を1つ行ってください」のような指示を繰り返し、<strong>レビュー → 改善 → 再レビュー</strong>を同じチャットで続ける、といった使い方を想定しています。</p>
+
+  <h2>対応範囲</h2>
+  <p>Microsoft Edge Desktop / ChatGPT Web（chatgpt.com）。モバイル、Claude / Gemini Webの自動操作、CAPTCHAや利用上限の回避には対応していません。</p>
+
+  <p class="footer">AI Prompt MacroはOpenAIまたはChatGPTの公式製品ではなく、OpenAIによる提供・承認を示すものではありません。<br><a href="./privacy.html">Privacy Policy</a></p>
+</main>
+</body>
+</html>
