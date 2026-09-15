@@ -4,7 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="index,follow">
-  <title>AI Prompt Macro — プライバシーポリシー / Privacy Policy</title>
+  <title>AI Prompt Macro — プライバシーポリシー</title>
+  <link rel="alternate" hreflang="ja" href="privacy.html">
+  <link rel="alternate" hreflang="en" href="privacy-en.html">
   <style>
     :root { color-scheme: light dark; }
     * { box-sizing: border-box; }
@@ -33,10 +35,16 @@
       font-weight: 600;
     }
     .language-nav a:hover { text-decoration: underline; }
+    .language-nav a[aria-current="page"] {
+      border-width: 2px;
+      padding: 8px 21px;
+      text-decoration: underline;
+      text-decoration-thickness: 2px;
+      text-underline-offset: .35em;
+    }
     a { color: LinkText; text-underline-offset: 3px; }
     a:focus-visible { outline: 3px solid Highlight; outline-offset: 4px; }
     article { border-top: 1px solid GrayText; padding-top: 28px; }
-    article + article { margin-top: 56px; }
     .language-label { font-size: .875rem; margin: 0 0 8px; font-weight: 600; }
     h2 { font-size: 1.6rem; line-height: 1.4; margin: 0 0 20px; }
     h3 { margin-top: 2.2rem; margin-bottom: .75rem; font-size: 1.25rem; line-height: 1.5; }
@@ -64,10 +72,10 @@
 <main id="top">
   <header class="page-header">
     <h1>AI Prompt Macro</h1>
-    <p class="subtitle">プライバシーポリシー / <span lang="en">Privacy Policy</span></p>
+    <p class="subtitle">プライバシーポリシー</p>
     <nav class="language-nav" aria-label="言語 / Language">
-      <a href="#ja" lang="ja" hreflang="ja">日本語</a>
-      <a href="#en" lang="en" hreflang="en">English</a>
+      <a href="privacy.html#ja" lang="ja" hreflang="ja" aria-current="page">日本語</a>
+      <a id="en" href="privacy-en.html#en" lang="en" hreflang="en">English</a>
     </nav>
   </header>
   <article id="ja" lang="ja" aria-labelledby="ja-title" tabindex="-1">
@@ -148,87 +156,7 @@
 <p>AI Prompt Macroのデータの取り扱い、権限、第三者サービス、対応機能に重要な変更があった場合は、このポリシーを更新するものとします。</p>
 <p>リリースとともに示すこのポリシーの版は、そのリリースの動作と一致している必要があります。</p>
     </div>
-    <p class="back-to-top"><a href="#top">ページ先頭へ</a> · <a href="#en" lang="en" hreflang="en">English</a></p>
-  </article>
-  <article id="en" lang="en" aria-labelledby="en-title" tabindex="-1">
-    <p class="language-label">English</p>
-    <div class="policy-content">
-<h2 id="en-title">AI Prompt Macro Privacy Policy</h2>
-<p>Last updated: 2026-09-15</p>
-<p>Publisher: <strong>tomoponz</strong></p>
-<p>AI Prompt Macro is a Microsoft Edge browser extension that runs finite, user-defined prompt workflows in ChatGPT Web.</p>
-<h3 id="en-section-1">1. Core privacy design</h3>
-<p>AI Prompt Macro is designed to follow an <strong>Output-Blind</strong> approach: it does not read the body text of ChatGPT assistant responses.</p>
-<p>It does not intentionally access, store, parse, export, or transmit that response text to the publisher, nor does it use that text to decide what to do next.</p>
-<p>Because the extension runs a content script on <code>chatgpt.com</code>, Output-Blind is an implementation constraint rather than a browser-enforced permission boundary.</p>
-<h3 id="en-section-2">2. Information handled locally</h3>
-<p>To provide its features, AI Prompt Macro may handle the following information locally:</p>
-<ul>
-<li>Prompts and Flow source written by the user</li>
-<li>Flow Library metadata and settings</li>
-<li>Identifiers of selected browser tabs</li>
-<li>Current ChatGPT page titles (used only to help people identify tabs in the side panel and held only in memory)</li>
-<li>URL-based conversation identity used for safety checks</li>
-<li>Bounded Run, cursor, outbox, timing, and schedule state</li>
-<li>Prompt hashes and delivery state used to reduce unsafe re-sends</li>
-<li>The optional Keep Awake preference</li>
-<li>Bounded diagnostic event types and timestamps</li>
-<li>Display aliases for tabs, kept only for the browser session</li>
-</ul>
-<p>Workflows, settings, and bounded execution state are stored in browser extension storage as needed. Page titles are an exception. They are displayed temporarily, normalized, and limited to a maximum of 150 Unicode code points. They are not saved in local or session storage, Run or outbox records, or diagnostics. Titles never serve as authority for the selected target, conversation, operation request, or lease, and are not sent to the publisher. Assistant response bodies are outside the scope of the data handled by this extension.</p>
-<h3 id="en-section-3">3. ChatGPT page access</h3>
-<p>AI Prompt Macro operates only on:</p>
-<pre><code class="language-text">https://chatgpt.com/*
-</code></pre>
-<p>The extension uses limited page elements needed for its features. Examples include:</p>
-<ul>
-<li>The prompt composer</li>
-<li>Send and generation-state controls</li>
-<li>Limited control states relating to blockers such as login, usage limits, and service status</li>
-<li>The page URL and conversation identity used to confirm the intended target</li>
-</ul>
-<p>It is not designed to scrape or export ChatGPT conversations.</p>
-<h3 id="en-section-4">4. Network activity and third parties</h3>
-<p>AI Prompt Macro has no publisher-operated backend, analytics service, telemetry endpoint, or remote logging service.</p>
-<p>When the user starts a workflow, AI Prompt Macro places the user's prompt into the ChatGPT Web composer and performs the user-requested Send action. The prompt is then processed by ChatGPT / OpenAI through the user's existing ChatGPT session, in the same general way as a prompt manually submitted on ChatGPT Web.</p>
-<p>This submission to ChatGPT is a user-directed part of the extension's core function. AI Prompt Macro does not send prompts to a service operated by tomoponz.</p>
-<p>AI Prompt Macro does not collect the user's ChatGPT password, authentication cookies, tokens, or browser profile for the publisher.</p>
-<p>ChatGPT / OpenAI is a third-party service with its own terms of use and privacy practices. AI Prompt Macro is not affiliated with or endorsed by OpenAI.</p>
-<h3 id="en-section-5">5. No publisher telemetry or sale of data</h3>
-<p>AI Prompt Macro has no publisher service that receives user workflows, assistant responses, analytics, or usage telemetry.</p>
-<p>The publisher does not sell user workflow data or assistant response data.</p>
-<h3 id="en-section-6">6. Access to local information and user controls</h3>
-<p>Users can access information they have created through the AI Prompt Macro interface. This includes saved Flow Library items and their editable Flow source and settings.</p>
-<p>Users control what AI Prompt Macro sends to ChatGPT by choosing prompts or workflows and explicitly starting or resuming a Run. To prevent further sends by AI Prompt Macro, users can refrain from starting or resuming a Run, pause or stop an active Run, or remove the extension.</p>
-<p>Users can manage locally stored information in the following ways:</p>
-<ul>
-<li>Edit or delete saved Flow Library items through the extension interface</li>
-<li>Change the relevant workflow settings or other settings through the extension interface</li>
-<li>Disable optional Keep Awake</li>
-<li>Remove the extension</li>
-<li>Use Microsoft Edge browser controls to clear extension or site data where applicable</li>
-</ul>
-<p>AI Prompt Macro does not provide a remote account or publisher-side database through which the publisher can view or retrieve these local workflows.</p>
-<p>Removing the extension or clearing its data may delete locally saved workflows and state. Before clearing local data, manually copy any Flow source you wish to keep outside the extension.</p>
-<h3 id="en-section-7">7. Permissions</h3>
-<p>The extension may request the following permissions:</p>
-<ul>
-<li><code>storage</code> — Local workflows, settings, and bounded Run, outbox, and diagnostic state</li>
-<li><code>sidePanel</code> — The extension user interface</li>
-<li><code>alarms</code> — Bounded local wait and schedule behavior</li>
-<li><code>scripting</code> — Limited reattachment of packaged local content scripts to the explicitly selected <code>chatgpt.com</code> tab when needed</li>
-<li><code>power</code> — Optional Keep Awake while a workflow is actively running</li>
-<li>Host access to <code>https://chatgpt.com/*</code> — Required to perform the user-requested ChatGPT Web workflow and verify the intended target</li>
-</ul>
-<p>The current design does not request <code>tabs</code>, <code>history</code>, <code>cookies</code>, <code>webRequest</code>, or <code>&lt;all_urls&gt;</code> permissions.</p>
-<h3 id="en-section-8">8. Retention</h3>
-<p>AI Prompt Macro does not maintain a publisher-side user database.</p>
-<p>Locally stored extension data remains in the user's browser until it is changed, deleted through the extension or browser, or removed with the extension or browser profile according to browser behavior.</p>
-<h3 id="en-section-9">9. Changes</h3>
-<p>This policy will be updated when AI Prompt Macro's data handling, permissions, third-party services, or supported features materially change.</p>
-<p>The version of this policy presented with a release must match the behavior of that release.</p>
-    </div>
-    <p class="back-to-top"><a href="#top">Back to top</a> · <a href="#ja" lang="ja" hreflang="ja">日本語</a></p>
+    <p class="back-to-top"><a href="#top">ページ先頭へ</a> · <a href="privacy-en.html#en" lang="en" hreflang="en">English</a></p>
   </article>
 </main>
 </body>
